@@ -1,0 +1,44 @@
+.followBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  padding: 6px 16px;
+  min-width: 80px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+  white-space: nowrap;
+  border: none;
+
+  /* Default: not following — orange filled */
+  background: var(--sc-primary);
+  color: var(--sc-white);
+
+  &:hover {
+    background: var(--sc-primary-hover);
+  }
+}
+
+.following {
+  /* Following state — grey outlined */
+  background: transparent;
+  border: 1px solid var(--sc-gray-500);
+  color: var(--sc-gray-400);
+
+  &:hover {
+    /* Red Unfollow on hover */
+    border-color: var(--sc-danger);
+    color: var(--sc-danger);
+    background: rgba(207, 0, 0, 0.1);
+  }
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

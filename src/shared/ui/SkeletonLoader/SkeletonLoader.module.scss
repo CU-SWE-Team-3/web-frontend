@@ -1,0 +1,32 @@
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--sc-gray-200);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s ease infinite;
+  }
+}
+
+.rounded { border-radius: var(--sc-radius-md); }
+.circle  { border-radius: var(--sc-radius-full); }
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-2);
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
