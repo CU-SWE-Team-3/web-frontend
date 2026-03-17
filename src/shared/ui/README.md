@@ -1,7 +1,7 @@
 # Shared UI Component Library
 
 > **Owner:** Basel (Frontend Sub-Leader)  
-> **Rule:** Never build your own UI elements. Always import from here.
+> **Rule:** Never build your own UI elements. Always import from here.++
 
 ---
 
