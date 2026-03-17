@@ -1,0 +1,93 @@
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import AppInput from '@/shared/ui/AppInput'
+import AppButton from '@/shared/ui/AppButton'
+import { authRepository } from '../api/authRepository'
+import { ROUTES } from '@/shared/constants/routes'
+
+// ─── ForgotPasswordForm ───────────────────────────────────────────────────────
+// The user types their email. We send them a reset link.
+
+const ForgotPasswordForm = () => {
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const validate = () => {
+    if (!email) { setError('Email is required'); return false }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Please enter a valid email'); return false }
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+    setIsLoading(true)
+    setError('')
+    try {
+      await authRepository.forgotPassword({ email })
+      setSuccess(true)
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Show success message after email is sent
+  if (success) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-white text-xl font-bold">Email sent!</h2>
+        <p className="text-[#999] text-sm max-w-xs">
+          If <span className="text-white">{email}</span> is registered, you&apos;ll receive a
+          password reset link shortly. Check your spam folder too.
+        </p>
+        <Link href={ROUTES.LOGIN} className="text-[#ff5500] text-sm hover:underline">
+          Back to Sign In
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+      <p className="text-[#999] text-sm leading-relaxed">
+        Enter the email address linked to your account.
+        We&apos;ll send you a link to reset your password.
+      </p>
+
+      <AppInput
+        id="forgot-email"
+        type="email"
+        label="Email address"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => { setEmail(e.target.value); setError('') }}
+        error={error}
+        required
+      />
+
+      <AppButton type="submit" fullWidth isLoading={isLoading}>
+        Send Reset Link
+      </AppButton>
+
+      <p className="text-center text-xs text-[#999]">
+        Remembered it?{' '}
+        <Link href={ROUTES.LOGIN} className="text-[#ff5500] hover:underline font-medium">
+          Sign in
+        </Link>
+      </p>
+    </form>
+  )
+}
+
+export default ForgotPasswordForm
