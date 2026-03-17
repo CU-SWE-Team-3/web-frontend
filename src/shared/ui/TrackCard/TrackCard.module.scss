@@ -1,0 +1,147 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  height: 72px;
+  padding: 0 var(--sc-space-3);
+  border-radius: var(--sc-radius-md);
+  transition: background var(--sc-transition-fast);
+  width: 100%;
+
+  &:hover { background: var(--sc-bg-dark-hover); }
+}
+
+/* ---- Play Button ---- */
+.playBtn {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--sc-transition-fast);
+
+  &:hover { background: var(--sc-primary-hover); }
+}
+
+.playTriangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 7px 0 7px 12px;
+  border-color: transparent transparent transparent var(--sc-white);
+  margin-left: 2px;
+}
+
+.pauseIcon {
+  display: flex;
+  gap: 3px;
+}
+
+.pauseBar {
+  width: 3px;
+  height: 14px;
+  background: var(--sc-white);
+  border-radius: 1px;
+}
+
+/* ---- Cover Art ---- */
+.artWrap {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-sm);
+  overflow: hidden;
+}
+
+.artImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---- Meta ---- */
+.meta {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Waveform ---- */
+.waveform {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 32px;
+  min-width: 0;
+}
+
+.bar {
+  flex: 1;
+  border-radius: 1px;
+  transition: background var(--sc-transition-fast);
+}
+
+/* ---- Stats ---- */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  flex-shrink: 0;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+}
+
+.likeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--sc-radius-sm);
+  transition: color var(--sc-transition-fast);
+
+  &:hover { color: var(--sc-primary); }
+}
+
+.liked { color: var(--sc-primary); }

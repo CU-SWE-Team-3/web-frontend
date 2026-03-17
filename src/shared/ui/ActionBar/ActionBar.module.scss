@@ -1,0 +1,39 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--sc-gray-400);
+  background: none;
+  border: 1px solid var(--sc-bg-dark-hover);
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: color var(--sc-transition-fast),
+    border-color var(--sc-transition-fast);
+
+  &:hover {
+    color: var(--sc-white);
+    border-color: var(--sc-gray-500);
+  }
+}
+
+.withLabel {
+  width: auto;
+  padding: 0 var(--sc-space-3);
+  gap: var(--sc-space-1);
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+}
+
+.active {
+  color: var(--sc-primary);
+  border-color: var(--sc-primary);
+}

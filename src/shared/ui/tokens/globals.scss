@@ -1,0 +1,103 @@
+/* ============================================ */
+/* SoundCloud Design System — Global Tokens     */
+/* ============================================ */
+
+:root {
+  /* ---- Brand Colors ---- */
+  --sc-primary: #ff5500;
+  --sc-primary-hover: #e64d00;
+  --sc-primary-active: #cc4400;
+  --sc-primary-light: #fff2eb;
+
+  /* ---- Neutral Colors ---- */
+  --sc-black: #111;
+  --sc-gray-900: #333;
+  --sc-gray-700: #555;
+  --sc-gray-500: #999;
+  --sc-gray-400: #b3b3b3;
+  --sc-gray-300: #ccc;
+  --sc-gray-200: #e5e5e5;
+  --sc-gray-100: #f2f2f2;
+  --sc-white: #fff;
+
+  /* ---- Semantic Colors ---- */
+  --sc-danger: #cf0000;
+  --sc-danger-hover: #b00000;
+  --sc-success: #0a0;
+  --sc-info: #06c;
+  --sc-warning: #f80;
+
+  /* ---- Background ---- */
+  --sc-bg-primary: #fff;
+  --sc-bg-secondary: #f2f2f2;
+  --sc-bg-dark: #111;
+  --sc-bg-dark-surface: #1a1a1a;
+  --sc-bg-dark-elevated: #2a2a2a;
+  --sc-bg-dark-hover: #333;
+  --sc-bg-overlay: rgba(0, 0, 0, 0.65);
+
+  /* ---- Social Brand Colors ---- */
+  --sc-facebook: #3578e5;
+  --sc-google: #555;
+  --sc-apple: #000;
+
+  /* ---- Misc ---- */
+  --sc-verified: #3da1f2;
+  --sc-waveform: #999;
+  --sc-waveform-progress: #f50;
+
+  /* ---- Typography ---- */
+  --sc-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, sans-serif;
+  --sc-font-size-xs: 0.6875rem;   /* 11px */
+  --sc-font-size-sm: 0.75rem;     /* 12px */
+  --sc-font-size-md: 0.875rem;    /* 14px */
+  --sc-font-size-lg: 1rem;        /* 16px */
+  --sc-font-size-xl: 1.25rem;     /* 20px */
+  --sc-font-size-2xl: 1.5rem;     /* 24px */
+  --sc-font-size-3xl: 2rem;       /* 32px */
+  --sc-font-weight-regular: 400;
+  --sc-font-weight-medium: 500;
+  --sc-font-weight-semibold: 600;
+  --sc-font-weight-bold: 700;
+  --sc-line-height-tight: 1.2;
+  --sc-line-height-normal: 1.5;
+
+  /* ---- Spacing (4px grid) ---- */
+  --sc-space-1: 0.25rem;  /* 4px */
+  --sc-space-2: 0.5rem;   /* 8px */
+  --sc-space-3: 0.75rem;  /* 12px */
+  --sc-space-4: 1rem;     /* 16px */
+  --sc-space-5: 1.25rem;  /* 20px */
+  --sc-space-6: 1.5rem;   /* 24px */
+  --sc-space-8: 2rem;     /* 32px */
+  --sc-space-10: 2.5rem;  /* 40px */
+  --sc-space-12: 3rem;    /* 48px */
+  --sc-space-16: 4rem;    /* 64px */
+
+  /* ---- Border Radius ---- */
+  --sc-radius-sm: 2px;
+  --sc-radius-md: 4px;
+  --sc-radius-lg: 8px;
+  --sc-radius-xl: 12px;
+  --sc-radius-full: 9999px;
+
+  /* ---- Shadows ---- */
+  --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --sc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --sc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.16);
+  --sc-shadow-focus: 0 0 0 3px rgba(255, 85, 0, 0.25);
+  --sc-shadow-error: 0 0 0 3px rgba(207, 0, 0, 0.2);
+
+  /* ---- Transitions ---- */
+  --sc-transition-fast: 120ms ease;
+  --sc-transition-normal: 200ms ease;
+  --sc-transition-slow: 300ms ease;
+
+  /* ---- Z-index Scale ---- */
+  --sc-z-dropdown: 100;
+  --sc-z-sticky: 200;
+  --sc-z-modal: 500;
+  --sc-z-toast: 600;
+  --sc-z-tooltip: 700;
+}

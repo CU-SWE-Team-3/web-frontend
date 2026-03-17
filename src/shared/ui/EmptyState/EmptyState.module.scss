@@ -1,0 +1,28 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-4);
+  padding: var(--sc-space-16) var(--sc-space-8);
+  text-align: center;
+}
+
+.icon {
+  font-size: 48px;
+  color: var(--sc-gray-500);
+}
+
+.title {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-white);
+}
+
+.description {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-500);
+  max-width: 400px;
+}
