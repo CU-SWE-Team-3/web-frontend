@@ -1,0 +1,97 @@
+﻿node.exe : FAIL src/fea
+tures/social-graph/test
+s/BlockedUsersList.test
+.tsx
+At C:\Program Files\nod
+ejs\npx.ps1:29 char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (FAIL src/feat   
+ ur...rsList.test.t    
+sx:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  ΓùÅ Test suite 
+failed to run
+
+    Cannot find module 
+'@radix-ui/react-avatar
+' from 'src/components/
+ui/avatar.tsx'
+
+    Require stack:
+      src/components/ui
+/avatar.tsx
+      src/features/soci
+al-graph/ui/BlockedUser
+Row.tsx
+      src/features/soci
+al-graph/ui/BlockedUser
+sList.tsx
+      src/features/soci
+al-graph/tests/BlockedU
+sersList.test.tsx
+
+    [0m [90m 22 
+|[39m     
+ref[33m=[39m{ref}
+     [90m 23 |[39m   
+  className[33m=[39m{
+cn([32m"aspect-square 
+h-full w-full"[39m[33
+m,[39m className)}
+    [31m[1m>[22m[39
+m[90m 24 |[39m     
+{[33m...[39mprops}
+     [90m    |[39m   
+                      
+[31m[1m^[22m[39m
+     [90m 25 |[39m   
+[33m/[39m[33m>[39m
+     [90m 26 |[39m ))
+     [90m 27 |[39m [
+33mAvatarImage[39m[33
+m.[39mdisplayName 
+[33m=[39m [33mAvatar
+Primitive[39m[33m.[3
+9m[33mImage[39m[33m.
+[39mdisplayName[0m
+
+      at Resolver._thro
+wModNotFoundError (node
+_modules/jest-resolve/b
+uild/resolver.js:427:11
+)
+      at 
+Object.<anonymous> (src
+/components/ui/avatar.t
+sx:24:62)
+      at 
+Object.<anonymous> (src
+/features/social-graph/
+ui/BlockedUserRow.tsx:1
+3:17)
+      at 
+Object.<anonymous> (src
+/features/social-graph/
+ui/BlockedUsersList.tsx
+:18:25)
+      at 
+Object.<anonymous> (src
+/features/social-graph/
+tests/BlockedUsersList.
+test.tsx:14:27)
+
+Test Suites: 1 failed, 
+1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        19.936 s
+Ran all test suites.
