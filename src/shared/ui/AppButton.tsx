@@ -4,20 +4,22 @@ import React from 'react'
 // We list every option this button can accept.
 export interface AppButtonProps {
   children: React.ReactNode           // The text/icon inside the button
-  onClick?: () => void                // What happens when you click it
+  onClick?: (e: React.MouseEvent) => void // Updated to accept MouseEvent
   type?: 'button' | 'submit' | 'reset'
-  variant?: 'primary' | 'secondary' | 'ghost'  // Style options
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' // Added outline
   fullWidth?: boolean                 // Should it stretch to full width?
   disabled?: boolean                  // Is it greyed out / unclickable?
   isLoading?: boolean                 // Show a spinner instead of text?
   className?: string                  // Extra custom classes if needed
+  style?: React.CSSProperties         // Added for custom styling
 }
 
 // ─── Style Map ────────────────────────────────────────────────────────────────
 const variantStyles: Record<string, string> = {
   primary:   'bg-[#ff5500] hover:bg-[#e64d00] text-white font-bold',
-  secondary: 'bg-white hover:bg-gray-100 text-black font-bold border border-gray-300',
+  secondary: 'bg-[#333] hover:bg-[#444] text-white font-bold border border-[#444]',
   ghost:     'bg-transparent hover:bg-white/10 text-white font-medium underline',
+  outline:   'bg-transparent hover:bg-white/5 text-white border border-[#333]',
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -30,11 +32,13 @@ const AppButton = ({
   disabled = false,
   isLoading = false,
   className = '',
+  style = {},
 }: AppButtonProps) => {
   return (
     <button
       type={type}
       onClick={onClick}
+      style={style}
       disabled={disabled || isLoading}
       className={`
         ${variantStyles[variant]}
