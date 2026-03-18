@@ -1,0 +1,89 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-4);
+  background: var(--sc-bg-dark);
+  border-bottom: 1px solid var(--sc-bg-dark-hover);
+  padding: 0 var(--sc-space-6);
+  z-index: var(--sc-z-sticky);
+  font-family: var(--sc-font-family);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+  flex-shrink: 0;
+  color: var(--sc-primary);
+  font-size: var(--sc-font-size-xl);
+  font-weight: var(--sc-font-weight-bold);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.logoIcon {
+  font-size: 24px;
+}
+
+.logoText {
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-weight-bold);
+  letter-spacing: -0.5px;
+}
+
+.searchWrap {
+  flex: 1;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  flex-shrink: 0;
+}
+
+.uploadBtn {
+  padding: 4px 14px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-white);
+  background: transparent;
+  border: 1px solid var(--sc-gray-500);
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: border-color var(--sc-transition-fast);
+  &:hover { border-color: var(--sc-white); }
+}
+
+.ghostBtn {
+  padding: 4px 14px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-white);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--sc-transition-fast);
+  &:hover { color: var(--sc-primary); }
+}
+
+.primaryBtn {
+  padding: 4px 14px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-white);
+  background: var(--sc-primary);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: background var(--sc-transition-fast);
+  &:hover { background: var(--sc-primary-hover); }
+}

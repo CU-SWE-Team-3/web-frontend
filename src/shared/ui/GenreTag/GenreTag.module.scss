@@ -1,0 +1,35 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-medium);
+  border-radius: var(--sc-radius-sm);
+  cursor: pointer;
+  transition: color var(--sc-transition-fast), border-color var(--sc-transition-fast);
+  white-space: nowrap;
+}
+
+/* Orange outlined — for genres */
+.outlined {
+  color: var(--sc-primary);
+  background: transparent;
+  border: 1px solid var(--sc-primary);
+
+  &:hover {
+    background: rgba(255, 85, 0, 0.1);
+  }
+}
+
+/* Grey filled — for tags */
+.filled {
+  color: var(--sc-gray-300);
+  background: var(--sc-bg-dark-elevated);
+  border: 1px solid var(--sc-bg-dark-hover);
+
+  &:hover {
+    color: var(--sc-white);
+    border-color: var(--sc-gray-500);
+  }
+}

@@ -1,0 +1,33 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  padding: var(--sc-space-3) 0;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-1);
+}
+
+.meta {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}

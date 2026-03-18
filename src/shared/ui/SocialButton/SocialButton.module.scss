@@ -1,0 +1,32 @@
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-3);
+  width: 100%;
+  padding: 10px 16px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-semibold);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+  color: var(--sc-white);
+
+  &:hover { opacity: 0.9; }
+}
+
+.facebook { background: var(--sc-facebook); }
+.google   { background: var(--sc-google); }
+.apple    { background: var(--sc-apple); border: 1px solid var(--sc-gray-700); }
+
+.icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
