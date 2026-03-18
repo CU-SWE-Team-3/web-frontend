@@ -1,5 +1,0 @@
-{
-  "/my-tracks/page": "app/my-tracks/page.js",
-  "/upload/page": "app/upload/page.js",
-  "/tracks/[trackId]/page": "app/tracks/[trackId]/page.js"
-}
