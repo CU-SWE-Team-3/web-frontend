@@ -1,0 +1,26 @@
+:root {
+  /* Backgrounds */
+  --sc-bg: #0e0e0e;
+  --sc-surface-1: #121212;
+  --sc-surface-2: #151515;
+  --sc-surface-3: #1a1a1a;
+  --sc-surface-4: #202020;
+
+  /* Typography */
+  --sc-text: #ffffff;
+  --sc-text-muted: #a3a3a3;
+
+  /* Brand */
+  --sc-primary: #f97316;
+  --sc-primary-hover: #fb923c;
+  --sc-primary-strong: #ff5500;
+
+  /* Waveform (used in JS contexts where Tailwind classes cannot be applied) */
+  --sc-wave-bar: #404040;
+  --sc-wave-progress: #f97316;
+  --sc-wave-cursor: #ffffff;
+
+  /* Borders */
+  --sc-border-soft: rgba(255, 255, 255, 0.1);
+  --sc-border-softer: rgba(255, 255, 255, 0.05);
+}
