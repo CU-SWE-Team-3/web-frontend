@@ -1,0 +1,46 @@
+import axios from 'axios'
+
+// ─── Axios Client ─────────────────────────────────────────────────────────────
+// This is the one HTTP client used by the whole app.
+// UI components NEVER call fetch() directly — they always call repository functions,
+// which use this client.
+
+const apiClient = axios.create({
+  // Replace this with your real backend URL when the backend team is ready
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10_000, // 10 seconds
+})
+
+// ─── Request Interceptor ──────────────────────────────────────────────────────
+// Automatically attaches the JWT token to every outgoing request
+// so the user doesn't have to re-authenticate on each call.
+apiClient.interceptors.request.use((config) => {
+  // Read token from localStorage (set by useAuthStore on login)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+
+// ─── Response Interceptor ─────────────────────────────────────────────────────
+// If the server returns 401 (token expired), clear the session and redirect to login.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken')
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default apiClient
