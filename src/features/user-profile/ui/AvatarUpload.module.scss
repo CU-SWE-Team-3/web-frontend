@@ -1,0 +1,35 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  border-radius: var(--sc-radius-full);
+  overflow: hidden;
+
+  &:hover .overlay {
+    opacity: 1;
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: var(--sc-radius-full);
+  opacity: 0;
+  transition: opacity var(--sc-transition-normal);
+  color: var(--sc-white);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--sc-radius-full);
+}

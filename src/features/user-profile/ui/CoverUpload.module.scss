@@ -1,0 +1,51 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: var(--sc-radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--sc-bg-dark-elevated);
+
+  @media (min-width: 768px) {
+    height: 260px;
+  }
+
+  &:hover .overlay {
+    opacity: 1;
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-gray-500);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity var(--sc-transition-normal);
+  color: var(--sc-white);
+  gap: var(--sc-space-2);
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+}
+
+.hiddenInput {
+  display: none;
+}

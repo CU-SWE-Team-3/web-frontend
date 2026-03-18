@@ -3,10 +3,10 @@
 /* ============================= */
 
 /* ---- Core Components ---- */
-export { default as AppButton } from './AppButton';
+export { AppButton } from './AppButton';
 export type { AppButtonProps } from './AppButton';
 
-export { default as AppInput } from './AppInput';
+export { AppInput } from './AppInput';
 export type { AppInputProps } from './AppInput';
 
 export { UserAvatar } from './UserAvatar';
