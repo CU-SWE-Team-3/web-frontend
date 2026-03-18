@@ -1,0 +1,22 @@
+.homepage-container {
+  background-color: #000000;
+  min-height: 100vh;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.hero-banner {
+  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), #1a1a1a;
+  
+  h1 {
+    letter-spacing: -2px;
+  }
+}
+
+.search-section {
+  input {
+    font-size: 14px;
+    &::placeholder {
+      color: #999;
+    }
+  }
+}

@@ -1,0 +1,53 @@
+// SoundCloud Dark Theme Colors
+$sc-black: #111111;
+$sc-input-bg: #333333;
+$sc-text-grey: #999999;
+$sc-border: #444444;
+$sc-facebook: #1877f2;
+$sc-google: #ffffff;
+$sc-apple: #000000;
+$sc-orange: #ff5500;
+
+.auth-modal-content {
+  background-color: $sc-black;
+  color: white;
+  font-family: Inter, "Inter UI", Helvetica, Arial, sans-serif;
+
+  .social-btn {
+    width: 100%;
+    font-size: 14px;
+    height: 40px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-weight: 500;
+
+    &.facebook { background-color: $sc-facebook; color: white; }
+    &.google { background-color: #333333; color: white; border: 1px solid #555; }
+    &.apple { background-color: $sc-apple; color: white; }
+  }
+
+  .divider-text {
+    color: $sc-text-grey;
+    font-size: 14px;
+    margin: 15px 0;
+  }
+
+  input {
+    background-color: $sc-input-bg;
+    border: 1px solid $sc-border;
+    color: white;
+    &::placeholder { color: #777; }
+  }
+
+  .continue-btn {
+    background-color: #666; // Defaults to grey until email is typed
+    color: black;
+    &.active {
+      background-color: $sc-orange;
+      color: white;
+    }
+  }
+}

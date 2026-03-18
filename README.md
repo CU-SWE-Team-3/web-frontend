@@ -1,10 +1,11 @@
-# Frontend Architecture & Documentation
+# SoundCloud Clone (web-frontend)
 
-## 1. Frontend Architecture & Design Patterns
+## 1. Frontend Architecture & Documentation
+
 The application follows a modular, feature-centric architecture heavily inspired by **Feature-Sliced Design (FSD)**. This ensures separation of concerns, high maintainability, and scalability for a team-based environment. 
 
 The application is built on:
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS, SCSS Modules, and CSS Variables
 - **UI Components:** Customized `shadcn/ui` and a bespoke Shared UI library
