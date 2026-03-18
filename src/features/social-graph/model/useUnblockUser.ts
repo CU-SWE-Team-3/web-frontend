@@ -11,7 +11,7 @@ export const useUnblockUser = () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       await axios.delete(`${apiUrl}/network/${userId}/block`);
     },
-    
+
     onMutate: async (unblockedUserId) => {
       await queryClient.cancelQueries({ queryKey: BLOCKED_USERS_QUERY_KEY });
 
@@ -26,13 +26,13 @@ export const useUnblockUser = () => {
 
       return { previousBlockedUsers };
     },
-    
+
     onError: (_err, _unblockedUserId, context) => {
       if (context?.previousBlockedUsers) {
         queryClient.setQueryData(BLOCKED_USERS_QUERY_KEY, context.previousBlockedUsers);
       }
     },
-    
+
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: BLOCKED_USERS_QUERY_KEY });
     },

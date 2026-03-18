@@ -2,8 +2,8 @@ import "./globals.scss";
 import { Providers } from "./providers";
 
 export const metadata = {
-  title: "SoundCloud - Settings",
-  description: "SoundCloud Settings",
+  title: "Biobeats - Settings",
+  description: "Biobeats Settings",
 };
 
 export default function RootLayout({
@@ -14,12 +14,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {/* SoundCloud Dark Header */}
+        {/* Biobeats Dark Header */}
         <header className="bg-[#111] h-[46px] flex items-center px-4 border-b border-[#333]">
           <div className="max-w-[1240px] w-full mx-auto flex items-center justify-between">
             {/* Logo + Nav */}
             <div className="flex items-center gap-5">
-              {/* SoundCloud waveform logo */}
+              {/* Biobeats waveform logo */}
               <a href="/" className="flex items-center mr-2">
                 <svg width="36" height="16" viewBox="0 0 36 16" fill="none">
                   <rect x="0" y="8" width="2" height="8" rx="1" fill="#fff"/>

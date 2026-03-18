@@ -1,12 +1,12 @@
 import { type FC } from 'react';
 
-export interface SoundCloudLogoProps {
+export interface BiobeatsLogoProps {
   size?: number;
   color?: string;
   className?: string;
 }
 
-export const SoundCloudLogo: FC<SoundCloudLogoProps> = ({
+export const BiobeatsLogo: FC<BiobeatsLogoProps> = ({
   size = 32,
   color = '#ff5500',
   className,
@@ -20,7 +20,7 @@ export const SoundCloudLogo: FC<SoundCloudLogoProps> = ({
       viewBox="0 0 120 68"
       fill={color}
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="SoundCloud"
+      aria-label="Biobeats"
       role="img"
     >
       {/* Waveform bars */}

@@ -1,13 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { FollowCounts } from "./types";
 
 export const useUnfollowUser = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, string>({
+  return useMutation<FollowCounts, Error, string>({
     mutationFn: async (userId: string) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/network/${userId}/follow`);
+      const { data } = await axios.delete(`${apiUrl}/network/${userId}/follow`);
+      return data.data as FollowCounts;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["network"] });

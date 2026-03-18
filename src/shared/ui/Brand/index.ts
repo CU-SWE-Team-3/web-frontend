@@ -1,2 +1,2 @@
-export { SoundCloudLogo } from './SoundCloudLogo';
-export type { SoundCloudLogoProps } from './SoundCloudLogo';
+export { BiobeatsLogo } from './BiobeatsLogo';
+export type { BiobeatsLogoProps } from './BiobeatsLogo';

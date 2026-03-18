@@ -2,7 +2,7 @@ import React from "react";
 import { ProfileFeature } from "@/features/social-graph";
 
 export const metadata = {
-  title: "Profile | XC Z - SoundCloud",
+  title: "Profile | XC Z - Biobeats",
   description: "View followers and following for XC Z.",
 };
 

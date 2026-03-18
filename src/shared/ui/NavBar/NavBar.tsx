@@ -1,7 +1,7 @@
 import { type FC, type ReactNode } from 'react';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
-import { SoundCloudLogo } from '../Brand';
+import { BiobeatsLogo } from '../Brand';
 
 export interface NavBarProps {
   isLoggedIn?: boolean;
@@ -29,8 +29,8 @@ export const NavBar: FC<NavBarProps> = ({
   <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Logo */}
     <div className={s.logo}>
-      <SoundCloudLogo size={36} color="var(--sc-primary)" />
-      <span className={s.logoText}>SOUNDCLOUD</span>
+      <BiobeatsLogo size={36} color="var(--sc-primary)" />
+      <span className={s.logoText}>BIOBEATS</span>
     </div>
 
     {/* Search */}

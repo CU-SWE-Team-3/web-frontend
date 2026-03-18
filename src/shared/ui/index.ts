@@ -95,7 +95,7 @@ export type { NavBarProps } from './NavBar';
 export { SidebarNav } from './SidebarNav';
 export type { SidebarNavProps, NavLink, SidebarTrack } from './SidebarNav';
 
-export { SoundCloudLogo } from './Brand';
-export type { SoundCloudLogoProps } from './Brand';
+export { BiobeatsLogo } from './Brand';
+export type { BiobeatsLogoProps } from './Brand';
 
 export * from './icons';

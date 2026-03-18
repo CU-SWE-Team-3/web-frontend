@@ -7,7 +7,7 @@ export interface BlockedUser {
 
 export interface BlockedUsersResponse {
   success: boolean;
-  message: string;
+  count: number;
   data: {
     _id: string;
     displayName: string;
@@ -22,5 +22,17 @@ export interface FollowNode {
   displayName: string;
   avatarUrl: string | null;
   followerCount: number;
+  followingCount: number;
   isFollowing?: boolean;
+}
+
+export interface FollowCounts {
+  myFollowingCount: number;
+  theirFollowerCount: number;
+}
+
+export interface NetworkListResponse<T> {
+  success: boolean;
+  count: number;
+  data: T[];
 }
