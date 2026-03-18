@@ -1,3 +1,5 @@
 node_modules
 .next
 *.tsbuildinfo
+jest_output.txt
+jest_output_utf8.txt
