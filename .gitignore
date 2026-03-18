@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+jest_output.txt
+jest_output_utf8.txt
 
 # next.js
 /.next/

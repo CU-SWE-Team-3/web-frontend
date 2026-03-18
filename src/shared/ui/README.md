@@ -7,7 +7,7 @@
 
 ## What is this folder?
 
-This is the **shared UI component library** for the SoundCloud clone frontend.  
+This is the **shared UI component library** for the Biobeats frontend.  
 Every button, input, card, modal, icon, and layout component lives here.  
 All 6 frontend teammates import from this single source of truth.
 
@@ -32,7 +32,7 @@ You never need to import from a subfolder directly.
 | **Track Metadata** | `LikeButton`, `PlayCount`, `TrackDuration`, `GenreTag`, `ActionBar`, `StatCounter` |
 | **Layout** | `NavBar`, `SidebarNav`, `PlayerBar`, `TabBar`, `SearchBar`, `AnnouncementBanner` |
 | **Content** | `ArtistSuggestionCard`, `EmptyState`, `DropZone`, `SocialButton` |
-| **Brand** | `SoundCloudLogo` |
+| **Brand** | `BiobeatsLogo` |
 
 ---
 
@@ -42,7 +42,7 @@ You never need to import from a subfolder directly.
 import { PlayIcon, LikeIcon, SearchIcon, HomeIcon } from '@/shared/ui'
 ```
 
-Icons are re-exported from `lucide-react` with SoundCloud-specific names.  
+Icons are re-exported from `lucide-react` with Biobeats-specific names.  
 **Never import from `lucide-react` directly.** Always use the aliases from here.
 
 ### Available icons

@@ -17,7 +17,7 @@ We employ several core design patterns to keep the codebase clean:
 - **Feature-Sliced Architecture:** Code is co-located by business domain (`src/features/...`) rather than technical role (e.g., separating all components, all hooks, all api calls globally). 
 - **Repository Pattern:** API calls are abstracted into repository objects (e.g., `blockRepository`), decoupling the UI and custom hooks from the direct HTTP client implementation.
 - **Custom Hooks Pattern:** All React Query logic and data fetching orchestration are encapsulated in domain-specific hooks (e.g., `useBlockedUsers`, `useUnblockUser`) to keep React components pure and focused on presentation.
-- **Atomic UI Design:** Universal, reusable UI elements are strictly maintained in `src/shared/ui` to guarantee a consistent design system (SoundCloud dark theme).
+- **Atomic UI Design:** Universal, reusable UI elements are strictly maintained in `src/shared/ui` to guarantee a consistent design system (Biobeats dark theme).
 - **Barrel Exports:** Features and shared modules use `index.ts` files to cleanly expose public APIs and encapsulate internal logic.
 
 ## 1.3 State Management Strategy
