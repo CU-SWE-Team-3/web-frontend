@@ -2,7 +2,7 @@ import React from 'react'
 
 // ─── Props Definition ─────────────────────────────────────────────────────────
 // We list every option this button can accept.
-interface AppButtonProps {
+export interface AppButtonProps {
   children: React.ReactNode           // The text/icon inside the button
   onClick?: () => void                // What happens when you click it
   type?: 'button' | 'submit' | 'reset'

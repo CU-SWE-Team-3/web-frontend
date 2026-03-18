@@ -3,48 +3,34 @@
 import { create } from 'zustand'
 import type { User } from '@/shared/types'
 
-// ─── Auth Store Shape ─────────────────────────────────────────────────────────
-// This is the "memory" of whether the user is logged in.
-// Any component in the app can read or change this.
+// ─── Auth Store ──────────────────────────────────────────────────────────────
+// Auth is cookie-based (HttpOnly). The backend sets accessToken and refreshToken
+// cookies automatically on login/refresh. We only store the User object here.
 
 interface AuthState {
-  user: User | null          // The logged-in user's data (or null if not logged in)
-  accessToken: string | null // The JWT token used to authenticate API calls
-  isAuthenticated: boolean   // Simple boolean: true = logged in, false = not
+  user: User | null
+  isAuthenticated: boolean
 
-  // Actions — functions that change the state
-  login: (user: User, accessToken: string) => void
+  login: (user: User) => void
   logout: () => void
   setUser: (user: User) => void
 }
 
-// ─── Zustand Store ────────────────────────────────────────────────────────────
-// create() from Zustand creates a global store.
-// Think of it like a global variable that React components can "watch".
-
 export const useAuthStore = create<AuthState>((set) => ({
-  // Initial state — user starts as not logged in
   user: null,
-  accessToken: null,
   isAuthenticated: false,
 
-  // Called after a successful login
-  login: (user, accessToken) => {
-    // Save token to localStorage so it persists across page refreshes
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', accessToken)
-    }
-    set({ user, accessToken, isAuthenticated: true })
+  // Called after login/register/google-callback — just save the user object.
+  // No token in localStorage because auth is handled by HttpOnly cookies.
+  login: (user) => {
+    set({ user, isAuthenticated: true })
   },
 
-  // Called when user clicks "Log out"
+  // Called on logout — clear local state (backend clears the cookie)
   logout: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken')
-    }
-    set({ user: null, accessToken: null, isAuthenticated: false })
+    set({ user: null, isAuthenticated: false })
   },
 
-  // Called to update user profile data without re-logging in
+  // Update profile data without re-logging in
   setUser: (user) => set({ user }),
 }))

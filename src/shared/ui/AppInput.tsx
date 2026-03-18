@@ -1,7 +1,7 @@
 import React from 'react'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
-interface AppInputProps {
+export interface AppInputProps {
   id: string                          // Unique ID (required for accessibility)
   label?: string                      // Label shown above the input
   type?: 'text' | 'email' | 'password'

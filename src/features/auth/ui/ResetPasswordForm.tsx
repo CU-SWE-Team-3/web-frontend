@@ -2,19 +2,19 @@
 
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import AppInput from '@/shared/ui/AppInput'
-import AppButton from '@/shared/ui/AppButton'
-import { authRepository } from '../api/authRepository'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
 import { ROUTES } from '@/shared/constants/routes'
 
 // ─── ResetPasswordForm ────────────────────────────────────────────────────────
-// User lands here from the email link (e.g. /reset-password?token=abc123).
-// They set a new password, and we call the API with the token + new password.
+// PATCH /auth/reset-password
+// Body: { token, newPassword }
+// NOTE: confirmPassword is frontend-only validation — NOT sent to the API.
+// The spec requires only { token, newPassword }.
 
 const ResetPasswordForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Read ?token=... from the URL — the backend sent this in the reset email
   const token = searchParams.get('token') ?? ''
 
   const [newPassword, setNewPassword] = useState('')
@@ -33,6 +33,8 @@ const ResetPasswordForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
+  // PATCH /auth/reset-password  body: { token, newPassword }
+  // confirmPassword is frontend validation only — not included in the request
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
@@ -43,7 +45,12 @@ const ResetPasswordForm = () => {
     setIsLoading(true)
     setErrors({})
     try {
-      await authRepository.resetPassword({ token, newPassword, confirmPassword })
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.patch(
+        `${apiUrl}/auth/reset-password`,
+        { token, newPassword },   // <-- no confirmPassword in body per the spec
+        { withCredentials: true }
+      )
       setSuccess(true)
     } catch {
       setErrors({ general: 'This link has expired or is invalid. Please request a new reset link.' })
@@ -52,7 +59,6 @@ const ResetPasswordForm = () => {
     }
   }
 
-  // Success screen
   if (success) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">

@@ -3,31 +3,36 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
 import ReCAPTCHA from 'react-google-recaptcha'
-import AppInput from '@/shared/ui/AppInput'
-import AppButton from '@/shared/ui/AppButton'
-import { authRepository } from '../api/authRepository'
+import { AppInput, AppButton } from '@/shared/ui'
 import { ROUTES } from '@/shared/constants/routes'
+import { useAuthStore } from '../model/useAuthStore'
 
 // ─── RegisterForm ─────────────────────────────────────────────────────────────
-// Handles new user registration with email, password, and CAPTCHA.
+// POST /auth/register
+// Body: { email, password, displayName, captchaToken, age?, gender? }
+// Required: email, password, displayName, captchaToken
+// confirmPassword is frontend-only validation — NOT sent to the backend.
 
 const RegisterForm = () => {
   const router = useRouter()
+  const login = useAuthStore((state) => state.login)
 
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [errors, setErrors] = useState<{
-    email?: string; password?: string; confirmPassword?: string; captcha?: string; general?: string
+    displayName?: string; email?: string; password?: string; confirmPassword?: string; captcha?: string; general?: string
   }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  // ─── Validation ─────────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const newErrors: typeof errors = {}
+    if (!displayName.trim()) newErrors.displayName = 'Display name is required'
     if (!email) newErrors.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Please enter a valid email'
     if (!password) newErrors.password = 'Password is required'
@@ -39,22 +44,26 @@ const RegisterForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  // ─── Google OAuth Handler ────────────────────────────────────────────────────
+  // GET /auth/google → { data: { url } }
   const handleGoogleLogin = async () => {
     try {
-      const { url } = await authRepository.googleLogin()
-      window.location.href = url
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.get(`${apiUrl}/auth/google`, { withCredentials: true })
+      const authUrl = response.data?.data?.url || response.data?.url
+      if (!authUrl) throw new Error('No URL returned from backend')
+      window.location.href = authUrl
     } catch {
       setErrors({ general: 'Google signup is currently unavailable.' })
     }
   }
 
-  // ─── Facebook OAuth Handler ──────────────────────────────────────────────────
   const handleFacebookLogin = () => {
     setErrors({ general: 'Facebook registration is coming soon! Please use Email or Google.' })
   }
 
-  // ─── Submit ──────────────────────────────────────────────────────────────────
+  // POST /auth/register
+  // Body: { email, password, displayName, captchaToken }
+  // confirmPassword is frontend only — not sent to API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
@@ -62,8 +71,18 @@ const RegisterForm = () => {
     setIsLoading(true)
     setErrors({})
     try {
-      await authRepository.register({ email, password, confirmPassword, captchaToken: captchaToken! })
-      setSuccess(true) // Show the "check your email" message
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.post(
+        `${apiUrl}/auth/register`,
+        {
+          email,
+          password,
+          displayName: displayName.trim(),
+          captchaToken,
+        },
+        { withCredentials: true }
+      )
+      setSuccess(true)
     } catch {
       setErrors({ general: 'Registration failed. This email may already be in use.' })
     } finally {
@@ -71,8 +90,6 @@ const RegisterForm = () => {
     }
   }
 
-  // ─── Success State ───────────────────────────────────────────────────────────
-  // After successful registration, show a confirmation message
   if (success) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
@@ -120,12 +137,14 @@ const RegisterForm = () => {
         Continue with Facebook
       </button>
 
-      {/* Email/password divider */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-[#444]" />
         <span className="text-xs text-[#999]">or with email</span>
         <div className="flex-1 h-px bg-[#444]" />
       </div>
+
+      <AppInput id="reg-displayname" type="text" label="Display name" placeholder="Your name or artist name"
+        value={displayName} onChange={(e) => setDisplayName(e.target.value)} error={errors.displayName} required />
 
       <AppInput id="reg-email" type="email" label="Email address" placeholder="your@email.com"
         value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} required />
@@ -136,7 +155,7 @@ const RegisterForm = () => {
       <AppInput id="reg-confirm" type="password" label="Confirm password" placeholder="Repeat your password"
         value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} error={errors.confirmPassword} required />
 
-      {/* CAPTCHA — proves the user is a real human, not a bot */}
+      {/* CAPTCHA */}
       <div className="flex flex-col gap-1">
         <ReCAPTCHA
           sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
@@ -146,7 +165,6 @@ const RegisterForm = () => {
         {errors.captcha && <p className="text-red-500 text-xs">{errors.captcha}</p>}
       </div>
 
-      {/* Terms notice */}
       <p className="text-[11px] text-[#777] leading-tight">
         By creating an account, you agree to SoundCloud&apos;s{' '}
         <span className="text-[#ff5500] cursor-pointer hover:underline">Terms of Use</span> and acknowledge our{' '}

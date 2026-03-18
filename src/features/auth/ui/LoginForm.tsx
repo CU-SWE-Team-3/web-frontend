@@ -3,28 +3,25 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import AppInput from '@/shared/ui/AppInput'
-import AppButton from '@/shared/ui/AppButton'
-import { authRepository } from '../api/authRepository'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
 import { useAuthStore } from '../model/useAuthStore'
 import { ROUTES } from '@/shared/constants/routes'
 
-// ─── LoginForm ────────────────────────────────────────────────────────────────
-// This component handles the entire email+password login flow.
-// It is a "presentational + local state" component: no server calls
-// in page.tsx — all logic stays here.
+// ─── LoginForm ─────────────────────────────────────────────────────────────
+// POST /auth/login  → sets HttpOnly cookies, returns { data: { user } }
+// No accessToken in body — the backend sets it as an HttpOnly cookie.
+// GET  /auth/google → returns { data: { url } } → redirect browser there.
 
 const LoginForm = () => {
   const router = useRouter()
-  const login = useAuthStore((state) => state.login) // from Zustand store
+  const login = useAuthStore((state) => state.login)
 
-  // Local state — what the user has typed
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  // ─── Validation ─────────────────────────────────────────────────────────────
   const validate = (): boolean => {
     const newErrors: typeof errors = {}
     if (!email) newErrors.email = 'Email is required'
@@ -32,38 +29,44 @@ const LoginForm = () => {
     if (!password) newErrors.password = 'Password is required'
     else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters'
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0 // true = no errors
+    return Object.keys(newErrors).length === 0
   }
 
-  // ─── Google OAuth Handler ────────────────────────────────────────────────────
+  // GET /auth/google → { success, data: { url } }
   const handleGoogleLogin = async () => {
     try {
-      const { url } = await authRepository.googleLogin()
-      // Redirect the user's browser to the Google login page
-      window.location.href = url
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.get(`${apiUrl}/auth/google`, { withCredentials: true })
+      // The YAML spec says response.data.data.url, but let's handle both just in case
+      const authUrl = response.data?.data?.url || response.data?.url
+      if (!authUrl) throw new Error('No URL returned from backend')
+      window.location.href = authUrl
     } catch {
       setErrors({ general: 'Google login is currently unavailable.' })
     }
   }
 
-  // ─── Facebook OAuth Handler ──────────────────────────────────────────────────
   const handleFacebookLogin = () => {
     setErrors({ general: 'Facebook login is coming soon! Please use Email or Google.' })
   }
 
-  // ─── Submit Handler ──────────────────────────────────────────────────────────
+  // POST /auth/login { email, password }
+  // Response: { data: { user } }  — token is set as HttpOnly cookie automatically
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault() // Stop the page from refreshing
+    e.preventDefault()
     if (!validate()) return
 
     setIsLoading(true)
     setErrors({})
-
     try {
-      const response = await authRepository.login({ email, password })
-      // Save user + token into the global Zustand store
-      login(response.data.user, response.data.accessToken)
-      // Redirect to the main feed
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.post(
+        `${apiUrl}/auth/login`,
+        { email, password },
+        { withCredentials: true } // required so browser stores the HttpOnly cookie
+      )
+      // Response is { success, data: { user } } — no accessToken in body
+      login(response.data.data.user)
       router.push(ROUTES.FEED)
     } catch {
       setErrors({ general: 'Incorrect email or password. Please try again.' })
@@ -75,7 +78,6 @@ const LoginForm = () => {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
 
-      {/* General error (wrong password etc.) */}
       {errors.general && (
         <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
           {errors.general}
@@ -104,7 +106,6 @@ const LoginForm = () => {
         required
       />
 
-      {/* Forgot password link */}
       <div className="text-right">
         <Link href={ROUTES.FORGOT_PASSWORD} className="text-xs text-[#ff5500] hover:underline">
           Forgot your password?
@@ -115,20 +116,18 @@ const LoginForm = () => {
         Sign In
       </AppButton>
 
-      {/* Divider */}
       <div className="flex items-center gap-3 my-1">
         <div className="flex-1 h-px bg-[#444]" />
         <span className="text-xs text-[#999]">or continue with</span>
         <div className="flex-1 h-px bg-[#444]" />
       </div>
 
-      {/* Social Buttons */}
+      {/* Google */}
       <button
         type="button"
         onClick={handleGoogleLogin}
         className="w-full h-10 flex items-center justify-center gap-3 bg-white text-black text-sm font-medium rounded-sm hover:bg-gray-100 transition-colors"
       >
-        {/* Google SVG icon */}
         <svg width="18" height="18" viewBox="0 0 48 48">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -138,19 +137,18 @@ const LoginForm = () => {
         Continue with Google
       </button>
 
+      {/* Facebook */}
       <button
         type="button"
         onClick={handleFacebookLogin}
         className="w-full h-10 flex items-center justify-center gap-3 bg-[#1877f2] text-white text-sm font-medium rounded-sm hover:bg-[#166fe5] transition-colors"
       >
-        {/* Facebook icon */}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
         </svg>
         Continue with Facebook
       </button>
 
-      {/* Register link */}
       <p className="text-center text-xs text-[#999] mt-2">
         Don&apos;t have an account?{' '}
         <Link href={ROUTES.REGISTER} className="text-[#ff5500] hover:underline font-medium">

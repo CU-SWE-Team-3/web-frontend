@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import AppInput from '@/shared/ui/AppInput'
-import AppButton from '@/shared/ui/AppButton'
-import { authRepository } from '../api/authRepository'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
 import { ROUTES } from '@/shared/constants/routes'
 
 // ─── ForgotPasswordForm ───────────────────────────────────────────────────────
-// The user types their email. We send them a reset link.
+// POST /auth/forgot-password  body: { email }
+// Always returns 200 (to prevent email enumeration) — no change needed here.
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
@@ -28,7 +28,8 @@ const ForgotPasswordForm = () => {
     setIsLoading(true)
     setError('')
     try {
-      await authRepository.forgotPassword({ email })
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.post(`${apiUrl}/auth/forgot-password`, { email }, { withCredentials: true })
       setSuccess(true)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -37,7 +38,6 @@ const ForgotPasswordForm = () => {
     }
   }
 
-  // Show success message after email is sent
   if (success) {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
