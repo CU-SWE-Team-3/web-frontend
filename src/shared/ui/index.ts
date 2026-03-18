@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+// Shared UI Component Design System — barrel export
+export { default as ImageCropper } from "./ImageCropper";
+export { default as UploadDropzone } from "./UploadDropzone";
+export { default as AppButton } from "./AppButton/AppButton";
+export { default as AppInput } from "./AppInput/AppInput";
+export { default as AppTextarea } from "./AppTextarea/AppTextarea";
+export { default as AppSelect } from "./AppSelect/AppSelect";
+export * from "./icons";
+=======
 /* ============================= */
 /* Shared UI — Barrel Export     */
 /* ============================= */
@@ -99,3 +109,4 @@ export { SoundCloudLogo } from './Brand';
 export type { SoundCloudLogoProps } from './Brand';
 
 export * from './icons';
+>>>>>>> 5fe8fc5fb14fb722f979f2ac57016474d0ab6954

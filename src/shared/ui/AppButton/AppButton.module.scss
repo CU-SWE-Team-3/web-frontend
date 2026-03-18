@@ -1,4 +1,16 @@
 .button {
+<<<<<<< HEAD
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+}
+=======
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -96,3 +108,4 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+>>>>>>> 5fe8fc5fb14fb722f979f2ac57016474d0ab6954

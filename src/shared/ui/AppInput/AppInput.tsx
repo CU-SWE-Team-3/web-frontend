@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+import type { InputHTMLAttributes } from "react";
+import styles from "./AppInput.module.scss";
+
+type AppInputProps = InputHTMLAttributes<HTMLInputElement>;
+
+export default function AppInput({ className, ...props }: AppInputProps) {
+  return (
+    <input
+      {...props}
+      className={[styles.input, className].filter(Boolean).join(" ")}
+    />
+  );
+}
+=======
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 import s from './AppInput.module.scss';
 
@@ -80,3 +95,4 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
 );
 
 AppInput.displayName = 'AppInput';
+>>>>>>> 5fe8fc5fb14fb722f979f2ac57016474d0ab6954

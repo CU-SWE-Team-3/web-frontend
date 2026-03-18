@@ -1,3 +1,28 @@
+<<<<<<< HEAD
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import styles from "./AppButton.module.scss";
+
+interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: ReactNode;
+}
+
+export default function AppButton({
+  icon,
+  children,
+  className,
+  ...props
+}: AppButtonProps) {
+  return (
+    <button
+      {...props}
+      className={[styles.button, className].filter(Boolean).join(" ")}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
+=======
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import s from './AppButton.module.scss';
 
@@ -57,3 +82,4 @@ export const AppButton = forwardRef<HTMLButtonElement, AppButtonProps>(
 );
 
 AppButton.displayName = 'AppButton';
+>>>>>>> 5fe8fc5fb14fb722f979f2ac57016474d0ab6954
