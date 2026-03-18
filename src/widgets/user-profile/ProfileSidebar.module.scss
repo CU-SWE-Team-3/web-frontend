@@ -1,0 +1,128 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--sc-border);
+  margin: 0;
+}
+
+/* ---- ON TOUR ---- */
+.tourBlock {
+  padding: 20px 0;
+}
+
+.tourHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tourIcon {
+  color: var(--sc-text-primary);
+}
+
+.tourLabel {
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  letter-spacing: 0.03em;
+}
+
+.infoIcon {
+  color: var(--sc-text-secondary);
+}
+
+.tourDesc {
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.upgradeBtn {
+  width: 100%;
+  border-radius: var(--sc-radius-full);
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  background: var(--sc-white);
+  border: 1px solid var(--sc-white);
+  color: var(--sc-black);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+/* ---- GO MOBILE ---- */
+.mobileBlock {
+  padding: 28px 0 16px;
+}
+
+.mobileTitle {
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.badges {
+  display: flex;
+  gap: 10px;
+}
+
+.badge {
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ---- Footer ---- */
+.footerBlock {
+  padding: 20px 0 10px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  color: var(--sc-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.footerLink {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--sc-text-primary);
+  }
+}
+
+.dot {
+  color: var(--sc-text-secondary);
+  user-select: none;
+}
+
+.langRow {
+  padding-top: 20px;
+  font-size: 13px;
+  color: var(--sc-text-primary);
+}
+
+.langLink {
+  color: var(--sc-info);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

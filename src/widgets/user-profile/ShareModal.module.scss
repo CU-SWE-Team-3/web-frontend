@@ -1,0 +1,232 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: var(--sc-z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 60px;
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--sc-bg-surface);
+  border-radius: var(--sc-radius-lg);
+  width: 100%;
+  max-width: 620px;
+  color: var(--sc-text-primary);
+  font-family: var(--sc-font-family);
+  position: relative;
+  margin-bottom: 40px;
+}
+
+/* ---- Tabs header ---- */
+.tabsHeader {
+  display: flex;
+  gap: 24px;
+  padding: 20px 24px 0;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: var(--sc-text-secondary);
+  font-size: 16px;
+  font-weight: var(--sc-font-weight-medium);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  padding: 0 0 12px;
+  position: relative;
+  transition: color var(--sc-transition-fast);
+
+  &:hover {
+    color: var(--sc-text-primary);
+  }
+}
+
+.tabActive {
+  color: var(--sc-text-primary);
+  font-weight: var(--sc-font-weight-bold);
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--sc-text-primary);
+  }
+}
+
+/* ---- Share Panel ---- */
+.sharePanel {
+  padding: 24px;
+}
+
+.socialRow {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.socialBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-white);
+  font-size: 20px;
+  transition: opacity var(--sc-transition-fast);
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.twitter {
+  background: #1da1f2;
+}
+
+.facebook {
+  background: #1877f2;
+}
+
+.tumblr {
+  background: #35465c;
+}
+
+.pinterest {
+  background: #e60023;
+}
+
+.email {
+  background: var(--sc-gray-500);
+}
+
+.urlRow {
+  margin-bottom: 14px;
+}
+
+.urlInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  outline: none;
+
+  &:focus {
+    border-color: var(--sc-primary);
+  }
+}
+
+.shortenRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--sc-primary);
+  cursor: pointer;
+}
+
+.shortenLabel {
+  color: var(--sc-text-primary);
+  font-size: 13px;
+}
+
+/* ---- Message Panel ---- */
+.messagePanel {
+  padding: 24px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  margin-bottom: 8px;
+}
+
+.required {
+  color: var(--sc-primary);
+  margin-left: 2px;
+}
+
+.toInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-primary);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  outline: none;
+  margin-bottom: 20px;
+
+  &:focus {
+    border-color: var(--sc-primary);
+    box-shadow: var(--sc-shadow-focus);
+  }
+}
+
+.messageTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-primary);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  resize: vertical;
+  outline: none;
+  margin-bottom: 16px;
+
+  &:focus {
+    border-color: var(--sc-primary);
+    box-shadow: var(--sc-shadow-focus);
+  }
+}
+
+.sendRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sendBtn {
+  background: var(--sc-text-primary);
+  color: var(--sc-bg-base);
+  border: none;
+  padding: 8px 20px;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+  }
+}

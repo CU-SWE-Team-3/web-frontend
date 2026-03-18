@@ -1,0 +1,1114 @@
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/ProfileCover.module.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ProfileCover_cover__nmHZj {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: linear-gradient(135deg, #4a4a4a, #6a8a9a);
+  overflow: hidden;
+}
+
+.ProfileCover_coverImage__q4N7X {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  z-index: 0;
+}
+
+.ProfileCover_inner___H3o1 {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 0 30px 50px;
+  gap: 20px;
+}
+
+/* ---- Avatar ---- */
+.ProfileCover_avatarBlock__hawtR {
+  position: relative;
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+}
+
+.ProfileCover_avatarCircle__m3Yc5 {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(180, 200, 210, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+.ProfileCover_uploadAvatarBtn__yRa5P {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--sc-text-primary);
+  border: none;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: var(--sc-font-weight-bold);
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  z-index: 3;
+}
+.ProfileCover_uploadAvatarBtn__yRa5P:hover {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+/* ---- User text ---- */
+.ProfileCover_userText__4e8OE {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+}
+
+.ProfileCover_nameTag__HY9Jj {
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--sc-text-primary);
+  padding: 6px 10px;
+  font-size: 24px;
+  font-weight: var(--sc-font-weight-bold);
+  width: -moz-fit-content;
+  width: fit-content;
+  line-height: 1.2;
+}
+
+.ProfileCover_subName__fC56R {
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--sc-text-primary);
+  padding: 3px 10px;
+  font-size: 14px;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.ProfileCover_locationTag__NfXQm {
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--sc-gray-400);
+  padding: 3px 10px;
+  font-size: 13px;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+/* ---- Upload header btn ---- */
+.ProfileCover_uploadHeaderBtn__DMvAA {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--sc-text-primary);
+  border: none;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-bold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ProfileCover_uploadHeaderBtn__DMvAA:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+/*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/ProfileTabs.module.scss ***!
+  \********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ProfileTabs_bar__tD7_1 {
+  background: var(--sc-bg-base);
+  border-bottom: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  height: 46px;
+}
+
+.ProfileTabs_tabs__ql29d {
+  display: flex;
+  gap: 24px;
+  height: 100%;
+  align-items: center;
+}
+
+.ProfileTabs_tab__qnyj5 {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  color: var(--sc-text-secondary);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-regular);
+  font-family: var(--sc-font-family);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--sc-transition-fast);
+}
+.ProfileTabs_tab__qnyj5:hover {
+  color: var(--sc-text-primary);
+}
+
+.ProfileTabs_tabActive__P1KFH {
+  color: var(--sc-text-primary);
+}
+.ProfileTabs_tabActive__P1KFH::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--sc-text-primary);
+}
+
+.ProfileTabs_actions__slN63 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ProfileTabs_actionBtn__llZC_ {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--sc-border);
+  color: var(--sc-text-primary);
+  padding: 4px 12px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: border-color var(--sc-transition-fast);
+}
+.ProfileTabs_actionBtn__llZC_:hover {
+  border-color: var(--sc-text-primary);
+}
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/ProfileStats.module.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ProfileStats_row__1ucKW {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px 0 16px;
+}
+
+.ProfileStats_stat__FqVUz {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+  cursor: pointer;
+}
+.ProfileStats_stat__FqVUz:first-child {
+  padding-left: 0;
+}
+.ProfileStats_stat__FqVUz:not(:last-child) {
+  border-right: 1px solid var(--sc-border);
+}
+.ProfileStats_stat__FqVUz:hover .ProfileStats_value__qaKYD {
+  text-decoration: underline;
+}
+
+.ProfileStats_label__P2EUs {
+  color: var(--sc-text-secondary);
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-medium);
+  text-transform: capitalize;
+  margin-bottom: 2px;
+}
+
+.ProfileStats_value__qaKYD {
+  color: var(--sc-text-primary);
+  font-size: 22px;
+  font-weight: var(--sc-font-weight-bold);
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/ProfileSidebar.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ProfileSidebar_sidebar__9Cxqn {
+  display: flex;
+  flex-direction: column;
+}
+
+.ProfileSidebar_divider__PvGez {
+  border: none;
+  border-top: 1px solid var(--sc-border);
+  margin: 0;
+}
+
+/* ---- ON TOUR ---- */
+.ProfileSidebar_tourBlock__fnf5O {
+  padding: 20px 0;
+}
+
+.ProfileSidebar_tourHead__nvdGz {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ProfileSidebar_tourIcon__aS2L_ {
+  color: var(--sc-text-primary);
+}
+
+.ProfileSidebar_tourLabel__eOqDo {
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  letter-spacing: 0.03em;
+}
+
+.ProfileSidebar_infoIcon__hZGc9 {
+  color: var(--sc-text-secondary);
+}
+
+.ProfileSidebar_tourDesc__9X6is {
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.ProfileSidebar_upgradeBtn__kNHB2 {
+  width: 100%;
+  border-radius: var(--sc-radius-full);
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  background: var(--sc-white);
+  border: 1px solid var(--sc-white);
+  color: var(--sc-black);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+}
+.ProfileSidebar_upgradeBtn__kNHB2:hover {
+  opacity: 0.9;
+}
+
+/* ---- GO MOBILE ---- */
+.ProfileSidebar_mobileBlock__L32HZ {
+  padding: 28px 0 16px;
+}
+
+.ProfileSidebar_mobileTitle__44Hxh {
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.ProfileSidebar_badges___E2G0 {
+  display: flex;
+  gap: 10px;
+}
+
+.ProfileSidebar_badge__bfUfh {
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ---- Footer ---- */
+.ProfileSidebar_footerBlock__aZ0sh {
+  padding: 20px 0 10px;
+}
+
+.ProfileSidebar_footerLinks__qdkp9 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  color: var(--sc-text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.ProfileSidebar_footerLink__PFdWW {
+  cursor: pointer;
+}
+.ProfileSidebar_footerLink__PFdWW:hover {
+  color: var(--sc-text-primary);
+}
+
+.ProfileSidebar_dot__Ck96d {
+  color: var(--sc-text-secondary);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.ProfileSidebar_langRow__j_w1F {
+  padding-top: 20px;
+  font-size: 13px;
+  color: var(--sc-text-primary);
+}
+
+.ProfileSidebar_langLink__hlFgg {
+  color: var(--sc-info);
+  cursor: pointer;
+}
+.ProfileSidebar_langLink__hlFgg:hover {
+  text-decoration: underline;
+}
+/*!*************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/EditProfileModal.module.scss ***!
+  \*************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.EditProfileModal_overlay__XFZZm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: var(--sc-z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+  overflow-y: auto;
+}
+
+.EditProfileModal_modal__X3_5b {
+  background: var(--sc-bg-surface);
+  border-radius: var(--sc-radius-lg);
+  width: 100%;
+  max-width: 720px;
+  color: var(--sc-text-primary);
+  font-family: var(--sc-font-family);
+  position: relative;
+  margin-bottom: 40px;
+}
+
+/* ---- Header ---- */
+.EditProfileModal_header__6xzob {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.EditProfileModal_title__rnLfp {
+  font-size: 22px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+}
+
+.EditProfileModal_closeBtn__2IU6I {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-text-secondary);
+  padding: 4px;
+  display: flex;
+}
+.EditProfileModal_closeBtn__2IU6I:hover {
+  color: var(--sc-text-primary);
+}
+
+/* ---- Body ---- */
+.EditProfileModal_body__ENRY8 {
+  padding: 24px;
+}
+
+.EditProfileModal_errorMsg__RvkEg {
+  background: rgba(255, 60, 60, 0.15);
+  color: #ff6b6b;
+  padding: 10px 14px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.EditProfileModal_topSection__LDZHG {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 24px;
+}
+
+/* ---- Avatar in modal ---- */
+.EditProfileModal_avatarArea__77_70 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.EditProfileModal_avatarPreview__1lK97 {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a3a3a, #555);
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.EditProfileModal_uploadImgBtn__8Mawe {
+  background: var(--sc-primary);
+  color: var(--sc-text-primary);
+  border: none;
+  padding: 6px 16px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+}
+.EditProfileModal_uploadImgBtn__8Mawe:hover {
+  background: var(--sc-primary-hover);
+}
+
+/* ---- Form fields ---- */
+.EditProfileModal_fields__3Llk_ {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.EditProfileModal_fieldLabel__P7mpY {
+  display: block;
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-text-secondary);
+  margin-bottom: 4px;
+}
+
+.EditProfileModal_required__J9vNz {
+  color: var(--sc-primary);
+  margin-left: 2px;
+}
+
+.EditProfileModal_fieldInput__KzHpf {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  color: var(--sc-text-primary);
+  background: var(--sc-bg-elevated);
+  outline: none;
+}
+.EditProfileModal_fieldInput__KzHpf:focus {
+  border-color: var(--sc-primary);
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.EditProfileModal_fieldInputReadonly__vvAPq {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  background: var(--sc-bg-base);
+  color: var(--sc-text-secondary);
+  cursor: default;
+  outline: none;
+}
+
+.EditProfileModal_row__Ifrro {
+  display: flex;
+  gap: 16px;
+}
+
+.EditProfileModal_col__GXi0w {
+  flex: 1;
+}
+
+.EditProfileModal_textarea__npC0l {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  color: var(--sc-text-primary);
+  background: var(--sc-bg-elevated);
+  resize: vertical;
+  outline: none;
+}
+.EditProfileModal_textarea__npC0l::-moz-placeholder {
+  color: var(--sc-text-secondary);
+}
+.EditProfileModal_textarea__npC0l::placeholder {
+  color: var(--sc-text-secondary);
+}
+.EditProfileModal_textarea__npC0l:focus {
+  border-color: var(--sc-primary);
+  box-shadow: var(--sc-shadow-focus);
+}
+
+/* ---- Links section ---- */
+.EditProfileModal_linksSection__58zf2 {
+  border-top: 1px solid var(--sc-border);
+  padding-top: 20px;
+  margin-top: 8px;
+}
+
+.EditProfileModal_linksHead__QqCn7 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.EditProfileModal_linksTitle__4Ec_8 {
+  font-size: 15px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+}
+
+.EditProfileModal_linksInfoIcon__mRxvj {
+  color: var(--sc-text-secondary);
+  font-size: 14px;
+}
+
+.EditProfileModal_linkBtns__NtwDN {
+  display: flex;
+  gap: 10px;
+}
+
+.EditProfileModal_addLinkBtn__vxE_a {
+  background: var(--sc-primary);
+  color: var(--sc-text-primary);
+  border: none;
+  padding: 6px 16px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+}
+.EditProfileModal_addLinkBtn__vxE_a:hover {
+  background: var(--sc-primary-hover);
+}
+
+.EditProfileModal_addSupportBtn__0DfWh {
+  background: none;
+  color: var(--sc-text-primary);
+  border: 1px solid var(--sc-border);
+  padding: 6px 16px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+}
+.EditProfileModal_addSupportBtn__0DfWh:hover {
+  border-color: var(--sc-text-primary);
+}
+
+/* ---- Footer ---- */
+.EditProfileModal_footer__J85st {
+  border-top: 1px solid var(--sc-border);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.EditProfileModal_cancelBtn__Gy_qE {
+  background: none;
+  border: 1px solid var(--sc-border);
+  color: var(--sc-text-primary);
+  padding: 8px 20px;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+}
+.EditProfileModal_cancelBtn__Gy_qE:hover {
+  border-color: var(--sc-text-primary);
+}
+
+.EditProfileModal_saveBtn__qltxb {
+  background: var(--sc-primary);
+  color: var(--sc-text-primary);
+  border: none;
+  padding: 8px 20px;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+}
+.EditProfileModal_saveBtn__qltxb:hover {
+  background: var(--sc-primary-hover);
+}
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/widgets/user-profile/ShareModal.module.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ShareModal_overlay__wV3lM {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: var(--sc-z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 60px;
+  overflow-y: auto;
+}
+
+.ShareModal_modal__l_CCr {
+  background: var(--sc-bg-surface);
+  border-radius: var(--sc-radius-lg);
+  width: 100%;
+  max-width: 620px;
+  color: var(--sc-text-primary);
+  font-family: var(--sc-font-family);
+  position: relative;
+  margin-bottom: 40px;
+}
+
+/* ---- Tabs header ---- */
+.ShareModal_tabsHeader__BROky {
+  display: flex;
+  gap: 24px;
+  padding: 20px 24px 0;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.ShareModal_tab__5iYua {
+  background: none;
+  border: none;
+  color: var(--sc-text-secondary);
+  font-size: 16px;
+  font-weight: var(--sc-font-weight-medium);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  padding: 0 0 12px;
+  position: relative;
+  transition: color var(--sc-transition-fast);
+}
+.ShareModal_tab__5iYua:hover {
+  color: var(--sc-text-primary);
+}
+
+.ShareModal_tabActive__j89TW {
+  color: var(--sc-text-primary);
+  font-weight: var(--sc-font-weight-bold);
+}
+.ShareModal_tabActive__j89TW::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--sc-text-primary);
+}
+
+/* ---- Share Panel ---- */
+.ShareModal_sharePanel__9_njr {
+  padding: 24px;
+}
+
+.ShareModal_socialRow__hfmeM {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.ShareModal_socialBtn__vq3B_ {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-white);
+  font-size: 20px;
+  transition: opacity var(--sc-transition-fast);
+}
+.ShareModal_socialBtn__vq3B_:hover {
+  opacity: 0.85;
+}
+
+.ShareModal_twitter__18xXr {
+  background: #1da1f2;
+}
+
+.ShareModal_facebook__MD5j9 {
+  background: #1877f2;
+}
+
+.ShareModal_tumblr__TMhai {
+  background: #35465c;
+}
+
+.ShareModal_pinterest__O__C8 {
+  background: #e60023;
+}
+
+.ShareModal_email__M58nj {
+  background: var(--sc-gray-500);
+}
+
+.ShareModal_urlRow__gi9uu {
+  margin-bottom: 14px;
+}
+
+.ShareModal_urlInput___htLc {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  outline: none;
+}
+.ShareModal_urlInput___htLc:focus {
+  border-color: var(--sc-primary);
+}
+
+.ShareModal_shortenRow__OGXmc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ShareModal_checkbox__375Ju {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--sc-primary);
+  cursor: pointer;
+}
+
+.ShareModal_shortenLabel__3kO_q {
+  color: var(--sc-text-primary);
+  font-size: 13px;
+}
+
+/* ---- Message Panel ---- */
+.ShareModal_messagePanel__aykpf {
+  padding: 24px;
+}
+
+.ShareModal_fieldLabel__eEpu3 {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  margin-bottom: 8px;
+}
+
+.ShareModal_required__jMmTF {
+  color: var(--sc-primary);
+  margin-left: 2px;
+}
+
+.ShareModal_toInput__eaVbl {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-primary);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  outline: none;
+  margin-bottom: 20px;
+}
+.ShareModal_toInput__eaVbl:focus {
+  border-color: var(--sc-primary);
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.ShareModal_messageTextarea__CPfL0 {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  background: var(--sc-bg-elevated);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-text-primary);
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  resize: vertical;
+  outline: none;
+  margin-bottom: 16px;
+}
+.ShareModal_messageTextarea__CPfL0:focus {
+  border-color: var(--sc-primary);
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.ShareModal_sendRow__GicjJ {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ShareModal_sendBtn___pkKl {
+  background: var(--sc-text-primary);
+  color: var(--sc-bg-base);
+  border: none;
+  padding: 8px 20px;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+}
+.ShareModal_sendBtn___pkKl:hover {
+  opacity: 0.9;
+}
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/app/(main)/profile/[username]/ProfilePage.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/* ---- Page wrapper ---- */
+.ProfilePage_page__K5Zh_ {
+  background: var(--sc-bg-base);
+  min-height: 100vh;
+  color: var(--sc-text-primary);
+  font-family: var(--sc-font-family);
+}
+
+/* ===== TOP NAV ===== */
+.ProfilePage_topNav__8D3BS {
+  background: var(--sc-bg-base);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.ProfilePage_navLeft__GoETA {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.ProfilePage_brandMark__pomc0 {
+  color: var(--sc-primary);
+  font-size: 22px;
+  font-weight: var(--sc-font-weight-bold);
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.ProfilePage_navLink__gCzmx {
+  color: var(--sc-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--sc-font-family);
+  padding: 0;
+  transition: color var(--sc-transition-fast);
+}
+.ProfilePage_navLink__gCzmx:hover {
+  color: var(--sc-text-primary);
+}
+
+.ProfilePage_navCenter__qPB1e {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.ProfilePage_searchBox__tIYgH {
+  width: 100%;
+  max-width: 460px;
+  height: 30px;
+  background: var(--sc-bg-elevated);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  padding: 0 12px;
+  color: var(--sc-text-primary);
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  outline: none;
+}
+.ProfilePage_searchBox__tIYgH::-moz-placeholder {
+  color: var(--sc-text-secondary);
+}
+.ProfilePage_searchBox__tIYgH::placeholder {
+  color: var(--sc-text-secondary);
+}
+.ProfilePage_searchBox__tIYgH:focus {
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.ProfilePage_navRight__PGfiw {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.ProfilePage_tryProLink__XIuqY {
+  color: var(--sc-primary);
+  font-size: 13px;
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+}
+
+.ProfilePage_navTextLink__9PibT {
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+.ProfilePage_navTextLink__9PibT:hover {
+  color: var(--sc-text-primary);
+}
+
+.ProfilePage_avatarSmall__kFa_T {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--sc-gray-500);
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.ProfilePage_iconBtn__EGYNj {
+  color: var(--sc-text-secondary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color var(--sc-transition-fast);
+}
+.ProfilePage_iconBtn__EGYNj:hover {
+  color: var(--sc-text-primary);
+}
+
+/* ===== ANNOUNCEMENT ===== */
+.ProfilePage_banner__yuull {
+  background: var(--sc-bg-surface);
+  display: flex;
+  align-items: center;
+  padding: 8px 20px;
+  font-size: 13px;
+  color: var(--sc-text-secondary);
+  gap: 10px;
+}
+
+.ProfilePage_bannerIcon__urh8a {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.ProfilePage_bannerText__s20vV {
+  flex: 1;
+}
+
+.ProfilePage_bannerStrong__NIyDC {
+  color: var(--sc-text-primary);
+  font-weight: var(--sc-font-weight-medium);
+}
+
+.ProfilePage_bannerLink__V9TAS {
+  color: var(--sc-primary);
+  cursor: pointer;
+  font-weight: var(--sc-font-weight-medium);
+}
+.ProfilePage_bannerLink__V9TAS:hover {
+  text-decoration: underline;
+}
+
+.ProfilePage_bannerClose__HOXx7 {
+  color: var(--sc-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}
+.ProfilePage_bannerClose__HOXx7:hover {
+  color: var(--sc-text-primary);
+}
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+.ProfilePage_content__uxPrh {
+  display: flex;
+  gap: 0;
+  padding: 0 30px;
+}
+
+.ProfilePage_left__2ip8C {
+  flex: 1;
+  padding-right: 30px;
+  border-right: 1px solid var(--sc-border);
+  min-height: 400px;
+}
+
+.ProfilePage_right__oYu3o {
+  width: 300px;
+  flex-shrink: 0;
+  padding-left: 30px;
+}
+
+/* ---- Empty state ---- */
+.ProfilePage_empty__PjhfX {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 80px;
+  gap: 14px;
+}
+
+.ProfilePage_emptyText__XpGbZ {
+  color: var(--sc-text-primary);
+  font-size: 16px;
+}
+
+.ProfilePage_uploadBtn__z2GAL {
+  background: var(--sc-white);
+  border: 1px solid var(--sc-white);
+  color: var(--sc-black);
+  padding: 6px 16px;
+  border-radius: var(--sc-radius-md);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-bold);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+}
+.ProfilePage_uploadBtn__z2GAL:hover {
+  opacity: 0.9;
+}

@@ -32,8 +32,9 @@ export const UserAvatar: FC<UserAvatarProps> = ({
   size = 'md',
   className,
 }) => {
-  const initial = name.charAt(0);
-  const bg = hashColor(name);
+  const safeName = name || 'User';
+  const initial = safeName.charAt(0);
+  const bg = hashColor(safeName);
 
   const classes = [s.avatar, s[size], className].filter(Boolean).join(' ');
 

@@ -1,0 +1,75 @@
+.bar {
+  background: var(--sc-bg-base);
+  border-bottom: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  height: 46px;
+}
+
+.tabs {
+  display: flex;
+  gap: 24px;
+  height: 100%;
+  align-items: center;
+}
+
+.tab {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  color: var(--sc-text-secondary);
+  font-size: 14px;
+  font-weight: var(--sc-font-weight-regular);
+  font-family: var(--sc-font-family);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--sc-transition-fast);
+
+  &:hover {
+    color: var(--sc-text-primary);
+  }
+}
+
+.tabActive {
+  color: var(--sc-text-primary);
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--sc-text-primary);
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--sc-border);
+  color: var(--sc-text-primary);
+  padding: 4px 12px;
+  border-radius: var(--sc-radius-md);
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: border-color var(--sc-transition-fast);
+
+  &:hover {
+    border-color: var(--sc-text-primary);
+  }
+}
