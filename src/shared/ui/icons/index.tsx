@@ -7,12 +7,13 @@ import {
   ChevronLeft, ChevronRight, Settings, LogOut,
   Plus, Minus, Edit, Trash2, Download, Link,
   Image, Music, List, Grid, Filter, Clock,
-  TrendingUp, Radio, Mic, Headphones, Award
+  TrendingUp, Radio, Mic, Headphones, Award, Ban
 } from 'lucide-react'
 
 export type IconProps = {
   size?: number
   color?: string
+  fill?: string
   className?: string
 }
 
@@ -75,3 +76,4 @@ export const ChevronUpIcon = (props: IconProps) => <ChevronUp {...props} />
 export const ChevronLeftIcon = (props: IconProps) => <ChevronLeft {...props} />
 export const ChevronRightIcon = (props: IconProps) => <ChevronRight {...props} />
 export const AwardIcon = (props: IconProps) => <Award {...props} />
+export const BanIcon = (props: IconProps) => <Ban {...props} />
