@@ -7,8 +7,10 @@ export const useFollowers = (userId: string = "me") => {
     queryKey: ["network", "followers", userId],
     queryFn: async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const { data } = await axios.get(`${apiUrl}/network/${userId}/followers`);
-      return data;
+      const { data } = await axios.get(`${apiUrl}/network/${userId}/followers`, {
+        withCredentials: true,
+      });
+      return data.data ?? data;
     },
     staleTime: 5 * 60 * 1000,
   });

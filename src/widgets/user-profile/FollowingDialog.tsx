@@ -1,6 +1,8 @@
 'use client';
 
 import { type FC, useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { ROUTES } from '@/shared/constants/routes';
 import { AppModal, UserAvatar, FollowButton } from '@/shared/ui';
 import s from './FollowersDialog.module.scss'; // Re-using FollowersDialog module
 
@@ -74,15 +76,17 @@ export const FollowingDialog: FC<FollowingDialogProps> = ({
         <div className={s.list}>
           {following.map((user) => (
             <div key={user._id} className={s.row}>
-              <UserAvatar
-                src={user.avatarUrl}
-                name={user.displayName}
-                size="sm"
-              />
-              <div className={s.info}>
-                <div className={s.displayName}>{user.displayName}</div>
-                <div className={s.username}>@{user.permalink}</div>
-              </div>
+              <Link href={ROUTES.PROFILE(user.permalink)} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 'var(--sc-space-3)', flex: 1 }}>
+                <UserAvatar
+                  src={user.avatarUrl}
+                  name={user.displayName}
+                  size="sm"
+                />
+                <div className={s.info}>
+                  <div className={s.displayName}>{user.displayName}</div>
+                  <div className={s.username}>@{user.permalink}</div>
+                </div>
+              </Link>
               <FollowButton
                 isFollowing={user.isFollowing}
                 onClick={() =>

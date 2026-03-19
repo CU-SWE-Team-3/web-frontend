@@ -1,12 +1,15 @@
 'use client';
 
 import { type FC, type ReactNode } from 'react';
+import Link from 'next/link';
+import { ROUTES } from '@/shared/constants/routes';
 import s from './SidebarNav.module.scss';
 
 export interface NavLink {
   key: string;
   label: string;
   icon: ReactNode;
+  href?: string;
   active?: boolean;
   onClick?: () => void;
 }
@@ -37,16 +40,27 @@ export const SidebarNav: FC<SidebarNavProps> = ({
     {/* Top: Navigation Links */}
     <div className={s.section}>
       {links.map((link) => (
-        <div
-          key={link.key}
-          className={`${s.navItem} ${link.active ? s.navItemActive : ''}`}
-          onClick={link.onClick}
-          role="link"
-          tabIndex={0}
-        >
-          <span className={s.navIcon}>{link.icon}</span>
-          {link.label}
-        </div>
+        link.href ? (
+          <Link
+            key={link.key}
+            href={link.href}
+            className={`${s.navItem} ${link.active ? s.navItemActive : ''}`}
+          >
+            <span className={s.navIcon}>{link.icon}</span>
+            {link.label}
+          </Link>
+        ) : (
+          <div
+            key={link.key}
+            className={`${s.navItem} ${link.active ? s.navItemActive : ''}`}
+            onClick={link.onClick}
+            role="link"
+            tabIndex={0}
+          >
+            <span className={s.navIcon}>{link.icon}</span>
+            {link.label}
+          </div>
+        )
       ))}
     </div>
 

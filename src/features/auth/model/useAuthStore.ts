@@ -12,7 +12,7 @@ interface AuthState {
   isAuthenticated: boolean
 
   login: (user: User) => void
-  logout: () => void
+  logout: () => Promise<void>
   setUser: (user: User) => void
 }
 
@@ -26,8 +26,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user, isAuthenticated: true })
   },
 
-  // Called on logout — clear local state (backend clears the cookie)
-  logout: () => {
+  // Called on logout — call API to clear cookies, then clear local state
+  logout: async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const axios = (await import('axios')).default
+      await axios.post(`${apiUrl}/auth/logout`, {}, { withCredentials: true })
+    } catch {
+      // Even if API call fails, still clear local state
+    }
     set({ user: null, isAuthenticated: false })
   },
 

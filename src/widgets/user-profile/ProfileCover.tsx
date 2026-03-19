@@ -4,7 +4,7 @@ import { type FC, useRef } from 'react';
 import axios from 'axios';
 import s from './ProfileCover.module.scss';
 
-const apiUrl = '/api/proxy';
+/* apiUrl is read inline from process.env.NEXT_PUBLIC_API_URL */
 
 interface ProfileCoverProps {
   displayName: string;
@@ -28,6 +28,7 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
 
   const handleUpload = async (field: 'avatar' | 'cover', file: File) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const formData = new FormData();
       formData.append(field, file);
       await axios.patch(`${apiUrl}/profile/upload-images`, formData, {
@@ -51,7 +52,7 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
   };
 
   return (
-    <section className={s.cover}>
+    <section data-testid="profile-cover" className={s.cover}>
       {coverUrl && (
         <img src={coverUrl} alt="Cover" className={s.coverImage} />
       )}
@@ -75,6 +76,7 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
             onChange={handleAvatarChange}
           />
           <button
+            data-testid="profile-avatar-upload-btn"
             className={s.uploadAvatarBtn}
             onClick={() => avatarInputRef.current?.click()}
           >
@@ -97,6 +99,7 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
         onChange={handleCoverChange}
       />
       <button
+        data-testid="profile-cover-upload-btn"
         className={s.uploadHeaderBtn}
         onClick={() => coverInputRef.current?.click()}
       >

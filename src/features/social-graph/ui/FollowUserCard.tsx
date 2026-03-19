@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import Link from 'next/link';
+import { ROUTES } from '@/shared/constants/routes';
 import { UserAvatar, UserIcon, AppButton } from "@/shared/ui";
 import { FollowNode } from "../model/types";
 import { useFollowUser } from "../model/useFollowUser";
@@ -34,52 +36,54 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
   };
 
   return (
-    <div
-      className="flex flex-col items-center gap-3 w-full group cursor-pointer"
-      data-testid={`follow-card-${user.id}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="w-full aspect-square max-w-[200px]">
-        <UserAvatar
-          src={user.avatarUrl || undefined}
-          name={user.displayName}
-          size="xl"
-        />
-      </div>
-
-      <div className="flex flex-col items-center text-center w-full px-2 relative min-h-[60px]">
-        <span
-          className="text-white text-[15px] font-medium w-full truncate"
-          title={user.displayName}
-        >
-          {user.displayName}
-        </span>
-        <div className="flex items-center gap-1.5 text-[13px] text-[#999] mt-1 transition-opacity duration-200">
-          <UserIcon size={13} color="currentColor" />
-          <span>{formatFollowers(user.followerCount)} followers</span>
+    <Link href={ROUTES.PROFILE(user.username)} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div
+        className="flex flex-col items-center gap-3 w-full group cursor-pointer"
+        data-testid={`follow-card-${user.id}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="w-full aspect-square max-w-[200px]">
+          <UserAvatar
+            src={user.avatarUrl || undefined}
+            name={user.displayName}
+            size="xl"
+          />
         </div>
 
-        {/* Hover Button */}
-        <div 
-          className={`absolute bottom-[-25px] left-1/2 -translate-x-1/2 transition-all duration-200 w-full flex justify-center 
-            ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-4"}`}
-        >
-          <AppButton
-            variant={isFollowing ? "secondary" : "outline"} // Outline usually has no bg, we override styling if not perfect
-            size="sm"
-            onClick={toggleFollow}
-            style={
-              !isFollowing 
-                ? { backgroundColor: "white", color: "black", borderColor: "white" } 
-                : { color: "white" } // Secondary variant is already #333
-            }
+        <div className="flex flex-col items-center text-center w-full px-2 relative min-h-[60px]">
+          <span
+            className="text-white text-[15px] font-medium w-full truncate"
+            title={user.displayName}
           >
-            {isFollowing ? "Following" : "Follow"}
-          </AppButton>
+            {user.displayName}
+          </span>
+          <div className="flex items-center gap-1.5 text-[13px] text-[#999] mt-1 transition-opacity duration-200">
+            <UserIcon size={13} color="currentColor" />
+            <span>{formatFollowers(user.followerCount)} followers</span>
+          </div>
+
+          {/* Hover Button */}
+          <div 
+            className={`absolute bottom-[-25px] left-1/2 -translate-x-1/2 transition-all duration-200 w-full flex justify-center 
+              ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-4"}`}
+          >
+            <AppButton
+              variant={isFollowing ? "secondary" : "outline"}
+              size="sm"
+              onClick={toggleFollow}
+              style={
+                !isFollowing 
+                  ? { backgroundColor: "white", color: "black", borderColor: "white" } 
+                  : { color: "white" }
+              }
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </AppButton>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

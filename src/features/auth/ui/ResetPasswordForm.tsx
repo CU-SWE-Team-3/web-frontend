@@ -61,7 +61,7 @@ const ResetPasswordForm = () => {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div data-testid="reset-password-success" className="flex flex-col items-center gap-4 text-center">
         <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
           <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -69,7 +69,7 @@ const ResetPasswordForm = () => {
         </div>
         <h2 className="text-white text-xl font-bold">Password updated!</h2>
         <p className="text-[#999] text-sm">Your password has been changed successfully.</p>
-        <AppButton onClick={() => router.push(ROUTES.LOGIN)} fullWidth>
+        <AppButton onClick={() => router.push(ROUTES.LOGIN)} fullWidth data-testid="reset-password-signin-btn">
           Sign In Now
         </AppButton>
       </div>
@@ -77,26 +77,26 @@ const ResetPasswordForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+    <form onSubmit={handleSubmit} data-testid="reset-password-form" className="flex flex-col gap-5 w-full">
       {errors.general && (
-        <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
+        <div data-testid="reset-password-error" className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
           {errors.general}
         </div>
       )}
 
       <p className="text-[#999] text-sm">Choose a strong password of at least 8 characters.</p>
 
-      <AppInput id="new-password" type="password" label="New password"
+      <AppInput id="new-password" data-testid="reset-password-new-input" type="password" label="New password"
         placeholder="New password (min. 8 characters)"
         value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
         error={errors.newPassword} required />
 
-      <AppInput id="confirm-password" type="password" label="Confirm new password"
+      <AppInput id="confirm-password" data-testid="reset-password-confirm-input" type="password" label="Confirm new password"
         placeholder="Repeat your new password"
         value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
         error={errors.confirmPassword} required />
 
-      <AppButton type="submit" fullWidth isLoading={isLoading}>
+      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="reset-password-submit-btn">
         Reset Password
       </AppButton>
     </form>

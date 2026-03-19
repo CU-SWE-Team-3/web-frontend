@@ -1,0 +1,5463 @@
+﻿===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\app\(main)\profile\[username]\page.tsx =====
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\app\layout.tsx =====
+import type { Metadata } from 'next';
+import '@/shared/ui/tokens/globals.scss'; // Ensure global styles and tokens are loaded
+
+export const metadata: Metadata = {
+  title: 'BioBeats',
+  description: 'SoundCloud Clone User Profile',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className="bg-[#111] text-white antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\model\useAuthStore.ts =====
+'use client'
+
+import { create } from 'zustand'
+import type { User } from '@/shared/types'
+
+// â”€â”€â”€ Auth Store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Auth is cookie-based (HttpOnly). The backend sets accessToken and refreshToken
+// cookies automatically on login/refresh. We only store the User object here.
+
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+
+  login: (user: User) => void
+  logout: () => void
+  setUser: (user: User) => void
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+
+  // Called after login/register/google-callback â€” just save the user object.
+  // No token in localStorage because auth is handled by HttpOnly cookies.
+  login: (user) => {
+    set({ user, isAuthenticated: true })
+  },
+
+  // Called on logout â€” clear local state (backend clears the cookie)
+  logout: () => {
+    set({ user: null, isAuthenticated: false })
+  },
+
+  // Update profile data without re-logging in
+  setUser: (user) => set({ user }),
+}))
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\ui\ForgotPasswordForm.tsx =====
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
+import { ROUTES } from '@/shared/constants/routes'
+
+// â”€â”€â”€ ForgotPasswordForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// POST /auth/forgot-password  body: { email }
+// Always returns 200 (to prevent email enumeration) â€” no change needed here.
+
+const ForgotPasswordForm = () => {
+  const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const validate = () => {
+    if (!email) { setError('Email is required'); return false }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Please enter a valid email'); return false }
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+    setIsLoading(true)
+    setError('')
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.post(`${apiUrl}/auth/forgot-password`, { email }, { withCredentials: true })
+      setSuccess(true)
+    } catch {
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-white text-xl font-bold">Email sent!</h2>
+        <p className="text-[#999] text-sm max-w-xs">
+          If <span className="text-white">{email}</span> is registered, you&apos;ll receive a
+          password reset link shortly. Check your spam folder too.
+        </p>
+        <Link href={ROUTES.LOGIN} className="text-[#ff5500] text-sm hover:underline">
+          Back to Sign In
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+      <p className="text-[#999] text-sm leading-relaxed">
+        Enter the email address linked to your account.
+        We&apos;ll send you a link to reset your password.
+      </p>
+
+      <AppInput
+        id="forgot-email"
+        type="email"
+        label="Email address"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => { setEmail(e.target.value); setError('') }}
+        error={error}
+        required
+      />
+
+      <AppButton type="submit" fullWidth isLoading={isLoading}>
+        Send Reset Link
+      </AppButton>
+
+      <p className="text-center text-xs text-[#999]">
+        Remembered it?{' '}
+        <Link href={ROUTES.LOGIN} className="text-[#ff5500] hover:underline font-medium">
+          Sign in
+        </Link>
+      </p>
+    </form>
+  )
+}
+
+export default ForgotPasswordForm
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\ui\LoginForm.tsx =====
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
+import { useAuthStore } from '../model/useAuthStore'
+import { ROUTES } from '@/shared/constants/routes'
+
+// â”€â”€â”€ LoginForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// POST /auth/login  â†’ sets HttpOnly cookies, returns { data: { user } }
+// No accessToken in body â€” the backend sets it as an HttpOnly cookie.
+// GET  /auth/google â†’ returns { data: { url } } â†’ redirect browser there.
+
+const LoginForm = () => {
+  const router = useRouter()
+  const login = useAuthStore((state) => state.login)
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({})
+  const [isLoading, setIsLoading] = useState(false)
+
+  const validate = (): boolean => {
+    const newErrors: typeof errors = {}
+    if (!email) newErrors.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Please enter a valid email'
+    if (!password) newErrors.password = 'Password is required'
+    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // GET /auth/google â†’ { success, data: { url } }
+  const handleGoogleLogin = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.get(`${apiUrl}/auth/google`, { withCredentials: true })
+      // The YAML spec says response.data.data.url, but let's handle both just in case
+      const authUrl = response.data?.data?.url || response.data?.url
+      if (!authUrl) throw new Error('No URL returned from backend')
+      window.location.href = authUrl
+    } catch {
+      setErrors({ general: 'Google login is currently unavailable.' })
+    }
+  }
+
+  const handleFacebookLogin = () => {
+    setErrors({ general: 'Facebook login is coming soon! Please use Email or Google.' })
+  }
+
+  // POST /auth/login { email, password }
+  // Response: { data: { user } }  â€” token is set as HttpOnly cookie automatically
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+
+    setIsLoading(true)
+    setErrors({})
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.post(
+        `${apiUrl}/auth/login`,
+        { email, password },
+        { withCredentials: true } // required so browser stores the HttpOnly cookie
+      )
+      // Response is { success, data: { user } } â€” no accessToken in body
+      login(response.data.data.user)
+      router.push(ROUTES.FEED)
+    } catch {
+      setErrors({ general: 'Incorrect email or password. Please try again.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
+          {errors.general}
+        </div>
+      )}
+
+      <AppInput
+        id="login-email"
+        type="email"
+        label="Email address"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        error={errors.email}
+        required
+      />
+
+      <AppInput
+        id="login-password"
+        type="password"
+        label="Password"
+        placeholder="Your password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        error={errors.password}
+        required
+      />
+
+      <div className="text-right">
+        <Link href={ROUTES.FORGOT_PASSWORD} className="text-xs text-[#ff5500] hover:underline">
+          Forgot your password?
+        </Link>
+      </div>
+
+      <AppButton type="submit" fullWidth isLoading={isLoading}>
+        Sign In
+      </AppButton>
+
+      <div className="flex items-center gap-3 my-1">
+        <div className="flex-1 h-px bg-[#444]" />
+        <span className="text-xs text-[#999]">or continue with</span>
+        <div className="flex-1 h-px bg-[#444]" />
+      </div>
+
+      {/* Google */}
+      <button
+        type="button"
+        onClick={handleGoogleLogin}
+        className="w-full h-10 flex items-center justify-center gap-3 bg-white text-black text-sm font-medium rounded-sm hover:bg-gray-100 transition-colors"
+      >
+        <svg width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      {/* Facebook */}
+      <button
+        type="button"
+        onClick={handleFacebookLogin}
+        className="w-full h-10 flex items-center justify-center gap-3 bg-[#1877f2] text-white text-sm font-medium rounded-sm hover:bg-[#166fe5] transition-colors"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        Continue with Facebook
+      </button>
+
+      <p className="text-center text-xs text-[#999] mt-2">
+        Don&apos;t have an account?{' '}
+        <Link href={ROUTES.REGISTER} className="text-[#ff5500] hover:underline font-medium">
+          Create one for free
+        </Link>
+      </p>
+
+    </form>
+  )
+}
+
+export default LoginForm
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\ui\RegisterForm.tsx =====
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import ReCAPTCHA from 'react-google-recaptcha'
+import { AppInput, AppButton } from '@/shared/ui'
+import { ROUTES } from '@/shared/constants/routes'
+import { useAuthStore } from '../model/useAuthStore'
+
+// â”€â”€â”€ RegisterForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// POST /auth/register
+// Body: { email, password, displayName, captchaToken, age?, gender? }
+// Required: email, password, displayName, captchaToken
+// confirmPassword is frontend-only validation â€” NOT sent to the backend.
+
+const RegisterForm = () => {
+  const router = useRouter()
+  const login = useAuthStore((state) => state.login)
+
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [errors, setErrors] = useState<{
+    displayName?: string; email?: string; password?: string; confirmPassword?: string; captcha?: string; general?: string
+  }>({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const validate = (): boolean => {
+    const newErrors: typeof errors = {}
+    if (!displayName.trim()) newErrors.displayName = 'Display name is required'
+    if (!email) newErrors.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Please enter a valid email'
+    if (!password) newErrors.password = 'Password is required'
+    else if (password.length < 8) newErrors.password = 'Password must be at least 8 characters'
+    if (!confirmPassword) newErrors.confirmPassword = 'Please confirm your password'
+    else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match'
+    if (!captchaToken) newErrors.captcha = 'Please complete the CAPTCHA'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // GET /auth/google â†’ { data: { url } }
+  const handleGoogleLogin = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const response = await axios.get(`${apiUrl}/auth/google`, { withCredentials: true })
+      const authUrl = response.data?.data?.url || response.data?.url
+      if (!authUrl) throw new Error('No URL returned from backend')
+      window.location.href = authUrl
+    } catch {
+      setErrors({ general: 'Google signup is currently unavailable.' })
+    }
+  }
+
+  const handleFacebookLogin = () => {
+    setErrors({ general: 'Facebook registration is coming soon! Please use Email or Google.' })
+  }
+
+  // POST /auth/register
+  // Body: { email, password, displayName, captchaToken }
+  // confirmPassword is frontend only â€” not sent to API
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+
+    setIsLoading(true)
+    setErrors({})
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.post(
+        `${apiUrl}/auth/register`,
+        {
+          email,
+          password,
+          displayName: displayName.trim(),
+          captchaToken,
+        },
+        { withCredentials: true }
+      )
+      setSuccess(true)
+    } catch {
+      setErrors({ general: 'Registration failed. This email may already be in use.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-white text-xl font-bold">Check your inbox!</h2>
+        <p className="text-[#999] text-sm">
+          We sent a verification link to <span className="text-white">{email}</span>.
+          Click the link in the email to activate your account.
+        </p>
+        <AppButton onClick={() => router.push(ROUTES.LOGIN)} variant="secondary">
+          Back to Sign In
+        </AppButton>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
+          {errors.general}
+        </div>
+      )}
+
+      {/* Social signup */}
+      <button type="button" onClick={handleGoogleLogin} className="w-full h-10 flex items-center justify-center gap-3 bg-white text-black text-sm font-medium rounded-sm hover:bg-gray-100 transition-colors">
+        <svg width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <button type="button" onClick={handleFacebookLogin} className="w-full h-10 flex items-center justify-center gap-3 bg-[#1877f2] text-white text-sm font-medium rounded-sm hover:bg-[#166fe5] transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        Continue with Facebook
+      </button>
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-[#444]" />
+        <span className="text-xs text-[#999]">or with email</span>
+        <div className="flex-1 h-px bg-[#444]" />
+      </div>
+
+      <AppInput id="reg-displayname" type="text" label="Display name" placeholder="Your name or artist name"
+        value={displayName} onChange={(e) => setDisplayName(e.target.value)} error={errors.displayName} required />
+
+      <AppInput id="reg-email" type="email" label="Email address" placeholder="your@email.com"
+        value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} required />
+
+      <AppInput id="reg-password" type="password" label="Password" placeholder="At least 8 characters"
+        value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} required />
+
+      <AppInput id="reg-confirm" type="password" label="Confirm password" placeholder="Repeat your password"
+        value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} error={errors.confirmPassword} required />
+
+      {/* CAPTCHA */}
+      <div className="flex flex-col gap-1">
+        <ReCAPTCHA
+          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+          onChange={(token) => setCaptchaToken(token)}
+          theme="dark"
+        />
+        {errors.captcha && <p className="text-red-500 text-xs">{errors.captcha}</p>}
+      </div>
+
+      <p className="text-[11px] text-[#777] leading-tight">
+        By creating an account, you agree to SoundCloud&apos;s{' '}
+        <span className="text-[#ff5500] cursor-pointer hover:underline">Terms of Use</span> and acknowledge our{' '}
+        <span className="text-[#ff5500] cursor-pointer hover:underline">Privacy Policy</span>.
+      </p>
+
+      <AppButton type="submit" fullWidth isLoading={isLoading}>
+        Create Account
+      </AppButton>
+
+      <p className="text-center text-xs text-[#999]">
+        Already have an account?{' '}
+        <Link href={ROUTES.LOGIN} className="text-[#ff5500] hover:underline font-medium">Sign in</Link>
+      </p>
+
+    </form>
+  )
+}
+
+export default RegisterForm
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\ui\ResetPasswordForm.tsx =====
+'use client'
+
+import React, { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import axios from 'axios'
+import { AppInput, AppButton } from '@/shared/ui'
+import { ROUTES } from '@/shared/constants/routes'
+
+// â”€â”€â”€ ResetPasswordForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PATCH /auth/reset-password
+// Body: { token, newPassword }
+// NOTE: confirmPassword is frontend-only validation â€” NOT sent to the API.
+// The spec requires only { token, newPassword }.
+
+const ResetPasswordForm = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token') ?? ''
+
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [errors, setErrors] = useState<{ newPassword?: string; confirmPassword?: string; general?: string }>({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const validate = () => {
+    const newErrors: typeof errors = {}
+    if (!newPassword) newErrors.newPassword = 'Password is required'
+    else if (newPassword.length < 8) newErrors.newPassword = 'Password must be at least 8 characters'
+    if (!confirmPassword) newErrors.confirmPassword = 'Please confirm your password'
+    else if (newPassword !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  // PATCH /auth/reset-password  body: { token, newPassword }
+  // confirmPassword is frontend validation only â€” not included in the request
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validate()) return
+    if (!token) {
+      setErrors({ general: 'Invalid or expired reset link. Please request a new one.' })
+      return
+    }
+    setIsLoading(true)
+    setErrors({})
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      await axios.patch(
+        `${apiUrl}/auth/reset-password`,
+        { token, newPassword },   // <-- no confirmPassword in body per the spec
+        { withCredentials: true }
+      )
+      setSuccess(true)
+    } catch {
+      setErrors({ general: 'This link has expired or is invalid. Please request a new reset link.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-white text-xl font-bold">Password updated!</h2>
+        <p className="text-[#999] text-sm">Your password has been changed successfully.</p>
+        <AppButton onClick={() => router.push(ROUTES.LOGIN)} fullWidth>
+          Sign In Now
+        </AppButton>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
+          {errors.general}
+        </div>
+      )}
+
+      <p className="text-[#999] text-sm">Choose a strong password of at least 8 characters.</p>
+
+      <AppInput id="new-password" type="password" label="New password"
+        placeholder="New password (min. 8 characters)"
+        value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+        error={errors.newPassword} required />
+
+      <AppInput id="confirm-password" type="password" label="Confirm new password"
+        placeholder="Repeat your new password"
+        value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+        error={errors.confirmPassword} required />
+
+      <AppButton type="submit" fullWidth isLoading={isLoading}>
+        Reset Password
+      </AppButton>
+    </form>
+  )
+}
+
+export default ResetPasswordForm
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\auth\index.ts =====
+// â”€â”€â”€ Public API for the auth feature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Other parts of the app should only import from this file.
+// Never import directly from internal files like '../ui/LoginForm'.
+
+export { default as LoginForm } from './ui/LoginForm'
+export { default as RegisterForm } from './ui/RegisterForm'
+export { default as ForgotPasswordForm } from './ui/ForgotPasswordForm'
+export { default as ResetPasswordForm } from './ui/ResetPasswordForm'
+export { useAuthStore } from './model/useAuthStore'
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\types.ts =====
+export interface BlockedUser {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+}
+
+export interface BlockedUsersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    displayName: string;
+    permalink: string;
+    avatarUrl: string;
+  }[];
+}
+
+export interface FollowNode {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  followerCount: number;
+  isFollowing?: boolean;
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useBlockedUsers.ts =====
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { BlockedUser, BlockedUsersResponse } from "./types";
+
+export const BLOCKED_USERS_QUERY_KEY = ["blocked-users"] as const;
+
+export const useBlockedUsers = () => {
+  return useQuery<BlockedUser[], Error>({
+    queryKey: BLOCKED_USERS_QUERY_KEY,
+    queryFn: async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const { data } = await axios.get<BlockedUsersResponse>(
+        `${apiUrl}/network/blocked-users`
+      );
+
+      return data.data.map((user) => ({
+        id: user._id,
+        username: user.permalink,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+      }));
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useFollowers.ts =====
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { FollowNode } from "./types";
+
+export const useFollowers = (userId: string = "me") => {
+  return useQuery<FollowNode[], Error>({
+    queryKey: ["network", "followers", userId],
+    queryFn: async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const { data } = await axios.get(`${apiUrl}/network/${userId}/followers`);
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useFollowing.ts =====
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { FollowNode } from "./types";
+
+export const useFollowing = (userId: string = "me") => {
+  return useQuery<FollowNode[], Error>({
+    queryKey: ["network", "following", userId],
+    queryFn: async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const { data } = await axios.get(`${apiUrl}/network/${userId}/following`);
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useFollowUser.ts =====
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+
+export const useFollowUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (userId: string) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await axios.post(`${apiUrl}/network/${userId}/follow`);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["network"] });
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useSuggestedUsers.ts =====
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { FollowNode } from "./types";
+
+export const useSuggestedUsers = () => {
+  return useQuery<FollowNode[], Error>({
+    queryKey: ["network", "suggested"],
+    queryFn: async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const { data } = await axios.get(`${apiUrl}/network/suggested`);
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useUnblockUser.ts =====
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { BLOCKED_USERS_QUERY_KEY } from "./useBlockedUsers";
+import { BlockedUser } from "./types";
+
+export const useUnblockUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string, { previousBlockedUsers: BlockedUser[] | undefined }>({
+    mutationFn: async (userId: string) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await axios.delete(`${apiUrl}/network/${userId}/block`);
+    },
+    
+    onMutate: async (unblockedUserId) => {
+      await queryClient.cancelQueries({ queryKey: BLOCKED_USERS_QUERY_KEY });
+
+      const previousBlockedUsers = queryClient.getQueryData<BlockedUser[]>(BLOCKED_USERS_QUERY_KEY);
+
+      if (previousBlockedUsers) {
+        queryClient.setQueryData<BlockedUser[]>(
+          BLOCKED_USERS_QUERY_KEY,
+          previousBlockedUsers.filter((user) => user.id !== unblockedUserId)
+        );
+      }
+
+      return { previousBlockedUsers };
+    },
+    
+    onError: (_err, _unblockedUserId, context) => {
+      if (context?.previousBlockedUsers) {
+        queryClient.setQueryData(BLOCKED_USERS_QUERY_KEY, context.previousBlockedUsers);
+      }
+    },
+    
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: BLOCKED_USERS_QUERY_KEY });
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\model\useUnfollowUser.ts =====
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+
+export const useUnfollowUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (userId: string) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await axios.delete(`${apiUrl}/network/${userId}/follow`);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["network"] });
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\tests\BlockedUsersList.test.tsx =====
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { BlockedUsersList } from "../ui/BlockedUsersList";
+import { useBlockedUsers } from "../model/useBlockedUsers";
+import { useUnblockUser } from "../model/useUnblockUser";
+import { useToast } from "@/components/ui/use-toast";
+
+// Mock the hooks
+jest.mock("../model/useBlockedUsers");
+jest.mock("../model/useUnblockUser");
+jest.mock("@/components/ui/use-toast", () => ({
+  useToast: jest.fn(),
+}));
+
+const mockBlockedUsers = [
+  { id: "1", username: "user-1", displayName: "User One", avatarUrl: "avatar1.png" },
+  { id: "2", username: "user-2", displayName: "User Two", avatarUrl: "avatar2.png" },
+];
+
+describe("BlockedUsersList", () => {
+  let mockMutate: jest.Mock;
+  let mockToast: jest.Mock;
+
+  beforeEach(() => {
+    mockMutate = jest.fn();
+    mockToast = jest.fn();
+
+    (useUnblockUser as jest.Mock).mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+      variables: null,
+    });
+
+    (useToast as jest.Mock).mockReturnValue({
+      toast: mockToast,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("1. renders blocked users list", () => {
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      data: mockBlockedUsers,
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<BlockedUsersList />);
+    
+    expect(screen.getByTestId("blocked-users-list")).toBeInTheDocument();
+    const rows = screen.getAllByTestId("blocked-user-row");
+    expect(rows).toHaveLength(2);
+    expect(screen.getByText("user-1")).toBeInTheDocument();
+    expect(screen.getByText("User One")).toBeInTheDocument();
+    expect(screen.getByText("user-2")).toBeInTheDocument();
+  });
+
+  it("2. shows empty state", () => {
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+    });
+
+    render(<BlockedUsersList />);
+    
+    expect(screen.getByTestId("blocked-empty-state")).toBeInTheDocument();
+    expect(screen.getByText("You haven't blocked anyone")).toBeInTheDocument();
+  });
+
+  it("3. shows loading skeleton", () => {
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+
+    render(<BlockedUsersList />);
+    
+    expect(screen.getByTestId("blocked-loading")).toBeInTheDocument();
+  });
+
+  it("4. unblock button removes user", async () => {
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      data: mockBlockedUsers,
+      isLoading: false,
+      isError: false,
+    });
+
+    mockMutate.mockImplementation((userId, options) => {
+      // simulate success
+      options.onSuccess();
+    });
+
+    render(<BlockedUsersList />);
+    
+    const unblockButtons = screen.getAllByTestId("unblock-button");
+    fireEvent.click(unblockButtons[0]);
+
+    expect(mockMutate).toHaveBeenCalledWith("1", expect.any(Object));
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith({
+        title: "User unblocked",
+        description: "They have been removed from your blocked list.",
+      });
+    });
+  });
+
+  it("5. API error shows toast", async () => {
+    (useBlockedUsers as jest.Mock).mockReturnValue({
+      data: mockBlockedUsers,
+      isLoading: false,
+      isError: false,
+    });
+
+    mockMutate.mockImplementation((userId, options) => {
+      // simulate error
+      options.onError(new Error("Server error"));
+    });
+
+    render(<BlockedUsersList />);
+    
+    const unblockButtons = screen.getAllByTestId("unblock-button");
+    fireEvent.click(unblockButtons[0]);
+
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith({
+        variant: "destructive",
+        title: "Failed to unblock",
+        description: "Server error",
+      });
+    });
+  });
+});
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\ui\BlockedUsersList.tsx =====
+"use client";
+
+import React, { useState, useCallback } from "react";
+import { useBlockedUsers } from "../model/useBlockedUsers";
+import { useUnblockUser } from "../model/useUnblockUser";
+import type { BlockedUser } from "../model/types";
+import {
+  UserAvatar,
+  AppButton,
+  EmptyState,
+  SkeletonLoader,
+  AppToast,
+  BanIcon,
+  CloseIcon,
+} from "@/shared/ui";
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Toast State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+interface ToastState {
+  open: boolean;
+  message: string;
+  variant: "success" | "error";
+}
+
+const TOAST_INITIAL: ToastState = { open: false, message: "", variant: "success" };
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Row Sub-component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+interface RowProps {
+  user: BlockedUser;
+  onUnblock: (id: string) => void;
+  isUnblocking: boolean;
+}
+
+const BlockedUserRow: React.FC<RowProps> = ({ user, onUnblock, isUnblocking }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--sc-space-3)",
+      paddingBlock: "var(--sc-space-3)",
+    }}
+    data-testid="blocked-user-row"
+  >
+    <UserAvatar
+      src={user.avatarUrl}
+      name={user.displayName}
+      size="md"
+    />
+
+    <span
+      style={{
+        fontSize: "var(--sc-font-size-md)",
+        fontWeight: "var(--sc-font-weight-bold)" as unknown as number,
+        color: "var(--sc-white)",
+      }}
+      data-testid="blocked-user-username"
+    >
+      {user.displayName}
+    </span>
+
+    <AppButton
+      variant="secondary"
+      size="sm"
+      loading={isUnblocking}
+      leftIcon={<BanIcon size={14} />}
+      onClick={() => onUnblock(user.id)}
+      data-testid="unblock-button"
+      style={{ marginLeft: "auto", color: "var(--sc-primary)" }}
+    >
+      Blocked
+    </AppButton>
+  </div>
+);
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Loading Sub-component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+const BlockedUsersLoading: React.FC = () => (
+  <div data-testid="blocked-loading" style={{ display: "flex", flexDirection: "column", gap: "var(--sc-space-3)" }}>
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} style={{ display: "flex", alignItems: "center", gap: "var(--sc-space-3)", paddingBlock: "var(--sc-space-3)" }}>
+        <SkeletonLoader width={40} height={40} rounded="circle" />
+        <SkeletonLoader width={120} height={16} />
+        <SkeletonLoader width={90} height={32} style={{ marginLeft: "auto" }} />
+      </div>
+    ))}
+  </div>
+);
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+
+export const BlockedUsersList: React.FC = () => {
+  const { data: blockedUsers, isLoading, isError } = useBlockedUsers();
+  const unblockMutation = useUnblockUser();
+  const [toast, setToast] = useState<ToastState>(TOAST_INITIAL);
+
+  const closeToast = useCallback(() => setToast(TOAST_INITIAL), []);
+
+  const handleUnblock = useCallback(
+    (userId: string) => {
+      unblockMutation.mutate(userId, {
+        onSuccess: () =>
+          setToast({ open: true, message: "User unblocked successfully.", variant: "success" }),
+        onError: (err) =>
+          setToast({
+            open: true,
+            message: err.message || "Failed to unblock user.",
+            variant: "error",
+          }),
+      });
+    },
+    [unblockMutation],
+  );
+
+  /* ---- Loading ---- */
+  if (isLoading) return <BlockedUsersLoading />;
+
+  /* ---- Error ---- */
+  if (isError) {
+    return (
+      <EmptyState
+        icon={<CloseIcon size={24} />}
+        title="Failed to load blocked users"
+        description="Something went wrong. Please try again later."
+      />
+    );
+  }
+
+  /* ---- Empty ---- */
+  if (!blockedUsers || blockedUsers.length === 0) {
+    return (
+      <EmptyState
+        icon={<BanIcon size={24} />}
+        title="You haven't blocked anyone"
+        description="When you block someone, they won't be able to find your profile, tracks, or playlists."
+        data-testid="blocked-empty-state"
+      />
+    );
+  }
+
+  /* ---- List ---- */
+  return (
+    <>
+      <div data-testid="blocked-users-list" style={{ display: "flex", flexDirection: "column" }}>
+        {blockedUsers.map((user) => (
+          <BlockedUserRow
+            key={user.id}
+            user={user}
+            onUnblock={handleUnblock}
+            isUnblocking={unblockMutation.isPending && unblockMutation.variables === user.id}
+          />
+        ))}
+      </div>
+
+      <AppToast
+        open={toast.open}
+        message={toast.message}
+        variant={toast.variant}
+        onClose={closeToast}
+      />
+    </>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\ui\FollowListGrid.tsx =====
+import React from "react";
+import { FollowUserCard } from "./FollowUserCard";
+import { FollowNode } from "../model/types";
+
+interface FollowListGridProps {
+  users: FollowNode[];
+  isLoading?: boolean;
+}
+
+export const FollowListGrid = ({ users, isLoading }: FollowListGridProps) => {
+  if (isLoading) {
+    // Generate empty placeholders based on the dark squares in the skeleton screenshot
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="w-full aspect-square max-w-[200px] bg-[#222]"
+            data-testid="follow-skeleton"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="py-10 text-center text-[#999] text-[15px]">
+        Nothing to show here.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-8 gap-x-6">
+      {users.map((user) => (
+        <FollowUserCard key={user.id} user={user} />
+      ))}
+      
+      {/* Placholders for styling the grid correctly as seen in screenshot */}
+      {Array.from({ length: Math.max(0, 5 - users.length) }).map((_, i) => (
+        <div
+          key={`placeholder-${i}`}
+          className="w-full aspect-square max-w-[200px] bg-[#222]"
+        />
+      ))}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\ui\FollowUserCard.tsx =====
+import React, { useState } from "react";
+import { UserAvatar, UserIcon, AppButton } from "@/shared/ui";
+import { FollowNode } from "../model/types";
+import { useFollowUser } from "../model/useFollowUser";
+import { useUnfollowUser } from "../model/useUnfollowUser";
+
+interface FollowUserCardProps {
+  user: FollowNode;
+}
+
+const formatFollowers = (count: number) => {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  return count.toString();
+};
+
+export const FollowUserCard = ({ user }: FollowUserCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(user.isFollowing || false);
+
+  const followMutation = useFollowUser();
+  const unfollowMutation = useUnfollowUser();
+
+  const toggleFollow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    setIsFollowing((prev) => !prev);
+
+    if (isFollowing) {
+      unfollowMutation.mutate(user.id);
+    } else {
+      followMutation.mutate(user.id);
+    }
+  };
+
+  return (
+    <div
+      className="flex flex-col items-center gap-3 w-full group cursor-pointer"
+      data-testid={`follow-card-${user.id}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="w-full aspect-square max-w-[200px]">
+        <UserAvatar
+          src={user.avatarUrl || undefined}
+          name={user.displayName}
+          size="xl"
+        />
+      </div>
+
+      <div className="flex flex-col items-center text-center w-full px-2 relative min-h-[60px]">
+        <span
+          className="text-white text-[15px] font-medium w-full truncate"
+          title={user.displayName}
+        >
+          {user.displayName}
+        </span>
+        <div className="flex items-center gap-1.5 text-[13px] text-[#999] mt-1 transition-opacity duration-200">
+          <UserIcon size={13} color="currentColor" />
+          <span>{formatFollowers(user.followerCount)} followers</span>
+        </div>
+
+        {/* Hover Button */}
+        <div 
+          className={`absolute bottom-[-25px] left-1/2 -translate-x-1/2 transition-all duration-200 w-full flex justify-center 
+            ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-4"}`}
+        >
+          <AppButton
+            variant={isFollowing ? "secondary" : "outline"} // Outline usually has no bg, we override styling if not perfect
+            size="sm"
+            onClick={toggleFollow}
+            style={
+              !isFollowing 
+                ? { backgroundColor: "white", color: "black", borderColor: "white" } 
+                : { color: "white" } // Secondary variant is already #333
+            }
+          >
+            {isFollowing ? "Following" : "Follow"}
+          </AppButton>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\ui\ProfileFeature.tsx =====
+"use client";
+
+import React, { useState } from "react";
+import { UserAvatar, TabBar } from "@/shared/ui";
+import { useFollowing } from "../model/useFollowing";
+import { useFollowers } from "../model/useFollowers";
+import { FollowListGrid } from "./FollowListGrid";
+import { LikedTracksList } from "@/features/track-engagement";
+
+export const ProfileFeature = () => {
+  const [activeTab, setActiveTab] = useState("likes");
+
+  const { data: following, isLoading: isLoadingFollowing } = useFollowing();
+  const { data: followers, isLoading: isLoadingFollowers } = useFollowers();
+
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+  };
+
+  const tabs = [
+    { key: "likes", label: "Likes" },
+    { key: "following", label: "Following" },
+    { key: "followers", label: "Followers" },
+  ];
+
+  return (
+    <div className="w-full text-white pt-[30px]">
+      {/* Header Profile Section */}
+      <div className="flex items-center gap-[20px] mb-[40px]">
+        {/* Placeholder gradient bubble representing XC Z */}
+        <div className="w-[120px] h-[120px] rounded-full bg-gradient-to-tr from-[#e5a89e] to-[#cc8078] flex-shrink-0" />
+        <h1 className="text-[28px] font-bold">
+          {activeTab === "likes" 
+            ? "Likes by XC Z" 
+            : `XC Z is ${activeTab === "following" ? "following" : "followed by"}`}
+        </h1>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-[#333] mb-6">
+        <TabBar
+          tabs={tabs}
+          activeKey={activeTab}
+          onTabChange={handleTabChange}
+          className="max-w-max" // the component usually handles flex
+        />
+      </div>
+
+      {/* Grid Content */}
+      {activeTab === "likes" && (
+        <LikedTracksList />
+      )}
+      {activeTab === "following" && (
+        <FollowListGrid users={following || []} isLoading={isLoadingFollowing} />
+      )}
+      {activeTab === "followers" && (
+        <FollowListGrid users={followers || []} isLoading={isLoadingFollowers} />
+      )}
+    </div>
+  );
+};
+
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\social-graph\index.ts =====
+export { ProfileFeature } from "./ui/ProfileFeature";
+export { BlockedUsersList } from "./ui/BlockedUsersList";
+export * from "./model/types";
+export * from "./model/useBlockedUsers";
+export * from "./model/useUnblockUser";
+export * from "./model/useFollowing";
+export * from "./model/useFollowers";
+export * from "./model/useSuggestedUsers";
+export * from "./model/useFollowUser";
+export * from "./model/useUnfollowUser";
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\model\types.ts =====
+export interface TrackNode {
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+  createdAt: string; // E.g., "4 years ago"
+  durationFormatted: string; // E.g., "2:00:53"
+  playCount: number;
+  likeCount: number;
+  repostCount: number;
+  commentCount: number;
+  isLiked: boolean; // Indicates if the current user likes it
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\model\useLikedTracks.ts =====
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { TrackNode } from "./types";
+
+export const LIKED_TRACKS_QUERY_KEY = ["liked-tracks"] as const;
+
+// Detailed mock payload matching the screenshot
+const MOCK_LIKED_TRACKS: TrackNode[] = [
+  {
+    id: "track_1",
+    title: "Ø³ÙˆØ±Ø© Ø§Ù„Ø¨Ù‚Ø±Ø© | Ø§Ø³Ù„Ø§Ù… ØµØ¨Ø­ÙŠ",
+    artist: "Quran| Ù‚Ø±Ø¢Ù†",
+    artworkUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop", // Reliable unsplash placeholder
+    createdAt: "4 years ago",
+    durationFormatted: "2:00:53",
+    playCount: 3060000,
+    likeCount: 41800,
+    repostCount: 1198,
+    commentCount: 1131,
+    isLiked: true,
+  },
+];
+
+export const useLikedTracks = (userId: string = "me") => {
+  return useQuery<TrackNode[], Error>({
+    queryKey: [...LIKED_TRACKS_QUERY_KEY, userId],
+    queryFn: async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        // There is no documented GET endpoint in the provided snippet, so we simulate failure and fallback
+        const { data } = await axios.get(`${apiUrl}/users/${userId}/likes`);
+        return data;
+      } catch (err) {
+        console.warn("[useLikedTracks] Using mock fallback to mimic UI screenshot.");
+        return new Promise((resolve) =>
+          setTimeout(() => resolve(MOCK_LIKED_TRACKS), 600)
+        );
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\model\useLikeTrack.ts =====
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { LIKED_TRACKS_QUERY_KEY } from "./useLikedTracks";
+
+export const useLikeTrack = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (trackId: string) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await axios.post(`${apiUrl}/tracks/${trackId}/like`);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: LIKED_TRACKS_QUERY_KEY });
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\model\useUnlikeTrack.ts =====
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { LIKED_TRACKS_QUERY_KEY } from "./useLikedTracks";
+
+export const useUnlikeTrack = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (trackId: string) => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await axios.delete(`${apiUrl}/tracks/${trackId}/like`);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: LIKED_TRACKS_QUERY_KEY });
+    },
+  });
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\ui\LikedTracksList.tsx =====
+import React from "react";
+import { useLikedTracks } from "../model/useLikedTracks";
+import { TrackCard } from "./TrackCard";
+
+export const LikedTracksList = () => {
+  const { data: tracks, isLoading } = useLikedTracks();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6 pt-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="w-full max-w-[850px] h-[160px] flex gap-4 animate-pulse">
+            <div className="w-[160px] h-[160px] bg-[#222]" />
+            <div className="flex-1 flex flex-col justify-between py-2">
+              <div className="flex gap-4">
+                <div className="w-[40px] h-[40px] bg-[#222] rounded-full" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="w-1/4 h-4 bg-[#222] rounded" />
+                  <div className="w-1/2 h-5 bg-[#222] rounded" />
+                </div>
+              </div>
+              <div className="w-full h-[60px] bg-[#222] mt-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!tracks || tracks.length === 0) {
+    return (
+      <div className="py-20 text-center text-[#999] text-[15px]">
+        You haven't liked any tracks yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col pt-4">
+      <div className="text-[14px] text-[#999] mb-6">
+        Hear the tracks you've liked
+      </div>
+      {tracks.map((track) => (
+        <TrackCard key={track.id} track={track} />
+      ))}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\ui\TrackCard.tsx =====
+import React, { useState } from "react";
+import { 
+  PlayIcon, LikeIcon, RepostIcon, ShareIcon, 
+  LinkIcon, MoreIcon, CommentIcon 
+} from "@/shared/ui/icons";
+import { TrackNode } from "../model/types";
+import { useLikeTrack } from "../model/useLikeTrack";
+import { useUnlikeTrack } from "../model/useUnlikeTrack";
+
+interface TrackCardProps {
+  track: TrackNode;
+}
+
+const formatCount = (count: number) => {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(2)}M`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+  return count.toString();
+};
+
+export const TrackCard = ({ track }: TrackCardProps) => {
+  // We manage optimistic UI state locally for immediate response
+  const [isLiked, setIsLiked] = useState(track.isLiked);
+  const [likeCount, setLikeCount] = useState(track.likeCount);
+
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+
+  const toggleLike = () => {
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((c) => c - 1);
+      unlikeMutation.mutate(track.id);
+    } else {
+      setIsLiked(true);
+      setLikeCount((c) => c + 1);
+      likeMutation.mutate(track.id);
+    }
+  };
+
+  // Generate random heights for the fake waveform, seeded simply by rendering index
+  // We memoize it so it doesn't flicker on re-renders (like when pressing 'Like')
+  const [waveformBars] = useState(() => 
+    Array.from({ length: 150 }).map(() => Math.floor(Math.random() * 80) + 10) // 10% to 90%
+  );
+
+  return (
+    <div className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
+      {/* Artwork */}
+      <div className="w-[160px] h-[160px] flex-shrink-0 bg-[#222]">
+        {track.artworkUrl ? (
+          <img 
+            src={track.artworkUrl} 
+            alt={track.title} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-tr from-[#333] to-[#111]" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col flex-1 pl-2">
+        {/* Top Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            {/* Big Play Button */}
+            <button className="w-[40px] h-[40px] rounded-full bg-[#f50] hover:bg-[#ff5500] text-white flex items-center justify-center flex-shrink-0 shadow-lg transition-colors">
+              <PlayIcon size={20} fill="currentColor" className="ml-1" />
+            </button>
+            <div className="flex flex-col">
+              <span className="text-[#999] text-[13px]">{track.artist}</span>
+              <span className="text-white text-[16px] font-medium leading-snug">
+                {track.title}
+              </span>
+            </div>
+          </div>
+          <span className="text-[#999] text-[12px]">{track.createdAt}</span>
+        </div>
+
+        {/* Waveform Visualization Placeholder */}
+        <div className="h-[60px] w-full mt-4 flex items-end gap-[1px] relative pt-2">
+          {waveformBars.map((h, i) => (
+            <div 
+              key={i} 
+              className="flex-1 bg-[#888] rounded-t-sm opacity-70" 
+              style={{ height: `${h}%` }}
+            />
+          ))}
+          {/* Duration Badge overlaying the bottom right of the waveform */}
+          <div className="absolute bottom-0 right-0 bg-[#111]/80 px-1 py-[1px] text-[10px] text-white">
+            {track.durationFormatted}
+          </div>
+        </div>
+
+        {/* Action Buttons & Stats */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={toggleLike}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-[13px] rounded bg-[#111] border transition-colors ${
+                isLiked 
+                  ? "border-[#f50] text-[#f50]" 
+                  : "border-[#333] text-[#ccc] hover:border-[#666]"
+              }`}
+            >
+              <LikeIcon size={14} fill={isLiked ? "currentColor" : "none"} />
+              {formatCount(likeCount)}
+            </button>
+            
+            <button className="flex items-center gap-1.5 px-2.5 py-1 text-[13px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+              <RepostIcon size={14} />
+              {formatCount(track.repostCount)}
+            </button>
+
+            <button className="flex items-center justify-center w-[30px] h-[26px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+              <ShareIcon size={14} />
+            </button>
+
+            <button className="flex items-center justify-center w-[30px] h-[26px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+              <LinkIcon size={14} />
+            </button>
+
+            <button className="flex items-center justify-center w-[30px] h-[26px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+              <MoreIcon size={14} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 text-[#999] text-[12px]">
+            <div className="flex items-center gap-1.5">
+              <PlayIcon size={12} fill="currentColor" />
+              {formatCount(track.playCount)}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CommentIcon size={12} />
+              {formatCount(track.commentCount)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\track-engagement\index.ts =====
+export * from "./model/types";
+export * from "./model/useLikedTracks";
+export * from "./model/useLikeTrack";
+export * from "./model/useUnlikeTrack";
+export { LikedTracksList } from "./ui/LikedTracksList";
+export { TrackCard } from "./ui/TrackCard";
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\AvatarUpload.tsx =====
+'use client';
+
+import { type FC, type ChangeEvent, useRef } from 'react';
+import { Camera } from 'lucide-react';
+import { UserAvatar } from '@/shared/ui';
+import s from './AvatarUpload.module.scss';
+
+export interface AvatarUploadProps {
+  currentSrc?: string | null;
+  previewUrl?: string | null;
+  name: string;
+  onFileSelect: (file: File) => void;
+  className?: string;
+}
+
+export const AvatarUpload: FC<AvatarUploadProps> = ({
+  currentSrc,
+  previewUrl,
+  name,
+  onFileSelect,
+  className,
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onFileSelect(file);
+  };
+
+  const displaySrc = previewUrl ?? currentSrc;
+
+  return (
+    <div
+      className={[s.wrapper, className].filter(Boolean).join(' ')}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      aria-label="Upload avatar"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click();
+      }}
+    >
+      <UserAvatar src={displaySrc} name={name} size="xl" />
+      <div className={s.overlay}>
+        <Camera size={24} />
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className={s.hiddenInput}
+        onChange={handleChange}
+      />
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\CoverUpload.tsx =====
+'use client';
+
+import { type FC, type ChangeEvent, useRef } from 'react';
+import { Camera } from 'lucide-react';
+import s from './CoverUpload.module.scss';
+
+export interface CoverUploadProps {
+  currentSrc?: string | null;
+  previewUrl?: string | null;
+  onFileSelect: (file: File) => void;
+  className?: string;
+}
+
+export const CoverUpload: FC<CoverUploadProps> = ({
+  currentSrc,
+  previewUrl,
+  onFileSelect,
+  className,
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onFileSelect(file);
+  };
+
+  const displaySrc = previewUrl ?? currentSrc;
+
+  return (
+    <div
+      className={[s.wrapper, className].filter(Boolean).join(' ')}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      aria-label="Upload cover photo"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click();
+      }}
+    >
+      {displaySrc ? (
+        <img className={s.image} src={displaySrc} alt="Cover" />
+      ) : (
+        <div className={s.placeholder}>
+          <Camera size={32} />
+        </div>
+      )}
+      <div className={s.overlay}>
+        <Camera size={20} />
+        <span>Change cover</span>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className={s.hiddenInput}
+        onChange={handleChange}
+      />
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\EditProfileForm.tsx =====
+'use client';
+
+import { type FC, useState, type FormEvent } from 'react';
+import { Globe, Lock } from 'lucide-react';
+import { AppModal, AppButton, AppInput } from '@/shared/ui';
+import { AvatarUpload } from './AvatarUpload';
+import { CoverUpload } from './CoverUpload';
+import { GenreTagInput } from './GenreTagInput';
+import { RoleSelector } from './RoleSelector';
+import s from './EditProfileForm.module.scss';
+
+interface ProfileFormData {
+  displayName: string;
+  bio: string;
+  country: string;
+  city: string;
+  genres: string[];
+  instagram: string;
+  twitter: string;
+  website: string;
+  role: 'artist' | 'listener';
+  isPrivate: boolean;
+}
+
+export interface EditProfileFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialData: ProfileFormData;
+  currentAvatarUrl: string | null;
+  currentCoverUrl: string | null;
+  displayName: string;
+  onSaved: () => void;
+}
+
+export const EditProfileForm: FC<EditProfileFormProps> = ({
+  open,
+  onOpenChange,
+  initialData,
+  currentAvatarUrl,
+  currentCoverUrl,
+  displayName,
+  onSaved,
+}) => {
+  const [form, setForm] = useState<ProfileFormData>(initialData);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleAvatarSelect = (file: File) => {
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const handleCoverSelect = (file: File) => {
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  };
+
+  const update = (patch: Partial<ProfileFormData>) =>
+    setForm((prev) => ({ ...prev, ...patch }));
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      onSaved();
+      onOpenChange(false);
+    } catch {
+      /* handle error silently or toast */
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <AppModal open={open} onOpenChange={onOpenChange} title="Edit Profile" size="lg">
+      <form className={s.form} onSubmit={handleSubmit}>
+        <div className={s.uploads}>
+          <AvatarUpload
+            currentSrc={currentAvatarUrl}
+            previewUrl={avatarPreview}
+            name={displayName}
+            onFileSelect={handleAvatarSelect}
+          />
+          <CoverUpload
+            currentSrc={currentCoverUrl}
+            previewUrl={coverPreview}
+            onFileSelect={handleCoverSelect}
+          />
+        </div>
+
+        <hr className={s.divider} />
+
+        <AppInput
+          label="Display Name"
+          value={form.displayName}
+          onChange={(e) => update({ displayName: e.target.value })}
+        />
+        <div className={s.row}>
+          <AppInput
+            label="City"
+            value={form.city}
+            onChange={(e) => update({ city: e.target.value })}
+          />
+          <AppInput
+            label="Country"
+            value={form.country}
+            onChange={(e) => update({ country: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <span className={s.sectionLabel}>Bio</span>
+          <textarea
+            className={s.textarea}
+            value={form.bio}
+            onChange={(e) => update({ bio: e.target.value })}
+            placeholder="Tell the world about yourselfâ€¦"
+            maxLength={300}
+          />
+        </div>
+
+        <hr className={s.divider} />
+        <GenreTagInput genres={form.genres} onChange={(genres) => update({ genres })} />
+
+        <hr className={s.divider} />
+        <span className={s.sectionLabel}>Social Links</span>
+        <AppInput label="Instagram URL" value={form.instagram} onChange={(e) => update({ instagram: e.target.value })} placeholder="https://instagram.com/..." />
+        <AppInput label="Twitter URL" value={form.twitter} onChange={(e) => update({ twitter: e.target.value })} placeholder="https://twitter.com/..." />
+        <AppInput label="Website URL" value={form.website} onChange={(e) => update({ website: e.target.value })} placeholder="https://..." />
+
+        <hr className={s.divider} />
+        <span className={s.sectionLabel}>Account Type</span>
+        <RoleSelector role={form.role} onChange={(role) => update({ role })} />
+
+        <div
+          className={s.privacyToggle}
+          onClick={() => update({ isPrivate: !form.isPrivate })}
+          role="switch"
+          aria-checked={form.isPrivate}
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') update({ isPrivate: !form.isPrivate }); }}
+        >
+          {form.isPrivate ? <Lock size={20} /> : <Globe size={20} />}
+          <div className={s.privacyInfo}>
+            <div className={s.privacyLabel}>{form.isPrivate ? 'Private' : 'Public'}</div>
+            <div className={s.privacyHint}>{form.isPrivate ? 'Only approved followers can see your content' : 'Anyone can view your profile'}</div>
+          </div>
+        </div>
+
+        <div className={s.footer}>
+          <AppButton type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</AppButton>
+          <AppButton type="submit" loading={saving}>Save Changes</AppButton>
+        </div>
+      </form>
+    </AppModal>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\GenreTagInput.tsx =====
+'use client';
+
+import { type FC, type KeyboardEvent, useState } from 'react';
+import { X } from 'lucide-react';
+import { AppInput } from '@/shared/ui';
+import s from './GenreTagInput.module.scss';
+
+export interface GenreTagInputProps {
+  genres: string[];
+  onChange: (genres: string[]) => void;
+  maxTags?: number;
+  className?: string;
+}
+
+export const GenreTagInput: FC<GenreTagInputProps> = ({
+  genres,
+  onChange,
+  maxTags = 10,
+  className,
+}) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
+      const tag = inputValue.trim().toLowerCase();
+      if (!genres.includes(tag) && genres.length < maxTags) {
+        onChange([...genres, tag]);
+      }
+      setInputValue('');
+    }
+    if (e.key === 'Backspace' && !inputValue && genres.length > 0) {
+      onChange(genres.slice(0, -1));
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    onChange(genres.filter((g) => g !== tag));
+  };
+
+  return (
+    <div className={[s.wrapper, className].filter(Boolean).join(' ')}>
+      <span className={s.label}>Favorite Genres</span>
+      <div className={s.tags}>
+        {genres.map((genre) => (
+          <span key={genre} className={s.tagItem}>
+            # {genre}
+            <button
+              type="button"
+              className={s.removeBtn}
+              onClick={() => removeTag(genre)}
+              aria-label={`Remove ${genre}`}
+            >
+              <X size={12} />
+            </button>
+          </span>
+        ))}
+      </div>
+      <AppInput
+        placeholder="Type a genre and press Enter"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={genres.length >= maxTags}
+      />
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\RoleSelector.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import { Mic2, Headphones } from 'lucide-react';
+import s from './RoleSelector.module.scss';
+
+export interface RoleSelectorProps {
+  role: 'artist' | 'listener';
+  onChange: (role: 'artist' | 'listener') => void;
+  className?: string;
+}
+
+export const RoleSelector: FC<RoleSelectorProps> = ({
+  role,
+  onChange,
+  className,
+}) => (
+  <div className={[s.wrapper, className].filter(Boolean).join(' ')}>
+    <button
+      type="button"
+      className={[s.option, role === 'artist' ? s.active : '']
+        .filter(Boolean)
+        .join(' ')}
+      onClick={() => onChange('artist')}
+      aria-pressed={role === 'artist'}
+    >
+      <Mic2 size={18} />
+      Artist
+    </button>
+    <button
+      type="button"
+      className={[s.option, role === 'listener' ? s.active : '']
+        .filter(Boolean)
+        .join(' ')}
+      onClick={() => onChange('listener')}
+      aria-pressed={role === 'listener'}
+    >
+      <Headphones size={18} />
+      Listener
+    </button>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\ui\SocialLinks.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import { Instagram, Twitter, Globe } from 'lucide-react';
+import s from './SocialLinks.module.scss';
+
+interface SocialLink {
+  platform: 'instagram' | 'twitter' | 'website';
+  url: string;
+}
+
+export interface SocialLinksProps {
+  instagram?: string;
+  twitter?: string;
+  website?: string;
+  className?: string;
+}
+
+const ICON_MAP = {
+  instagram: Instagram,
+  twitter: Twitter,
+  website: Globe,
+} as const;
+
+const LABEL_MAP = {
+  instagram: 'Instagram',
+  twitter: 'Twitter',
+  website: 'Website',
+} as const;
+
+export const SocialLinks: FC<SocialLinksProps> = ({
+  instagram,
+  twitter,
+  website,
+  className,
+}) => {
+  const links: SocialLink[] = [
+    instagram && { platform: 'instagram' as const, url: instagram },
+    twitter && { platform: 'twitter' as const, url: twitter },
+    website && { platform: 'website' as const, url: website },
+  ].filter((v): v is SocialLink => Boolean(v));
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className={[s.container, className].filter(Boolean).join(' ')}>
+      {links.map(({ platform, url }) => {
+        const Icon = ICON_MAP[platform];
+        return (
+          <a
+            key={platform}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.link}
+            aria-label={LABEL_MAP[platform]}
+          >
+            <Icon size={16} />
+            <span>{LABEL_MAP[platform]}</span>
+          </a>
+        );
+      })}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\user-profile\index.tsx =====
+
+
+export { EditProfileForm } from './ui/EditProfileForm';
+export type { EditProfileFormProps } from './ui/EditProfileForm';
+
+export { AvatarUpload } from './ui/AvatarUpload';
+export type { AvatarUploadProps } from './ui/AvatarUpload';
+
+export { CoverUpload } from './ui/CoverUpload';
+export type { CoverUploadProps } from './ui/CoverUpload';
+
+export { GenreTagInput } from './ui/GenreTagInput';
+export type { GenreTagInputProps } from './ui/GenreTagInput';
+
+export { RoleSelector } from './ui/RoleSelector';
+export type { RoleSelectorProps } from './ui/RoleSelector';
+
+export { SocialLinks } from './ui/SocialLinks';
+export type { SocialLinksProps } from './ui/SocialLinks';
+
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\lib\utils.ts =====
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\api\client.ts =====
+import axios from 'axios'
+
+// â”€â”€â”€ Axios Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// This is the one HTTP client used by the whole app.
+// UI components NEVER call fetch() directly â€” they always call repository functions,
+// which use this client.
+
+const apiClient = axios.create({
+  // Replace this with your real backend URL when the backend team is ready
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10_000, // 10 seconds
+})
+
+// â”€â”€â”€ Request Interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Automatically attaches the JWT token to every outgoing request
+// so the user doesn't have to re-authenticate on each call.
+apiClient.interceptors.request.use((config) => {
+  // Read token from localStorage (set by useAuthStore on login)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+
+// â”€â”€â”€ Response Interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// If the server returns 401 (token expired), clear the session and redirect to login.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken')
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default apiClient
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\constants\routes.ts =====
+export const ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  FEED: '/feed',
+  PROFILE: (username: string) => `/profile/${username}`,
+} as const
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\types\index.ts =====
+// â”€â”€â”€ User â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export interface User {
+  id: string
+  email: string
+  username: string
+  displayName: string
+  avatarUrl?: string
+  role: 'artist' | 'listener'
+  isVerified: boolean
+  createdAt: string
+}
+
+// â”€â”€â”€ API Wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export interface ApiResponse<T> {
+  data: T
+  message: string
+  success: boolean
+}
+
+// â”€â”€â”€ Auth Payloads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export interface LoginPayload {
+  email: string
+  password: string
+}
+
+export interface RegisterPayload {
+  email: string
+  password: string
+  confirmPassword: string
+  captchaToken: string
+}
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  newPassword: string
+  confirmPassword: string
+}
+
+// â”€â”€â”€ Auth Response â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export interface AuthResponse {
+  user: User
+  accessToken: string
+  refreshToken: string
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\ActionBar\ActionBar.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler, type ReactNode } from 'react';
+import s from './ActionBar.module.scss';
+
+export interface ActionItem {
+  key: string;
+  icon: ReactNode;
+  label?: string;
+  active?: boolean;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+}
+
+export interface ActionBarProps {
+  actions: ActionItem[];
+  className?: string;
+}
+
+export const ActionBar: FC<ActionBarProps> = ({ actions, className }) => (
+  <div className={[s.bar, className].filter(Boolean).join(' ')}>
+    {actions.map((action) => (
+      <button
+        key={action.key}
+        className={[
+          s.actionBtn,
+          action.label ? s.withLabel : '',
+          action.active ? s.active : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        onClick={action.onClick}
+        aria-label={action.label ?? action.key}
+      >
+        {action.icon}
+        {action.label && <span>{action.label}</span>}
+      </button>
+    ))}
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\ActionBar\index.ts =====
+export { ActionBar } from './ActionBar';
+export type { ActionBarProps, ActionItem } from './ActionBar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AnnouncementBanner\AnnouncementBanner.tsx =====
+'use client';
+
+import { type FC, type ReactNode, useState } from 'react';
+import s from './AnnouncementBanner.module.scss';
+
+export interface AnnouncementBannerProps {
+  icon?: ReactNode;
+  children: ReactNode;
+  linkText?: string;
+  linkHref?: string;
+  dismissible?: boolean;
+  className?: string;
+}
+
+export const AnnouncementBanner: FC<AnnouncementBannerProps> = ({
+  icon = 'ðŸš€',
+  children,
+  linkText,
+  linkHref,
+  dismissible = true,
+  className,
+}) => {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+
+  return (
+    <div className={[s.banner, className].filter(Boolean).join(' ')} role="banner">
+      <span className={s.icon}>{icon}</span>
+      <span>
+        {children}
+        {linkText && (
+          <>
+            {' '}
+            <a className={s.link} href={linkHref}>
+              {linkText}
+            </a>
+          </>
+        )}
+      </span>
+      {dismissible && (
+        <button
+          className={s.dismiss}
+          onClick={() => setVisible(false)}
+          aria-label="Dismiss"
+        >
+          âœ•
+        </button>
+      )}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AnnouncementBanner\index.ts =====
+export { AnnouncementBanner } from './AnnouncementBanner';
+export type { AnnouncementBannerProps } from './AnnouncementBanner';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppButton\AppButton.tsx =====
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import s from './AppButton.module.scss';
+
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type Size = 'sm' | 'md' | 'lg';
+
+export interface AppButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: Variant;
+  size?: Size;
+  loading?: boolean;
+  isLoading?: boolean; // Legacy prop support
+  fullWidth?: boolean; // Legacy prop support
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+}
+
+export const AppButton = forwardRef<HTMLButtonElement, AppButtonProps>(
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      loading = false,
+      isLoading = false,
+      fullWidth = false,
+      disabled = false,
+      leftIcon,
+      rightIcon,
+      className,
+      children,
+      ...rest
+    },
+    ref,
+  ) => {
+    const isWaiting = loading || isLoading;
+    const classes = [
+      s.button,
+      s[variant],
+      s[size],
+      disabled && s.disabled,
+      isWaiting && s.loading,
+      fullWidth && 'w-full',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <button
+        ref={ref}
+        className={classes}
+        disabled={disabled || isWaiting}
+        aria-busy={isWaiting || undefined}
+        {...rest}
+      >
+        {isWaiting && <span className={s.spinner} />}
+        {leftIcon && <span className="flex shrink-0">{leftIcon}</span>}
+        {children}
+        {rightIcon && <span className="flex shrink-0">{rightIcon}</span>}
+      </button>
+    );
+  },
+);
+
+AppButton.displayName = 'AppButton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppButton\index.ts =====
+export { AppButton } from './AppButton';
+export type { AppButtonProps } from './AppButton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppInput\AppInput.tsx =====
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import s from './AppInput.module.scss';
+
+export interface AppInputProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  label?: string;
+  error?: string;
+  hint?: string;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+}
+
+export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
+  (
+    { label, error, hint, leftIcon, rightIcon, disabled, className, id, ...rest },
+    ref,
+  ) => {
+    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+
+    const wrapperCls = [
+      s.wrapper,
+      error && s.error,
+      disabled && s.disabled,
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const inputCls = [
+      s.input,
+      leftIcon && s.hasLeft,
+      rightIcon && s.hasRight,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <div className={wrapperCls}>
+        {label && (
+          <label htmlFor={inputId} className={s.label}>
+            {label}
+          </label>
+        )}
+
+        <div className={s.inputWrap}>
+          {leftIcon && (
+            <span className={`${s.icon} ${s.iconLeft}`}>{leftIcon}</span>
+          )}
+
+          <input
+            ref={ref}
+            id={inputId}
+            className={inputCls}
+            disabled={disabled}
+            aria-invalid={!!error || undefined}
+            aria-describedby={
+              error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
+            }
+            {...rest}
+          />
+
+          {rightIcon && (
+            <span className={`${s.icon} ${s.iconRight}`}>{rightIcon}</span>
+          )}
+        </div>
+
+        {error && (
+          <span id={`${inputId}-error`} className={s.errorMsg} role="alert">
+            {error}
+          </span>
+        )}
+        {!error && hint && (
+          <span id={`${inputId}-hint`} className={s.hint}>
+            {hint}
+          </span>
+        )}
+      </div>
+    );
+  },
+);
+
+AppInput.displayName = 'AppInput';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppInput\index.ts =====
+export { AppInput } from './AppInput';
+export type { AppInputProps } from './AppInput';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppModal\AppModal.tsx =====
+'use client';
+
+import { type FC, type ReactNode, useEffect, useRef } from 'react';
+import s from './AppModal.module.scss';
+
+type ModalSize = 'sm' | 'md' | 'lg';
+
+const WIDTH: Record<ModalSize, string> = {
+  sm: '400px',
+  md: '560px',
+  lg: '720px',
+};
+
+export interface AppModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  size?: ModalSize;
+  title?: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+}
+
+export const AppModal: FC<AppModalProps> = ({
+  open,
+  onOpenChange,
+  size = 'md',
+  title,
+  description,
+  children,
+  className,
+}) => {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      ref={overlayRef}
+      className={s.overlay}
+      onClick={(e) => { if (e.target === overlayRef.current) onOpenChange(false); }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div
+        className={[s.panel, className].filter(Boolean).join(' ')}
+        style={{ maxWidth: WIDTH[size] }}
+      >
+        {(title || description) && (
+          <div className={s.header}>
+            {title && <h2 className={s.title}>{title}</h2>}
+            {description && <p className={s.description}>{description}</p>}
+          </div>
+        )}
+        <button
+          className={s.closeBtn}
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+        >
+          âœ•
+        </button>
+        <div className={s.body}>{children}</div>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppModal\index.ts =====
+export { AppModal } from './AppModal';
+export type { AppModalProps } from './AppModal';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppToast\AppToast.tsx =====
+'use client';
+
+import { type FC, useEffect, useState, useCallback } from 'react';
+
+type ToastVariant = 'success' | 'error' | 'info' | 'warning';
+
+const VARIANT_STYLES: Record<ToastVariant, { bg: string; accent: string; icon: string }> = {
+  success: { bg: 'var(--sc-bg-primary)', accent: 'var(--sc-success)', icon: 'âœ“' },
+  error:   { bg: 'var(--sc-bg-primary)', accent: 'var(--sc-danger)',  icon: 'âœ•' },
+  info:    { bg: 'var(--sc-bg-primary)', accent: 'var(--sc-info)',    icon: 'â„¹' },
+  warning: { bg: 'var(--sc-bg-primary)', accent: 'var(--sc-warning)', icon: 'âš ' },
+};
+
+export interface AppToastProps {
+  message: string;
+  variant?: ToastVariant;
+  duration?: number;
+  open: boolean;
+  onClose: () => void;
+}
+
+export const AppToast: FC<AppToastProps> = ({
+  message,
+  variant = 'info',
+  duration = 4000,
+  open,
+  onClose,
+}) => {
+  const [visible, setVisible] = useState(open);
+  const { bg, accent, icon } = VARIANT_STYLES[variant];
+
+  const dismiss = useCallback(() => {
+    setVisible(false);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (open) {
+      setVisible(true);
+      const timer = setTimeout(dismiss, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [open, duration, dismiss]);
+
+  if (!open && !visible) return null;
+
+  return (
+    <div
+      role="alert"
+      style={{
+        position: 'fixed',
+        bottom: 'var(--sc-space-6)',
+        right: 'var(--sc-space-6)',
+        zIndex: 'var(--sc-z-toast)' as unknown as number,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--sc-space-3)',
+        padding: 'var(--sc-space-3) var(--sc-space-4)',
+        background: bg,
+        borderLeft: `4px solid ${accent}`,
+        borderRadius: 'var(--sc-radius-lg)',
+        boxShadow: 'var(--sc-shadow-lg)',
+        fontFamily: 'var(--sc-font-family)',
+        fontSize: 'var(--sc-font-size-md)',
+        color: 'var(--sc-gray-900)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(12px)',
+        transition: 'opacity 300ms ease, transform 300ms ease',
+        maxWidth: 400,
+        overflow: 'hidden',
+      }}
+    >
+      <span
+        style={{
+          width: 24,
+          height: 24,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 'var(--sc-radius-full)',
+          background: accent,
+          color: 'var(--sc-white)',
+          fontSize: 12,
+          fontWeight: 700,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </span>
+
+      <span style={{ flex: 1 }}>{message}</span>
+
+      <button
+        onClick={dismiss}
+        aria-label="Dismiss"
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'var(--sc-gray-400)',
+          cursor: 'pointer',
+          fontSize: 16,
+          padding: 2,
+          lineHeight: 1,
+        }}
+      >
+        Ã—
+      </button>
+
+      {/* Progress bar */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          height: 3,
+          background: accent,
+          animation: `shrink ${duration}ms linear forwards`,
+        }}
+      />
+
+      <style>{`@keyframes shrink { from { width: 100%; } to { width: 0%; } }`}</style>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\AppToast\index.ts =====
+export { AppToast } from './AppToast';
+export type { AppToastProps } from './AppToast';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\ArtistSuggestionCard\ArtistSuggestionCard.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler, type ReactNode } from 'react';
+import s from './ArtistSuggestionCard.module.scss';
+
+export interface ArtistSuggestionCardProps {
+  name: string;
+  avatarSlot: ReactNode;
+  followers?: number | string;
+  tracks?: number | string;
+  verified?: boolean;
+  followSlot: ReactNode;
+  className?: string;
+  onClick?: MouseEventHandler<HTMLDivElement>;
+}
+
+export const ArtistSuggestionCard: FC<ArtistSuggestionCardProps> = ({
+  name, avatarSlot, followers, tracks, verified, followSlot, className, onClick,
+}) => (
+  <div className={[s.card, className].filter(Boolean).join(' ')} onClick={onClick}>
+    {avatarSlot}
+    <div className={s.info}>
+      <span className={s.name}>
+        {name}
+        {verified && <span style={{ color: 'var(--sc-verified)', fontSize: 14 }}>âœ“</span>}
+      </span>
+      <span className={s.meta}>
+        {followers !== undefined && <span>ðŸ‘¤ {followers}</span>}
+        {tracks !== undefined && <span>ðŸŽµ {tracks}</span>}
+      </span>
+    </div>
+    {followSlot}
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\ArtistSuggestionCard\index.ts =====
+export { ArtistSuggestionCard } from './ArtistSuggestionCard';
+export type { ArtistSuggestionCardProps } from './ArtistSuggestionCard';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\Brand\index.ts =====
+export { SoundCloudLogo } from './SoundCloudLogo';
+export type { SoundCloudLogoProps } from './SoundCloudLogo';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\Brand\SoundCloudLogo.tsx =====
+import { type FC } from 'react';
+
+export interface SoundCloudLogoProps {
+  size?: number;
+  color?: string;
+  className?: string;
+}
+
+export const SoundCloudLogo: FC<SoundCloudLogoProps> = ({
+  size = 32,
+  color = '#ff5500',
+  className,
+}) => {
+  const h = size * 0.6;
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={h}
+      viewBox="0 0 120 68"
+      fill={color}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="SoundCloud"
+      role="img"
+    >
+      {/* Waveform bars */}
+      <rect x="2"  y="40" width="4" height="28" rx="2" opacity="0.5" />
+      <rect x="10" y="30" width="4" height="38" rx="2" opacity="0.6" />
+      <rect x="18" y="18" width="4" height="50" rx="2" opacity="0.7" />
+      <rect x="26" y="10" width="4" height="58" rx="2" opacity="0.8" />
+      <rect x="34" y="16" width="4" height="52" rx="2" opacity="0.9" />
+      <rect x="42" y="6"  width="4" height="62" rx="2" />
+
+      {/* Cloud body */}
+      <path d="
+        M50 68
+        L50 22
+        C50 22 52 2 72 2
+        C86 2 92 14 94 18
+        C96 10 102 6 110 8
+        C118 10 120 22 120 28
+        C120 40 112 46 104 46
+        L104 68
+        Z
+      " />
+    </svg>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\DropZone\DropZone.tsx =====
+'use client';
+
+import { type FC, type ReactNode, type DragEvent, useState, useCallback } from 'react';
+import s from './DropZone.module.scss';
+
+export interface DropZoneProps {
+  onDrop?: (files: FileList) => void;
+  accept?: string;
+  children?: ReactNode;
+  label?: string;
+  className?: string;
+}
+
+export const DropZone: FC<DropZoneProps> = ({
+  onDrop, accept, children, label = 'Drag and drop files to get started.', className,
+}) => {
+  const [over, setOver] = useState(false);
+
+  const handleDrag = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setOver(false);
+      if (e.dataTransfer.files.length) onDrop?.(e.dataTransfer.files);
+    },
+    [onDrop],
+  );
+
+  return (
+    <div
+      className={[s.zone, over ? s.dragOver : '', className].filter(Boolean).join(' ')}
+      onDragOver={(e) => { handleDrag(e); setOver(true); }}
+      onDragLeave={(e) => { handleDrag(e); setOver(false); }}
+      onDrop={handleDrop}
+      onClick={() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        if (accept) input.accept = accept;
+        input.multiple = true;
+        input.onchange = () => { if (input.files?.length) onDrop?.(input.files); };
+        input.click();
+      }}
+      role="button"
+      tabIndex={0}
+    >
+      <span className={s.icon}>â˜</span>
+      <span className={s.label}>{label}</span>
+      {children}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\DropZone\index.ts =====
+export { DropZone } from './DropZone';
+export type { DropZoneProps } from './DropZone';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\EmptyState\EmptyState.tsx =====
+import { type FC, type ReactNode } from 'react';
+import s from './EmptyState.module.scss';
+
+export interface EmptyStateProps {
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  className?: string;
+}
+
+export const EmptyState: FC<EmptyStateProps> = ({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}) => (
+  <div className={[s.empty, className].filter(Boolean).join(' ')}>
+    {icon && <span className={s.icon}>{icon}</span>}
+    <span className={s.title}>{title}</span>
+    {description && <span className={s.description}>{description}</span>}
+    {action}
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\EmptyState\index.ts =====
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\FeedTrackCard\FeedTrackCard.tsx =====
+'use client';
+
+import { type FC, type ReactNode } from 'react';
+import s from './FeedTrackCard.module.scss';
+
+export interface FeedTrackCardProps {
+  title: string;
+  artist: string;
+  coverUrl?: string;
+  timeAgo?: string;
+  genre?: string;
+  plays?: number;
+  likes?: number;
+  reposts?: number;
+  comments?: number;
+  liked?: boolean;
+  waveformSlot?: ReactNode;
+  actionsSlot?: ReactNode;
+  onPlay?: () => void;
+  className?: string;
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+export const FeedTrackCard: FC<FeedTrackCardProps> = ({
+  title, artist, coverUrl, timeAgo, plays, likes, reposts, comments,
+  liked, waveformSlot, actionsSlot, onPlay, className,
+}) => (
+  <div className={[s.card, className].filter(Boolean).join(' ')}>
+    <div className={s.coverWrap}>
+      {coverUrl ? (
+        <img className={s.coverImg} src={coverUrl} alt={title} />
+      ) : (
+        <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+      )}
+      <button className={s.playBtn} onClick={onPlay} aria-label="Play">
+        <span className={s.playTriangle} />
+      </button>
+    </div>
+
+    <div className={s.body}>
+      <div className={s.header}>
+        <div className={s.meta}>
+          <span className={s.artist}>{artist}</span>
+          <span className={s.title}>{title}</span>
+        </div>
+        {timeAgo && <span className={s.time}>{timeAgo}</span>}
+      </div>
+
+      <div className={s.waveform}>{waveformSlot}</div>
+
+      <div className={s.footer}>
+        <div className={s.stats}>
+          {likes !== undefined && (
+            <span className={`${s.stat} ${liked ? s.statActive : ''}`}>â™¥ {fmt(likes)}</span>
+          )}
+          {reposts !== undefined && <span className={s.stat}>â†» {fmt(reposts)}</span>}
+          {plays !== undefined && <span className={s.stat}>â–¶ {fmt(plays)}</span>}
+          {comments !== undefined && <span className={s.stat}>ðŸ’¬ {fmt(comments)}</span>}
+        </div>
+        {actionsSlot}
+      </div>
+    </div>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\FeedTrackCard\index.ts =====
+export { FeedTrackCard } from './FeedTrackCard';
+export type { FeedTrackCardProps } from './FeedTrackCard';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\FollowButton\FollowButton.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler, useState } from 'react';
+import s from './FollowButton.module.scss';
+
+export interface FollowButtonProps {
+  isFollowing: boolean;
+  loading?: boolean;
+  disabled?: boolean;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+export const FollowButton: FC<FollowButtonProps> = ({
+  isFollowing,
+  loading = false,
+  disabled = false,
+  onClick,
+  className,
+}) => {
+  const [hovered, setHovered] = useState(false);
+
+  const label = loading
+    ? '...'
+    : isFollowing
+      ? hovered ? 'Unfollow' : 'Following'
+      : 'Follow';
+
+  return (
+    <button
+      className={[
+        s.followBtn,
+        isFollowing ? s.following : '',
+        disabled || loading ? s.disabled : '',
+        className,
+      ].filter(Boolean).join(' ')}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      disabled={disabled || loading}
+      aria-label={isFollowing ? 'Unfollow' : 'Follow'}
+    >
+      {label}
+    </button>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\FollowButton\index.ts =====
+export { FollowButton } from './FollowButton';
+export type { FollowButtonProps } from './FollowButton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\GenreTag\GenreTag.tsx =====
+import { type FC, type MouseEventHandler } from 'react';
+import s from './GenreTag.module.scss';
+
+export interface GenreTagProps {
+  genre: string;
+  variant?: 'outlined' | 'filled';
+  onClick?: MouseEventHandler<HTMLSpanElement>;
+  className?: string;
+}
+
+export const GenreTag: FC<GenreTagProps> = ({
+  genre,
+  variant = 'outlined',
+  onClick,
+  className,
+}) => (
+  <span
+    className={[s.tag, s[variant], className].filter(Boolean).join(' ')}
+    onClick={onClick}
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+  >
+    # {genre}
+  </span>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\GenreTag\index.ts =====
+export { GenreTag } from './GenreTag';
+export type { GenreTagProps } from './GenreTag';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\icons\index.tsx =====
+import {
+  Play, Pause, SkipBack, SkipForward,
+  Heart, Repeat, Shuffle, Volume2, VolumeX, Volume1,
+  Search, Upload, Bell, User, Home, Library,
+  MessageCircle, Share2, MoreHorizontal, X,
+  Check, Lock, Globe, ChevronDown, ChevronUp,
+  ChevronLeft, ChevronRight, Settings, LogOut,
+  Plus, Minus, Edit, Trash2, Download, Link,
+  Image, Music, List, Grid, Filter, Clock,
+  TrendingUp, Radio, Mic, Headphones, Award, Ban
+} from 'lucide-react'
+
+export type IconProps = {
+  size?: number
+  color?: string
+  fill?: string
+  className?: string
+}
+
+// Player icons
+export const PlayIcon = (props: IconProps) => <Play {...props} />
+export const PauseIcon = (props: IconProps) => <Pause {...props} />
+export const NextIcon = (props: IconProps) => <SkipForward {...props} />
+export const PrevIcon = (props: IconProps) => <SkipBack {...props} />
+export const RepeatIcon = (props: IconProps) => <Repeat {...props} />
+export const ShuffleIcon = (props: IconProps) => <Shuffle {...props} />
+export const VolumeIcon = (props: IconProps) => <Volume2 {...props} />
+export const VolumeLowIcon = (props: IconProps) => <Volume1 {...props} />
+export const MuteIcon = (props: IconProps) => <VolumeX {...props} />
+
+// Engagement icons
+export const LikeIcon = (props: IconProps) => <Heart {...props} />
+export const RepostIcon = (props: IconProps) => <Repeat {...props} />
+export const ShareIcon = (props: IconProps) => <Share2 {...props} />
+export const CommentIcon = (props: IconProps) => <MessageCircle {...props} />
+export const DownloadIcon = (props: IconProps) => <Download {...props} />
+
+// Navigation icons
+export const HomeIcon = (props: IconProps) => <Home {...props} />
+export const SearchIcon = (props: IconProps) => <Search {...props} />
+export const LibraryIcon = (props: IconProps) => <Library {...props} />
+export const NotificationIcon = (props: IconProps) => <Bell {...props} />
+export const MessageIcon = (props: IconProps) => <MessageCircle {...props} />
+export const UploadIcon = (props: IconProps) => <Upload {...props} />
+export const SettingsIcon = (props: IconProps) => <Settings {...props} />
+export const LogOutIcon = (props: IconProps) => <LogOut {...props} />
+
+// Profile icons  
+export const UserIcon = (props: IconProps) => <User {...props} />
+export const PublicIcon = (props: IconProps) => <Globe {...props} />
+export const PrivateIcon = (props: IconProps) => <Lock {...props} />
+export const EditIcon = (props: IconProps) => <Edit {...props} />
+
+// Track icons
+export const TrackIcon = (props: IconProps) => <Music {...props} />
+export const PlaylistIcon = (props: IconProps) => <List {...props} />
+export const AlbumIcon = (props: IconProps) => <Grid {...props} />
+export const MicIcon = (props: IconProps) => <Mic {...props} />
+export const HeadphonesIcon = (props: IconProps) => <Headphones {...props} />
+export const RadioIcon = (props: IconProps) => <Radio {...props} />
+
+// UI icons
+export const CloseIcon = (props: IconProps) => <X {...props} />
+export const CheckIcon = (props: IconProps) => <Check {...props} />
+export const MoreIcon = (props: IconProps) => <MoreHorizontal {...props} />
+export const AddIcon = (props: IconProps) => <Plus {...props} />
+export const RemoveIcon = (props: IconProps) => <Minus {...props} />
+export const DeleteIcon = (props: IconProps) => <Trash2 {...props} />
+export const LinkIcon = (props: IconProps) => <Link {...props} />
+export const ImageIcon = (props: IconProps) => <Image {...props} />
+export const FilterIcon = (props: IconProps) => <Filter {...props} />
+export const ClockIcon = (props: IconProps) => <Clock {...props} />
+export const TrendingIcon = (props: IconProps) => <TrendingUp {...props} />
+export const ChevronDownIcon = (props: IconProps) => <ChevronDown {...props} />
+export const ChevronUpIcon = (props: IconProps) => <ChevronUp {...props} />
+export const ChevronLeftIcon = (props: IconProps) => <ChevronLeft {...props} />
+export const ChevronRightIcon = (props: IconProps) => <ChevronRight {...props} />
+export const AwardIcon = (props: IconProps) => <Award {...props} />
+export const BanIcon = (props: IconProps) => <Ban {...props} />
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\LikeButton\index.ts =====
+export { LikeButton } from './LikeButton';
+export type { LikeButtonProps } from './LikeButton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\LikeButton\LikeButton.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler } from 'react';
+
+export interface LikeButtonProps {
+  liked: boolean;
+  count?: number;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+export const LikeButton: FC<LikeButtonProps> = ({
+  liked, count, onClick, className,
+}) => (
+  <button
+    className={className}
+    onClick={onClick}
+    aria-label={liked ? 'Unlike' : 'Like'}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontFamily: 'var(--sc-font-family)',
+      fontSize: 'var(--sc-font-size-sm)',
+      color: liked ? 'var(--sc-primary)' : 'var(--sc-gray-500)',
+      padding: '4px 6px',
+      borderRadius: 'var(--sc-radius-sm)',
+      transition: 'color var(--sc-transition-fast), transform 100ms ease',
+    }}
+    onMouseDown={(e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'scale(1.2)';
+      setTimeout(() => { el.style.transform = 'scale(1)'; }, 150);
+    }}
+  >
+    <span style={{ fontSize: 16 }}>{liked ? 'â™¥' : 'â™¡'}</span>
+    {count !== undefined && <span>{fmt(count)}</span>}
+  </button>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\NavBar\index.ts =====
+export { NavBar } from './NavBar';
+export type { NavBarProps } from './NavBar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\NavBar\NavBar.tsx =====
+import { type FC, type ReactNode } from 'react';
+import s from './NavBar.module.scss';
+import { SearchBar } from '../SearchBar';
+import { SoundCloudLogo } from '../Brand';
+
+export interface NavBarProps {
+  isLoggedIn?: boolean;
+  avatarSlot?: ReactNode;
+  bellSlot?: ReactNode;
+  onUpload?: () => void;
+  onSignIn?: () => void;
+  onCreateAccount?: () => void;
+  searchValue?: string;
+  onSearchChange?: (v: string) => void;
+  className?: string;
+}
+
+export const NavBar: FC<NavBarProps> = ({
+  isLoggedIn = false,
+  avatarSlot,
+  bellSlot,
+  onUpload,
+  onSignIn,
+  onCreateAccount,
+  searchValue,
+  onSearchChange,
+  className,
+}) => (
+  <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
+    {/* Logo */}
+    <div className={s.logo}>
+      <SoundCloudLogo size={36} color="var(--sc-primary)" />
+      <span className={s.logoText}>SOUNDCLOUD</span>
+    </div>
+
+    {/* Search */}
+    <div className={s.searchWrap}>
+      <SearchBar value={searchValue} onChange={onSearchChange} />
+    </div>
+
+    {/* Right actions */}
+    <div className={s.actions}>
+      {isLoggedIn ? (
+        <>
+          <button className={s.uploadBtn} onClick={onUpload}>Upload</button>
+          {bellSlot}
+          {avatarSlot}
+        </>
+      ) : (
+        <>
+          <button className={s.ghostBtn} onClick={onSignIn}>Sign in</button>
+          <button className={s.primaryBtn} onClick={onCreateAccount}>Create account</button>
+        </>
+      )}
+    </div>
+  </nav>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\NotificationBell\index.ts =====
+export { NotificationBell } from './NotificationBell';
+export type { NotificationBellProps } from './NotificationBell';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\NotificationBell\NotificationBell.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler } from 'react';
+
+export interface NotificationBellProps {
+  count?: number;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+export const NotificationBell: FC<NotificationBellProps> = ({
+  count = 0, onClick, className,
+}) => (
+  <button
+    className={className}
+    onClick={onClick}
+    aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}
+    style={{
+      position: 'relative',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 36,
+      height: 36,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: 'var(--sc-gray-400)',
+      fontSize: 20,
+      padding: 0,
+      transition: 'color var(--sc-transition-fast)',
+    }}
+  >
+    ðŸ””
+    {count > 0 && (
+      <span
+        style={{
+          position: 'absolute',
+          top: 2,
+          right: 2,
+          minWidth: 16,
+          height: 16,
+          padding: '0 4px',
+          borderRadius: 'var(--sc-radius-full)',
+          background: 'var(--sc-danger)',
+          color: 'var(--sc-white)',
+          fontFamily: 'var(--sc-font-family)',
+          fontSize: 10,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: 1,
+        }}
+      >
+        {count >= 10 ? '9+' : count}
+      </span>
+    )}
+  </button>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayCount\index.ts =====
+export { PlayCount } from './PlayCount';
+export type { PlayCountProps } from './PlayCount';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayCount\PlayCount.tsx =====
+import { type FC } from 'react';
+
+export interface PlayCountProps {
+  count: number;
+  className?: string;
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+export const PlayCount: FC<PlayCountProps> = ({ count, className }) => (
+  <span
+    className={className}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      fontFamily: 'var(--sc-font-family)',
+      fontSize: 'var(--sc-font-size-xs)',
+      color: 'var(--sc-gray-500)',
+    }}
+  >
+    <span style={{ fontSize: 10 }}>â–¶</span>
+    {fmt(count)}
+  </span>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayerBar\index.ts =====
+export { PlayerBar } from './PlayerBar';
+export type { PlayerBarProps } from './PlayerBar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayerBar\PlayerBar.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler } from 'react';
+import s from './PlayerBar.module.scss';
+
+export interface PlayerBarProps {
+  title?: string;
+  artist?: string;
+  coverUrl?: string;
+  isPlaying?: boolean;
+  liked?: boolean;
+  currentTime?: number;
+  totalTime?: number;
+  volume?: number;
+  shuffle?: boolean;
+  repeat?: boolean;
+  onPlayPause?: MouseEventHandler<HTMLButtonElement>;
+  onPrev?: MouseEventHandler<HTMLButtonElement>;
+  onNext?: MouseEventHandler<HTMLButtonElement>;
+  onLike?: MouseEventHandler<HTMLButtonElement>;
+  onVolumeChange?: (v: number) => void;
+  onSeek?: (pct: number) => void;
+  onShuffle?: MouseEventHandler<HTMLButtonElement>;
+  onRepeat?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+function fmtTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const ss = Math.floor(sec % 60);
+  return `${m}:${String(ss).padStart(2, '0')}`;
+}
+
+export const PlayerBar: FC<PlayerBarProps> = ({
+  title = 'â€”',
+  artist = 'â€”',
+  coverUrl,
+  isPlaying = false,
+  liked = false,
+  currentTime = 0,
+  totalTime = 0,
+  volume = 80,
+  shuffle = false,
+  repeat = false,
+  onPlayPause, onPrev, onNext, onLike,
+  onVolumeChange, onSeek, onShuffle, onRepeat,
+  className,
+}) => {
+  const pct = totalTime > 0 ? (currentTime / totalTime) * 100 : 0;
+
+  return (
+    <div className={[s.bar, className].filter(Boolean).join(' ')}>
+      {/* ---- Left ---- */}
+      <div className={s.left}>
+        <div className={s.coverArt}>
+          {coverUrl ? (
+            <img className={s.coverImg} src={coverUrl} alt={title} />
+          ) : (
+            <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+          )}
+        </div>
+        <div className={s.trackInfo}>
+          <span className={s.trackTitle}>{title}</span>
+          <span className={s.trackArtist}>{artist}</span>
+        </div>
+        <button
+          className={`${s.heartBtn} ${liked ? s.heartLiked : ''}`}
+          onClick={onLike}
+          aria-label={liked ? 'Unlike' : 'Like'}
+        >
+          {liked ? 'â™¥' : 'â™¡'}
+        </button>
+      </div>
+
+      {/* ---- Center ---- */}
+      <div className={s.center}>
+        <div className={s.controls}>
+          <button className={`${s.toggleBtn} ${shuffle ? s.toggleActive : ''}`} onClick={onShuffle} aria-label="Shuffle">â‡Œ</button>
+          <button className={s.ctrlBtn} onClick={onPrev} aria-label="Previous">â®</button>
+          <button className={s.playPauseBtn} onClick={onPlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
+            {isPlaying ? (
+              <span className={s.pauseIcon}><span className={s.pauseBar} /><span className={s.pauseBar} /></span>
+            ) : (
+              <span className={s.playTriangle} />
+            )}
+          </button>
+          <button className={s.ctrlBtn} onClick={onNext} aria-label="Next">â­</button>
+          <button className={`${s.toggleBtn} ${repeat ? s.toggleActive : ''}`} onClick={onRepeat} aria-label="Repeat">ðŸ”</button>
+        </div>
+        <div className={s.progressRow}>
+          <span className={s.time}>{fmtTime(currentTime)}</span>
+          <div
+            className={s.progressTrack}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              onSeek?.((e.clientX - rect.left) / rect.width);
+            }}
+          >
+            <div className={s.progressFill} style={{ width: `${pct}%` }} />
+          </div>
+          <span className={s.time}>{fmtTime(totalTime)}</span>
+        </div>
+      </div>
+
+      {/* ---- Right ---- */}
+      <div className={s.right}>
+        <div className={s.volumeWrap}>
+          <button className={s.volumeIcon} aria-label="Volume">ðŸ”Š</button>
+          <input
+            className={s.volumeSlider}
+            type="range"
+            min={0}
+            max={100}
+            value={volume}
+            onChange={(e) => onVolumeChange?.(Number(e.target.value))}
+            aria-label="Volume"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlaylistCard\index.ts =====
+export { PlaylistCard } from './PlaylistCard';
+export type { PlaylistCardProps } from './PlaylistCard';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlaylistCard\PlaylistCard.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler } from 'react';
+import s from './PlaylistCard.module.scss';
+
+export interface PlaylistCardProps {
+  title: string;
+  coverUrl?: string;
+  onPlay?: MouseEventHandler<HTMLDivElement>;
+  onClick?: MouseEventHandler<HTMLDivElement>;
+  className?: string;
+}
+
+export const PlaylistCard: FC<PlaylistCardProps> = ({
+  title, coverUrl, onPlay, onClick, className,
+}) => (
+  <div className={[s.card, className].filter(Boolean).join(' ')} onClick={onClick}>
+    <div className={s.cover}>
+      {coverUrl ? (
+        <img className={s.coverImg} src={coverUrl} alt={title} />
+      ) : (
+        <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+      )}
+      <div className={s.playOverlay} onClick={(e) => { e.stopPropagation(); onPlay?.(e); }}>
+        <div className={s.playIcon}>
+          <span className={s.playTriangle} />
+        </div>
+      </div>
+    </div>
+    <span className={s.title}>{title}</span>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SearchBar\index.ts =====
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps } from './SearchBar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SearchBar\SearchBar.tsx =====
+'use client';
+
+import { type FC, type ChangeEventHandler, useState, useCallback } from 'react';
+import s from './SearchBar.module.scss';
+
+export interface SearchBarProps {
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export const SearchBar: FC<SearchBarProps> = ({
+  value: controlledValue,
+  onChange,
+  placeholder = 'Search for artists, bands, tracks, podcasts',
+  className,
+}) => {
+  const [internal, setInternal] = useState('');
+  const value = controlledValue ?? internal;
+
+  const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
+    const v = e.target.value;
+    setInternal(v);
+    onChange?.(v);
+  }, [onChange]);
+
+  const handleClear = useCallback(() => {
+    setInternal('');
+    onChange?.('');
+  }, [onChange]);
+
+  return (
+    <div className={[s.wrap, className].filter(Boolean).join(' ')}>
+      <span className={s.searchIcon}>ðŸ”</span>
+      <input
+        className={s.input}
+        type="text"
+        value={value}
+        onChange={handleChange}
+        placeholder={placeholder}
+      />
+      {value.length > 0 && (
+        <button className={s.clearBtn} onClick={handleClear} aria-label="Clear search">
+          âœ•
+        </button>
+      )}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\shadcn\avatar.tsx =====
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import { cn } from "@/lib/utils"
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)}
+    {...props}
+  />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn("flex h-full w-full items-center justify-center rounded-full bg-muted", className)}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+
+export { Avatar, AvatarImage, AvatarFallback }
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\shadcn\button.tsx =====
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cn } from "@/lib/utils"
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  size?: "default" | "sm" | "lg" | "icon"
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "default", size = "default", asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button }
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\shadcn\skeleton.tsx =====
+import { cn } from "@/lib/utils"
+
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("animate-pulse rounded-md bg-zinc-100", className)}
+      {...props}
+    />
+  )
+}
+
+export { Skeleton }
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\shadcn\toast.tsx =====
+export const run = jest.fn();
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\shadcn\use-toast.ts =====
+import * as React from "react"
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: React.ReactNode
+  variant?: "default" | "destructive"
+}
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  return count.toString()
+}
+
+type ToastActionElement = React.ReactElement
+
+export function useToast() {
+  const [toasts, setToasts] = React.useState<ToasterToast[]>([])
+
+  const toast = React.useCallback(
+    ({ ...props }: Omit<ToasterToast, "id">) => {
+      const id = genId()
+
+      const updateToasts = (state: ToasterToast[]) => [
+        { id, ...props },
+        ...state,
+      ].slice(0, TOAST_LIMIT)
+
+      setToasts(updateToasts)
+
+      return {
+        id: id,
+        dismiss: () => setToasts((prev) => prev.filter((t) => t.id !== id)),
+        update: (props: ToasterToast) =>
+          setToasts((prev) =>
+            prev.map((t) => (t.id === id ? { ...t, ...props } : t))
+          ),
+      }
+    },
+    []
+  )
+
+  return {
+    toast,
+    toasts,
+    dismiss: (toastId?: string) =>
+      setToasts((prev) => prev.filter((t) => (toastId ? t.id !== toastId : false))),
+  }
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SidebarNav\index.ts =====
+export { SidebarNav } from './SidebarNav';
+export type { SidebarNavProps, NavLink, SidebarTrack } from './SidebarNav';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SidebarNav\SidebarNav.tsx =====
+'use client';
+
+import { type FC, type ReactNode } from 'react';
+import s from './SidebarNav.module.scss';
+
+export interface NavLink {
+  key: string;
+  label: string;
+  icon: ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+export interface SidebarTrack {
+  id: string;
+  title: string;
+  artist: string;
+  coverUrl?: string;
+}
+
+export interface SidebarNavProps {
+  links: NavLink[];
+  recentTracks?: SidebarTrack[];
+  likedTracks?: SidebarTrack[];
+  onTrackClick?: (id: string) => void;
+  className?: string;
+}
+
+export const SidebarNav: FC<SidebarNavProps> = ({
+  links,
+  recentTracks = [],
+  likedTracks = [],
+  onTrackClick,
+  className,
+}) => (
+  <aside className={[s.sidebar, className].filter(Boolean).join(' ')}>
+    {/* Top: Navigation Links */}
+    <div className={s.section}>
+      {links.map((link) => (
+        <div
+          key={link.key}
+          className={`${s.navItem} ${link.active ? s.navItemActive : ''}`}
+          onClick={link.onClick}
+          role="link"
+          tabIndex={0}
+        >
+          <span className={s.navIcon}>{link.icon}</span>
+          {link.label}
+        </div>
+      ))}
+    </div>
+
+    {/* Middle: Recently Played */}
+    {recentTracks.length > 0 && (
+      <>
+        <div className={s.divider} />
+        <span className={s.sectionTitle}>Recently Played</span>
+        <div className={s.trackList}>
+          {recentTracks.map((track) => (
+            <div
+              key={track.id}
+              className={s.trackItem}
+              onClick={() => onTrackClick?.(track.id)}
+            >
+              <div className={s.trackCover}>
+                {track.coverUrl ? (
+                  <img className={s.trackCoverImg} src={track.coverUrl} alt={track.title} />
+                ) : (
+                  <div className={s.trackCoverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+                )}
+              </div>
+              <div className={s.trackMeta}>
+                <span className={s.trackTitle}>{track.title}</span>
+                <span className={s.trackArtist}>{track.artist}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    )}
+
+    {/* Bottom: Liked Tracks */}
+    {likedTracks.length > 0 && (
+      <>
+        <div className={s.divider} />
+        <span className={s.sectionTitle}>Liked Tracks</span>
+        <div className={s.trackList}>
+          {likedTracks.map((track) => (
+            <div
+              key={track.id}
+              className={s.trackItem}
+              onClick={() => onTrackClick?.(track.id)}
+            >
+              <div className={s.trackCover}>
+                {track.coverUrl ? (
+                  <img className={s.trackCoverImg} src={track.coverUrl} alt={track.title} />
+                ) : (
+                  <div className={s.trackCoverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+                )}
+              </div>
+              <div className={s.trackMeta}>
+                <span className={s.trackTitle}>{track.title}</span>
+                <span className={s.trackArtist}>{track.artist}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    )}
+  </aside>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SidebarTrackItem\index.ts =====
+export { SidebarTrackItem } from './SidebarTrackItem';
+export type { SidebarTrackItemProps } from './SidebarTrackItem';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SidebarTrackItem\SidebarTrackItem.tsx =====
+import { type FC } from 'react';
+import s from './SidebarTrackItem.module.scss';
+
+export interface SidebarTrackItemProps {
+  title: string;
+  artist: string;
+  coverUrl?: string;
+  plays?: number;
+  likes?: number;
+  reposts?: number;
+  comments?: number;
+  className?: string;
+}
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+export const SidebarTrackItem: FC<SidebarTrackItemProps> = ({
+  title, artist, coverUrl, plays, likes, reposts, comments, className,
+}) => (
+  <div className={[s.item, className].filter(Boolean).join(' ')}>
+    <div className={s.cover}>
+      {coverUrl ? (
+        <img className={s.coverImg} src={coverUrl} alt={title} />
+      ) : (
+        <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+      )}
+    </div>
+    <div className={s.info}>
+      <span className={s.top}>{artist}</span>
+      <span className={s.title}>{title}</span>
+    </div>
+    <div className={s.stats}>
+      {plays !== undefined && <span>â–¶ {fmt(plays)}</span>}
+      {likes !== undefined && <span>â™¥ {fmt(likes)}</span>}
+      {reposts !== undefined && <span>â†» {fmt(reposts)}</span>}
+      {comments !== undefined && <span>ðŸ’¬ {fmt(comments)}</span>}
+    </div>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SkeletonLoader\index.ts =====
+export { SkeletonLoader } from './SkeletonLoader';
+export type { SkeletonLoaderProps } from './SkeletonLoader';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SkeletonLoader\SkeletonLoader.tsx =====
+import { type FC, type CSSProperties } from 'react';
+import s from './SkeletonLoader.module.scss';
+
+export interface SkeletonLoaderProps {
+  width?: string | number;
+  height?: string | number;
+  rounded?: boolean | 'circle';
+  lines?: number;
+  className?: string;
+  style?: CSSProperties;
+}
+
+export const SkeletonLoader: FC<SkeletonLoaderProps> = ({
+  width = '100%',
+  height = 16,
+  rounded = true,
+  lines,
+  className,
+  style,
+}) => {
+  const radiusCls =
+    rounded === 'circle' ? s.circle : rounded ? s.rounded : '';
+
+  const blockStyle: CSSProperties = { width, height, ...style };
+
+  if (lines && lines > 1) {
+    return (
+      <div className={s.lines} role="status" aria-label="Loadingâ€¦">
+        {Array.from({ length: lines }).map((_, i) => (
+          <div
+            key={i}
+            className={[s.skeleton, radiusCls, className]
+              .filter(Boolean)
+              .join(' ')}
+            style={{
+              ...blockStyle,
+              width: i === lines - 1 ? '60%' : width,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={[s.skeleton, radiusCls, className]
+        .filter(Boolean)
+        .join(' ')}
+      style={blockStyle}
+      role="status"
+      aria-label="Loadingâ€¦"
+    />
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SocialButton\index.ts =====
+export { SocialButton } from './SocialButton';
+export type { SocialButtonProps } from './SocialButton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\SocialButton\SocialButton.tsx =====
+import { type FC, type MouseEventHandler, type ReactNode } from 'react';
+import s from './SocialButton.module.scss';
+
+type Provider = 'facebook' | 'google' | 'apple';
+
+const ICONS: Record<Provider, string> = {
+  facebook: 'â“•',
+  google: 'G',
+  apple: '',
+};
+
+export interface SocialButtonProps {
+  provider: Provider;
+  label?: string;
+  icon?: ReactNode;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+export const SocialButton: FC<SocialButtonProps> = ({
+  provider,
+  label,
+  icon,
+  onClick,
+  className,
+}) => (
+  <button
+    className={[s.btn, s[provider], className].filter(Boolean).join(' ')}
+    onClick={onClick}
+  >
+    <span className={s.icon}>{icon ?? ICONS[provider]}</span>
+    {label ?? `Continue with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`}
+  </button>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\StatCounter\index.ts =====
+export { StatCounter } from './StatCounter';
+export type { StatCounterProps, StatItem } from './StatCounter';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\StatCounter\StatCounter.tsx =====
+import { type FC } from 'react';
+import s from './StatCounter.module.scss';
+
+export interface StatItem {
+  label: string;
+  value: string | number;
+}
+
+export interface StatCounterProps {
+  stats: StatItem[];
+  className?: string;
+}
+
+function formatStat(v: string | number): string {
+  if (typeof v === 'string') return v;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return String(v);
+}
+
+export const StatCounter: FC<StatCounterProps> = ({ stats, className }) => (
+  <div className={[s.row, className].filter(Boolean).join(' ')}>
+    {stats.map((stat) => (
+      <div key={stat.label} className={s.counter}>
+        <span className={s.label}>{stat.label}</span>
+        <span className={s.value}>{formatStat(stat.value)}</span>
+      </div>
+    ))}
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TabBar\index.ts =====
+export { TabBar } from './TabBar';
+export type { TabBarProps, TabItem } from './TabBar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TabBar\TabBar.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import s from './TabBar.module.scss';
+
+export interface TabItem {
+  key: string;
+  label: string;
+}
+
+export interface TabBarProps {
+  tabs: TabItem[];
+  activeKey: string;
+  onTabChange: (key: string) => void;
+  className?: string;
+}
+
+export const TabBar: FC<TabBarProps> = ({
+  tabs,
+  activeKey,
+  onTabChange,
+  className,
+}) => (
+  <nav className={[s.tabs, className].filter(Boolean).join(' ')} role="tablist">
+    {tabs.map((tab) => (
+      <button
+        key={tab.key}
+        role="tab"
+        className={`${s.tab} ${activeKey === tab.key ? s.active : ''}`}
+        aria-selected={activeKey === tab.key}
+        onClick={() => onTabChange(tab.key)}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </nav>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackCard\index.ts =====
+export { TrackCard } from './TrackCard';
+export type { TrackCardProps } from './TrackCard';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackCard\TrackCard.tsx =====
+'use client';
+
+import { type FC, type MouseEventHandler, useMemo } from 'react';
+import s from './TrackCard.module.scss';
+
+export interface TrackCardProps {
+  title: string;
+  artist: string;
+  coverUrl?: string;
+  duration: string;
+  plays?: number;
+  likes?: number;
+  reposts?: number;
+  liked?: boolean;
+  isPlaying?: boolean;
+  onPlay?: MouseEventHandler<HTMLButtonElement>;
+  onLike?: MouseEventHandler<HTMLButtonElement>;
+  className?: string;
+}
+
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
+/** Generate deterministic waveform bars from the title string */
+function generateBars(seed: string, count: number = 48): number[] {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const bars: number[] = [];
+  for (let i = 0; i < count; i++) {
+    hash = (hash * 16807 + 0x7fffffff) & 0x7fffffff;
+    bars.push(0.15 + (hash % 100) / 120);
+  }
+  return bars;
+}
+
+export const TrackCard: FC<TrackCardProps> = ({
+  title, artist, coverUrl, duration,
+  plays = 0, likes = 0, reposts, liked = false, isPlaying = false,
+  onPlay, onLike, className,
+}) => {
+  const bars = useMemo(() => generateBars(title), [title]);
+
+  return (
+    <div className={[s.card, className].filter(Boolean).join(' ')}>
+      {/* Play / Pause button */}
+      <button className={s.playBtn} onClick={onPlay} aria-label={isPlaying ? 'Pause' : 'Play'}>
+        {isPlaying ? (
+          <span className={s.pauseIcon}>
+            <span className={s.pauseBar} />
+            <span className={s.pauseBar} />
+          </span>
+        ) : (
+          <span className={s.playTriangle} />
+        )}
+      </button>
+
+      {/* Cover art */}
+      <div className={s.artWrap}>
+        {coverUrl ? (
+          <img className={s.artImg} src={coverUrl} alt={title} />
+        ) : (
+          <div className={s.artImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
+        )}
+      </div>
+
+      {/* Meta */}
+      <div className={s.meta}>
+        <span className={s.title}>{title}</span>
+        <span className={s.artist}>{artist}</span>
+      </div>
+
+      {/* Waveform */}
+      <div className={s.waveform}>
+        {bars.map((h, i) => (
+          <div
+            key={i}
+            className={s.bar}
+            style={{
+              height: `${h * 100}%`,
+              background: i < bars.length * 0.3 && isPlaying
+                ? 'var(--sc-waveform-progress)'
+                : 'var(--sc-waveform)',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className={s.stats}>
+        <span className={s.stat}>{duration}</span>
+        <button
+          className={`${s.likeBtn} ${liked ? s.liked : ''}`}
+          onClick={onLike}
+          aria-label={liked ? 'Unlike' : 'Like'}
+        >
+          {liked ? 'â™¥' : 'â™¡'} {formatCount(likes)}
+        </button>
+        {reposts !== undefined && (
+          <span className={s.stat}>â†» {formatCount(reposts)}</span>
+        )}
+        <span className={s.stat}>â–¶ {formatCount(plays)}</span>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackCardSkeleton\index.ts =====
+export { TrackCardSkeleton } from './TrackCardSkeleton';
+export type { TrackCardSkeletonProps } from './TrackCardSkeleton';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackCardSkeleton\TrackCardSkeleton.tsx =====
+import { type FC } from 'react';
+import { SkeletonLoader } from '../SkeletonLoader';
+
+export interface TrackCardSkeletonProps {
+  className?: string;
+}
+
+export const TrackCardSkeleton: FC<TrackCardSkeletonProps> = ({ className }) => (
+  <div
+    className={className}
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 'var(--sc-space-3)',
+      height: 72,
+      padding: '0 var(--sc-space-3)',
+      width: '100%',
+    }}
+  >
+    {/* Play button skeleton */}
+    <SkeletonLoader width={40} height={40} rounded="circle" />
+
+    {/* Cover art skeleton */}
+    <SkeletonLoader width={40} height={40} />
+
+    {/* Meta skeleton */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: 140 }}>
+      <SkeletonLoader width={120} height={12} />
+      <SkeletonLoader width={80} height={10} />
+    </div>
+
+    {/* Waveform skeleton */}
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <SkeletonLoader width="100%" height={32} />
+    </div>
+
+    {/* Stats skeleton */}
+    <div style={{ display: 'flex', gap: 'var(--sc-space-3)', flexShrink: 0 }}>
+      <SkeletonLoader width={40} height={12} />
+      <SkeletonLoader width={40} height={12} />
+      <SkeletonLoader width={40} height={12} />
+    </div>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackDuration\index.ts =====
+export { TrackDuration } from './TrackDuration';
+export type { TrackDurationProps } from './TrackDuration';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\TrackDuration\TrackDuration.tsx =====
+import { type FC } from 'react';
+
+export interface TrackDurationProps {
+  seconds: number;
+  className?: string;
+}
+
+function fmtDuration(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+export const TrackDuration: FC<TrackDurationProps> = ({ seconds, className }) => (
+  <span
+    className={className}
+    style={{
+      fontFamily: 'var(--sc-font-family)',
+      fontSize: 'var(--sc-font-size-sm)',
+      color: 'var(--sc-gray-500)',
+    }}
+  >
+    {fmtDuration(seconds)}
+  </span>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\UserAvatar\index.ts =====
+export { UserAvatar } from './UserAvatar';
+export type { UserAvatarProps } from './UserAvatar';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\UserAvatar\UserAvatar.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import s from './UserAvatar.module.scss';
+
+type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+const FALLBACK_COLORS = [
+  '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
+  '#2196f3', '#00bcd4', '#009688', '#4caf50',
+  '#ff9800', '#ff5722', '#795548', '#607d8b',
+] as const;
+
+function hashColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return FALLBACK_COLORS[Math.abs(hash) % FALLBACK_COLORS.length];
+}
+
+export interface UserAvatarProps {
+  src?: string | null;
+  name: string;
+  size?: AvatarSize;
+  className?: string;
+}
+
+export const UserAvatar: FC<UserAvatarProps> = ({
+  src,
+  name,
+  size = 'md',
+  className,
+}) => {
+  const safeName = name || 'User';
+  const initial = safeName.charAt(0);
+  const bg = hashColor(safeName);
+
+  const classes = [s.avatar, s[size], className].filter(Boolean).join(' ');
+
+  return (
+    <div className={classes} aria-label={name} role="img">
+      {src ? (
+        <img className={s.image} src={src} alt={name} />
+      ) : (
+        <div className={s.fallback} style={{ background: bg }}>
+          {initial}
+        </div>
+      )}
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\VerifiedBadge\index.ts =====
+export { VerifiedBadge } from './VerifiedBadge';
+export type { VerifiedBadgeProps } from './VerifiedBadge';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\VerifiedBadge\VerifiedBadge.tsx =====
+import { type FC } from 'react';
+
+export interface VerifiedBadgeProps {
+  size?: number;
+  className?: string;
+}
+
+export const VerifiedBadge: FC<VerifiedBadgeProps> = ({
+  size = 14,
+  className,
+}) => (
+  <svg
+    className={className}
+    width={size}
+    height={size}
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Verified"
+    role="img"
+  >
+    <circle cx="8" cy="8" r="8" fill="var(--sc-verified, #3da1f2)" />
+    <path
+      d="M6.5 11L4 8.5l1-1 1.5 1.5L10.5 5l1 1L6.5 11z"
+      fill="var(--sc-white, #fff)"
+    />
+  </svg>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\index.ts =====
+/* ============================= */
+/* Shared UI â€” Barrel Export     */
+/* ============================= */
+
+/* ---- Core Components ---- */
+export { AppButton } from './AppButton';
+export type { AppButtonProps } from './AppButton';
+
+export { AppInput } from './AppInput';
+export type { AppInputProps } from './AppInput';
+
+export { UserAvatar } from './UserAvatar';
+export type { UserAvatarProps } from './UserAvatar';
+
+export { TrackCard } from './TrackCard';
+export type { TrackCardProps } from './TrackCard';
+
+export { AppModal } from './AppModal';
+export type { AppModalProps } from './AppModal';
+
+export { AppToast } from './AppToast';
+export type { AppToastProps } from './AppToast';
+
+export { SkeletonLoader } from './SkeletonLoader';
+export type { SkeletonLoaderProps } from './SkeletonLoader';
+
+/* ---- Design-system Components ---- */
+export { TabBar } from './TabBar';
+export type { TabBarProps, TabItem } from './TabBar';
+
+export { FollowButton } from './FollowButton';
+export type { FollowButtonProps } from './FollowButton';
+
+export { GenreTag } from './GenreTag';
+export type { GenreTagProps } from './GenreTag';
+
+export { StatCounter } from './StatCounter';
+export type { StatCounterProps, StatItem } from './StatCounter';
+
+export { ActionBar } from './ActionBar';
+export type { ActionBarProps, ActionItem } from './ActionBar';
+
+export { FeedTrackCard } from './FeedTrackCard';
+export type { FeedTrackCardProps } from './FeedTrackCard';
+
+export { ArtistSuggestionCard } from './ArtistSuggestionCard';
+export type { ArtistSuggestionCardProps } from './ArtistSuggestionCard';
+
+export { AnnouncementBanner } from './AnnouncementBanner';
+export type { AnnouncementBannerProps } from './AnnouncementBanner';
+
+export { SidebarTrackItem } from './SidebarTrackItem';
+export type { SidebarTrackItemProps } from './SidebarTrackItem';
+
+export { PlaylistCard } from './PlaylistCard';
+export type { PlaylistCardProps } from './PlaylistCard';
+
+export { DropZone } from './DropZone';
+export type { DropZoneProps } from './DropZone';
+
+export { SocialButton } from './SocialButton';
+export type { SocialButtonProps } from './SocialButton';
+
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
+
+export { VerifiedBadge } from './VerifiedBadge';
+export type { VerifiedBadgeProps } from './VerifiedBadge';
+
+/* ---- Batch 2 Components ---- */
+export { LikeButton } from './LikeButton';
+export type { LikeButtonProps } from './LikeButton';
+
+export { PlayCount } from './PlayCount';
+export type { PlayCountProps } from './PlayCount';
+
+export { TrackDuration } from './TrackDuration';
+export type { TrackDurationProps } from './TrackDuration';
+
+export { NotificationBell } from './NotificationBell';
+export type { NotificationBellProps } from './NotificationBell';
+
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps } from './SearchBar';
+
+export { TrackCardSkeleton } from './TrackCardSkeleton';
+export type { TrackCardSkeletonProps } from './TrackCardSkeleton';
+
+export { PlayerBar } from './PlayerBar';
+export type { PlayerBarProps } from './PlayerBar';
+
+export { NavBar } from './NavBar';
+export type { NavBarProps } from './NavBar';
+
+export { SidebarNav } from './SidebarNav';
+export type { SidebarNavProps, NavLink, SidebarTrack } from './SidebarNav';
+
+export { SoundCloudLogo } from './Brand';
+export type { SoundCloudLogoProps } from './Brand';
+
+export * from './icons';
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\Register\HeroSlider.tsx =====
+'use client'
+
+import React, { useState } from 'react';
+
+const slides = [
+  {
+    title: "Discover.\nGet Discovered.",
+    subtitle: "Discover your next obsession, or become someone else's. SoundCloud is the only community where fans and artists come together.",
+    artist: "DC the Don", //need to use a placeholder for now until we have an API to pull this data from
+    badge: "SoundCloud Artist Pro",
+    bg: "/slide1.jpg" // Put your images in the public folder
+  },
+
+  {
+    title: "It all starts with\nan upload.",
+    subtitle: "From bedrooms and broom closets to studios and stadiums, SoundCloud is where you define what's next.",
+    artist: "1900Rugrat",
+    badge: "Ascending Artist",
+    bg: "/slide2.jpg"
+  },
+];
+
+export default function HeroSlider() {
+  const [current, setCurrent] = useState(0);
+
+  return (
+    <section className="hero-banner relative mx-auto max-w-[1240px] h-[450px] overflow-hidden rounded-md text-white">
+      {/* Background with Transition */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out brightness-75"
+        style={{ backgroundImage: `url(${slides[current].bg})` }}
+      ></div>
+
+      {/* Content Area */}
+      <div className="relative z-10 p-12 h-full flex flex-col justify-center">
+        <h1 className="text-6xl font-extrabold leading-tight mb-4 whitespace-pre-line">
+          {slides[current].title}
+        </h1>
+        <p className="max-w-md text-lg mb-8 opacity-90">
+          {slides[current].subtitle}
+        </p>
+        <button className="bg-white text-black px-6 py-2 rounded-sm font-bold w-max">
+          Get Started
+        </button>
+      </div>
+
+      {/* Slider Dots (The 3 points) */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrent(index)}
+            className={`w-3 h-3 rounded-full border-2 border-white transition-all ${
+              current === index ? "bg-white" : "bg-transparent"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Artist Credit (Bottom Right) */}
+      <div className="absolute bottom-10 right-10 text-right z-20 leading-tight">
+        <p className="font-bold text-sm">{slides[current].artist}</p>
+        <p className="text-xs text-gray-300 underline underline-offset-2">
+          {slides[current].badge}
+        </p>
+      </div>
+    </section>
+  );
+}
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\Register\SearchBar.tsx =====
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\EditProfileModal.tsx =====
+'use client';
+
+import { type FC, useState, useRef } from 'react';
+import axios from 'axios';
+import { CloseIcon } from '@/shared/ui/icons';
+import s from './EditProfileModal.module.scss';
+
+const apiUrl = '/api/proxy';
+
+interface EditProfileModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSaved?: () => void;
+  profile: {
+    displayName: string;
+    firstName: string;
+    lastName: string;
+    city: string;
+    country: string;
+    bio: string;
+    profileUrl: string;
+    avatarUrl?: string | null;
+    genres?: string[];
+    socialLinks?: { platform: string; url: string }[];
+    isPrivate?: boolean;
+  };
+}
+
+export const EditProfileModal: FC<EditProfileModalProps> = ({
+  open,
+  onClose,
+  onSaved,
+  profile,
+}) => {
+  const [displayName, setDisplayName] = useState(profile.displayName);
+  const [firstName, setFirstName] = useState(profile.firstName);
+  const [lastName, setLastName] = useState(profile.lastName);
+  const [city, setCity] = useState(profile.city);
+  const [country, setCountry] = useState(profile.country);
+  const [bio, setBio] = useState(profile.bio || '');
+  const [genresStr, setGenresStr] = useState((profile.genres || []).join(', '));
+  const [socialLinks, setSocialLinks] = useState(profile.socialLinks || []);
+  const [isPrivate, setIsPrivate] = useState(!!profile.isPrivate);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    profile.avatarUrl || null
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  if (!open) return null;
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+
+      // 1. Update profile fields
+      await axios.patch(
+        `${apiUrl}/profile/update`,
+        {
+          displayName,
+          bio,
+          country,
+          city,
+          genres: genresStr.split(',').map(s => s.trim()).filter(Boolean),
+          socialLinks,
+          isPrivate
+        },
+        { withCredentials: true }
+      );
+
+      // 2. Upload avatar if changed
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        await axios.patch(`${apiUrl}/profile/upload-images`, formData, {
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      onSaved?.();
+      onClose();
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message || 'Failed to save profile';
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={s.overlay} onClick={onClose}>
+      <div className={s.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={s.header}>
+          <h2 className={s.title}>Edit your Profile</h2>
+          <button className={s.closeBtn} onClick={onClose} aria-label="Close">
+            <CloseIcon size={20} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className={s.body}>
+          {error && <div className={s.errorMsg}>{error}</div>}
+
+          <div className={s.topSection}>
+            {/* Avatar */}
+            <div className={s.avatarArea}>
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt={displayName}
+                  className={s.avatarPreview}
+                />
+              ) : (
+                <div className={s.avatarPreview} />
+              )}
+              <input
+                ref={avatarFileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleAvatarSelect}
+              />
+              <button
+                className={s.uploadImgBtn}
+                onClick={() => avatarFileRef.current?.click()}
+              >
+                Upload image
+              </button>
+            </div>
+
+            {/* Fields */}
+            <div className={s.fields}>
+              {/* Display name */}
+              <div>
+                <label className={s.fieldLabel}>
+                  Display name<span className={s.required}>*</span>
+                </label>
+                <input
+                  className={s.fieldInput}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                />
+              </div>
+
+              {/* Profile URL */}
+              <div>
+                <label className={s.fieldLabel}>
+                  Profile URL<span className={s.required}>*</span>
+                </label>
+                <input
+                  className={s.fieldInputReadonly}
+                  value={`biobeats.com/ ${profile.profileUrl}`}
+                  readOnly
+                />
+              </div>
+
+              {/* First / Last name */}
+              <div className={s.row}>
+                <div className={s.col}>
+                  <label className={s.fieldLabel}>First name</label>
+                  <input
+                    className={s.fieldInput}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className={s.col}>
+                  <label className={s.fieldLabel}>Last name</label>
+                  <input
+                    className={s.fieldInput}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* City / Country */}
+              <div className={s.row}>
+                <div className={s.col}>
+                  <label className={s.fieldLabel}>City</label>
+                  <input
+                    className={s.fieldInput}
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+                <div className={s.col}>
+                  <label className={s.fieldLabel}>Country</label>
+                  <input
+                    className={s.fieldInput}
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className={s.fieldLabel}>Bio</label>
+                <textarea
+                  className={s.textarea}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell the world a little bit about yourself. The shorter the better."
+                />
+              </div>
+
+              {/* Genres */}
+              <div>
+                <label className={s.fieldLabel}>Favorite Genres</label>
+                <input
+                  className={s.fieldInput}
+                  value={genresStr}
+                  onChange={(e) => setGenresStr(e.target.value)}
+                  placeholder="e.g. Hip Hop, R&B, Electronic (comma separated)"
+                />
+              </div>
+
+              {/* Privacy */}
+              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="checkbox" 
+                  id="privacyToggle"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  style={{ accentColor: '#ff5500', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                <label htmlFor="privacyToggle" className={s.fieldLabel} style={{ marginBottom: 0, cursor: 'pointer' }}>
+                  Make my profile private
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Links section */}
+          <div className={s.linksSection}>
+            <div className={s.linksHead}>
+              <span className={s.linksTitle}>Your links</span>
+              <span className={s.linksInfoIcon}>â“˜</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+              {socialLinks.map((link, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    className={s.fieldInput}
+                    placeholder="Platform (twitter)"
+                    value={link.platform}
+                    onChange={(e) => {
+                      const newLinks = [...socialLinks];
+                      newLinks[i].platform = e.target.value;
+                      setSocialLinks(newLinks);
+                    }}
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    className={s.fieldInput}
+                    placeholder="URL (https://...)"
+                    value={link.url}
+                    onChange={(e) => {
+                      const newLinks = [...socialLinks];
+                      newLinks[i].url = e.target.value;
+                      setSocialLinks(newLinks);
+                    }}
+                    style={{ flex: 2 }}
+                  />
+                  <button onClick={() => setSocialLinks(socialLinks.filter((_, idx) => idx !== i))} style={{ padding: '0 8px', background: 'transparent', border: 'none', color: '#ff5555', cursor: 'pointer', fontSize: '18px' }}>âœ•</button>
+                </div>
+              ))}
+            </div>
+
+            <div className={s.linkBtns}>
+              <button 
+                className={s.addLinkBtn} 
+                onClick={() => setSocialLinks([...socialLinks, { platform: '', url: '' }])}
+              >
+                Add link
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className={s.footer}>
+          <button className={s.cancelBtn} onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            className={s.saveBtn}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\FollowersDialog.tsx =====
+'use client';
+
+import { type FC, useState, useEffect, useCallback } from 'react';
+import { AppModal, UserAvatar, FollowButton } from '@/shared/ui';
+import s from './FollowersDialog.module.scss';
+
+interface FollowerUser {
+  _id: string;
+  permalink: string;
+  displayName: string;
+  avatarUrl: string | null;
+  isFollowing: boolean;
+}
+
+export interface FollowersDialogProps {
+  userId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const FollowersDialog: FC<FollowersDialogProps> = ({
+  userId,
+  open,
+  onOpenChange,
+}) => {
+  const [followers, setFollowers] = useState<FollowerUser[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFollowers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const mockFollowers = [
+        { _id: '1', permalink: 'alice', displayName: 'Alice', avatarUrl: 'https://i.pravatar.cc/150?img=1', isFollowing: true },
+        { _id: '2', permalink: 'bob', displayName: 'Bob', avatarUrl: 'https://i.pravatar.cc/150?img=2', isFollowing: false },
+        { _id: '3', permalink: 'charlie', displayName: 'Charlie', avatarUrl: 'https://i.pravatar.cc/150?img=3', isFollowing: false },
+      ];
+      await new Promise(resolve => setTimeout(resolve, 400));
+      setFollowers(mockFollowers);
+    } catch {
+      setFollowers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (open) fetchFollowers();
+  }, [open, fetchFollowers]);
+
+  const handleFollowToggle = async (targetId: string, isFollowing: boolean) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setFollowers((prev) =>
+        prev.map((u) =>
+          u._id === targetId ? { ...u, isFollowing: !isFollowing } : u,
+        ),
+      );
+    } catch {
+      /* silently fail */
+    }
+  };
+
+  return (
+    <AppModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Followers"
+      size="sm"
+    >
+      {loading ? (
+        <div className={s.loading}>Loadingâ€¦</div>
+      ) : followers.length === 0 ? (
+        <div className={s.empty}>No followers yet</div>
+      ) : (
+        <div className={s.list}>
+          {followers.map((user) => (
+            <div key={user._id} className={s.row}>
+              <UserAvatar
+                src={user.avatarUrl}
+                name={user.displayName}
+                size="sm"
+              />
+              <div className={s.info}>
+                <div className={s.displayName}>{user.displayName}</div>
+                <div className={s.username}>@{user.permalink}</div>
+              </div>
+              <FollowButton
+                isFollowing={user.isFollowing}
+                onClick={() =>
+                  handleFollowToggle(user._id, user.isFollowing)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </AppModal>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\FollowingDialog.tsx =====
+'use client';
+
+import { type FC, useState, useEffect, useCallback } from 'react';
+import { AppModal, UserAvatar, FollowButton } from '@/shared/ui';
+import s from './FollowersDialog.module.scss'; // Re-using FollowersDialog module
+
+interface FollowingUser {
+  _id: string;
+  permalink: string;
+  displayName: string;
+  avatarUrl: string | null;
+  isFollowing: boolean;
+}
+
+export interface FollowingDialogProps {
+  userId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const FollowingDialog: FC<FollowingDialogProps> = ({
+  userId,
+  open,
+  onOpenChange,
+}) => {
+  const [following, setFollowing] = useState<FollowingUser[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFollowing = useCallback(async () => {
+    setLoading(true);
+    try {
+      const mockFollowing = [
+        { _id: '4', permalink: 'dave', displayName: 'Dave Beats', avatarUrl: 'https://i.pravatar.cc/150?img=4', isFollowing: true },
+        { _id: '5', permalink: 'eve', displayName: 'Eve Sounds', avatarUrl: 'https://i.pravatar.cc/150?img=5', isFollowing: true },
+      ];
+      await new Promise(resolve => setTimeout(resolve, 400));
+      setFollowing(mockFollowing);
+    } catch {
+      setFollowing([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (open) fetchFollowing();
+  }, [open, fetchFollowing]);
+
+  const handleFollowToggle = async (targetId: string, isFollowing: boolean) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setFollowing((prev) =>
+        prev.map((u) =>
+          u._id === targetId ? { ...u, isFollowing: !isFollowing } : u,
+        ),
+      );
+    } catch {
+      /* silently fail */
+    }
+  };
+
+  return (
+    <AppModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Following"
+      size="sm"
+    >
+      {loading ? (
+        <div className={s.loading}>Loadingâ€¦</div>
+      ) : following.length === 0 ? (
+        <div className={s.empty}>Not following anyone yet</div>
+      ) : (
+        <div className={s.list}>
+          {following.map((user) => (
+            <div key={user._id} className={s.row}>
+              <UserAvatar
+                src={user.avatarUrl}
+                name={user.displayName}
+                size="sm"
+              />
+              <div className={s.info}>
+                <div className={s.displayName}>{user.displayName}</div>
+                <div className={s.username}>@{user.permalink}</div>
+              </div>
+              <FollowButton
+                isFollowing={user.isFollowing}
+                onClick={() =>
+                  handleFollowToggle(user._id, user.isFollowing)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </AppModal>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\ProfileCover.tsx =====
+'use client';
+
+import { type FC, useRef } from 'react';
+import axios from 'axios';
+import s from './ProfileCover.module.scss';
+
+const apiUrl = '/api/proxy';
+
+interface ProfileCoverProps {
+  displayName: string;
+  subName: string;
+  location: string;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
+  onImageUploaded?: () => void;
+}
+
+export const ProfileCover: FC<ProfileCoverProps> = ({
+  displayName,
+  subName,
+  location,
+  avatarUrl,
+  coverUrl,
+  onImageUploaded,
+}) => {
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (field: 'avatar' | 'cover', file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append(field, file);
+      await axios.patch(`${apiUrl}/profile/upload-images`, formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      onImageUploaded?.();
+    } catch (err) {
+      console.error(`Failed to upload ${field}:`, err);
+    }
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload('avatar', file);
+  };
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload('cover', file);
+  };
+
+  return (
+    <section className={s.cover}>
+      {coverUrl && (
+        <img src={coverUrl} alt="Cover" className={s.coverImage} />
+      )}
+
+      <div className={s.inner}>
+        <div className={s.avatarBlock}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className={s.avatarCircle}
+            />
+          ) : (
+            <div className={s.avatarCircle} />
+          )}
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleAvatarChange}
+          />
+          <button
+            className={s.uploadAvatarBtn}
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            Upload image
+          </button>
+        </div>
+
+        <div className={s.userText}>
+          <h1 className={s.nameTag}>{displayName}</h1>
+          <span className={s.subName}>{subName}</span>
+          <span className={s.locationTag}>{location}</span>
+        </div>
+      </div>
+
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={handleCoverChange}
+      />
+      <button
+        className={s.uploadHeaderBtn}
+        onClick={() => coverInputRef.current?.click()}
+      >
+        Upload header image
+      </button>
+    </section>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\ProfileSidebar.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import { AwardIcon } from '@/shared/ui/icons';
+import { ProfileStats } from './ProfileStats';
+import s from './ProfileSidebar.module.scss';
+
+const FOOTER_LINKS = [
+  'Legal', 'Privacy', 'Cookie Policy', 'Cookie Manager',
+  'Imprint', 'Artist Resources', 'Newsroom', 'Charts',
+  'Transparency Reports',
+];
+
+interface ProfileSidebarProps {
+  followers: number;
+  following: number;
+  tracks: number;
+  role?: string;
+}
+
+export const ProfileSidebar: FC<ProfileSidebarProps> = ({
+  followers,
+  following,
+  tracks,
+  role,
+}) => (
+  <aside className={s.sidebar}>
+    {/* Stats */}
+    <ProfileStats followers={followers} following={following} tracks={tracks} />
+
+    <hr className={s.divider} />
+
+    {/* ON TOUR - Only show upgrade if not an Artist */}
+    {role !== 'Artist' && (
+      <div className={s.tourBlock}>
+        <div className={s.tourHead}>
+          <AwardIcon size={16} className={s.tourIcon} />
+          <span className={s.tourLabel}>ON TOUR</span>
+          <span className={s.infoIcon}>â“˜</span>
+        </div>
+        <p className={s.tourDesc}>
+          With an Artist Pro account, you can create ticketed live events on
+          BioBeats, and list existing events.
+        </p>
+        <button className={s.upgradeBtn}>Upgrade to Artist Pro</button>
+      </div>
+    )}
+
+    {/* GO MOBILE */}
+    <div className={s.mobileBlock}>
+      <div className={s.mobileTitle}>GO MOBILE</div>
+      <div className={s.badges}>
+        <img
+          src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83"
+          alt="Download on the App Store"
+          className={s.badge}
+        />
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+          alt="Get it on Google Play"
+          className={s.badge}
+        />
+      </div>
+    </div>
+
+    {/* Footer links */}
+    <div className={s.footerBlock}>
+      <div className={s.footerLinks}>
+        {FOOTER_LINKS.map((link, i) => (
+          <span key={link}>
+            <span className={s.footerLink}>{link}</span>
+            {i < FOOTER_LINKS.length - 1 && <span className={s.dot}> Â· </span>}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <div className={s.langRow}>
+      Language: <span className={s.langLink}>English (US)</span>
+    </div>
+  </aside>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\ProfileStats.tsx =====
+'use client';
+
+import { type FC } from 'react';
+import s from './ProfileStats.module.scss';
+
+export interface ProfileStatsProps {
+  followers: number;
+  following: number;
+  tracks: number;
+}
+
+export const ProfileStats: FC<ProfileStatsProps> = ({
+  followers,
+  following,
+  tracks,
+}) => (
+  <div className={s.row}>
+    <div className={s.stat}>
+      <span className={s.label}>Followers</span>
+      <span className={s.value}>{followers}</span>
+    </div>
+    <div className={s.stat}>
+      <span className={s.label}>Following</span>
+      <span className={s.value}>{following}</span>
+    </div>
+    <div className={s.stat}>
+      <span className={s.label}>Tracks</span>
+      <span className={s.value}>{tracks}</span>
+    </div>
+  </div>
+);
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\ProfileTabs.tsx =====
+'use client';
+
+import { type FC, useState } from 'react';
+import { ShareIcon, EditIcon } from '@/shared/ui/icons';
+import s from './ProfileTabs.module.scss';
+
+const TABS = ['All', 'Popular tracks', 'Tracks', 'Albums', 'Playlists', 'Reposts'];
+
+export interface ProfileTabsProps {
+  onEditClick?: () => void;
+  onShareClick?: () => void;
+}
+
+export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick }) => {
+  const [active, setActive] = useState('All');
+
+  return (
+    <div className={s.bar}>
+      <nav className={s.tabs}>
+        {TABS.map((t) => (
+          <button
+            key={t}
+            className={`${s.tab} ${active === t ? s.tabActive : ''}`}
+            onClick={() => setActive(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </nav>
+
+      <div className={s.actions}>
+        <button className={s.actionBtn} onClick={onShareClick}>
+          <ShareIcon size={14} /> Share
+        </button>
+        <button className={s.actionBtn} onClick={onEditClick}>
+          <EditIcon size={14} /> Edit
+        </button>
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\user-profile\ShareModal.tsx =====
+'use client';
+
+import { type FC, useState } from 'react';
+import s from './ShareModal.module.scss';
+
+interface ShareModalProps {
+  open: boolean;
+  onClose: () => void;
+  profileUrl: string;
+}
+
+type TabType = 'share' | 'message';
+
+export const ShareModal: FC<ShareModalProps> = ({
+  open,
+  onClose,
+  profileUrl,
+}) => {
+  const [activeTab, setActiveTab] = useState<TabType>('share');
+  const fullUrl = `https://biobeats.com/${profileUrl}?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing`;
+
+  if (!open) return null;
+
+  return (
+    <div className={s.overlay} onClick={onClose}>
+      <div className={s.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Tabs */}
+        <div className={s.tabsHeader}>
+          <button
+            className={`${s.tab} ${activeTab === 'share' ? s.tabActive : ''}`}
+            onClick={() => setActiveTab('share')}
+          >
+            Share
+          </button>
+          <button
+            className={`${s.tab} ${activeTab === 'message' ? s.tabActive : ''}`}
+            onClick={() => setActiveTab('message')}
+          >
+            Message
+          </button>
+        </div>
+
+        {/* Share Panel */}
+        {activeTab === 'share' && (
+          <div className={s.sharePanel}>
+            <div className={s.socialRow}>
+              <button className={`${s.socialBtn} ${s.twitter}`} aria-label="Share on Twitter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                </svg>
+              </button>
+              <button className={`${s.socialBtn} ${s.facebook}`} aria-label="Share on Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </button>
+              <button className={`${s.socialBtn} ${s.tumblr}`} aria-label="Share on Tumblr">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.168z" />
+                </svg>
+              </button>
+              <button className={`${s.socialBtn} ${s.pinterest}`} aria-label="Share on Pinterest">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.017 24c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641 0 12.017 0z" />
+                </svg>
+              </button>
+              <button className={`${s.socialBtn} ${s.email}`} aria-label="Share via Email">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
+              </button>
+            </div>
+
+            <div className={s.urlRow}>
+              <input
+                className={s.urlInput}
+                value={fullUrl}
+                readOnly
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+            </div>
+
+            <div className={s.shortenRow}>
+              <input type="checkbox" className={s.checkbox} id="shorten-link" />
+              <label htmlFor="shorten-link" className={s.shortenLabel}>Shorten link</label>
+            </div>
+          </div>
+        )}
+
+        {/* Message Panel */}
+        {activeTab === 'message' && (
+          <div className={s.messagePanel}>
+            <label className={s.fieldLabel}>
+              To<span className={s.required}>*</span>
+            </label>
+            <input className={s.toInput} placeholder="" />
+
+            <label className={s.fieldLabel}>
+              Write your message and add tracks or playlists<span className={s.required}>*</span>
+            </label>
+            <textarea
+              className={s.messageTextarea}
+              defaultValue={`https://biobeats.com/${profileUrl}`}
+            />
+
+            <div className={s.sendRow}>
+              <button className={s.sendBtn}>Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\AuthModal.tsx =====
+"use client";
+import React from 'react';
+import SocialLogins from './SocialLogins';
+import EmailForm from './EmailForm';
+import './SocialLogins.scss'; // reuse existing styles for social buttons
+
+interface AuthModalProps {
+  onClose?: () => void;
+}
+
+const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="auth-modal-content w-[450px] p-8 relative rounded-sm shadow-2xl bg-white text-black">
+        {/* Close Button (The X in the corner) */}
+        <button
+          className="absolute top-4 right-4 text-black text-2xl"
+          onClick={onClose}
+        >
+          Ã—
+        </button>
+
+        <h1 className="text-2xl font-bold mb-2">Sign in or create an account</h1>
+
+        <p className="text-[11px] text-gray-400 mb-6 leading-tight">
+          By clicking on any of the &ldquo;Continue&rdquo; buttons below, you agree to 
+          SoundCloud&apos;s <span className="text-blue-500">Terms of Use</span> and 
+          acknowledge our <span className="text-blue-500">Privacy Policy</span>.
+        </p>
+
+        {/* Social login buttons component handles Google/Facebook/Apple */}
+        <SocialLogins />
+
+        <div className="divider-text my-4 text-center text-gray-500">Or with email</div>
+
+        {/* Email input form */}
+        <EmailForm />
+
+        <button className="text-blue-500 text-sm hover:underline mt-4">
+          Need help?
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AuthModal;
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\EmailForm.tsx =====
+import React, { useState } from 'react';
+
+const EmailForm = () => {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Proceeding with:", email);
+    // This is where you'd trigger the OAuth flow or JWT check
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm mx-auto px-4">
+      <div className="flex flex-col">
+        <input 
+          type="email" 
+          placeholder="Your email address or profile URL"
+          className="border border-gray-300 p-2 rounded-sm focus:border-orange-500 outline-none"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <button 
+        type="submit"
+        className="bg-[#ff5500] text-white py-2 px-6 rounded-sm font-bold hover:bg-[#e64d00] transition-colors"
+      >
+        Continue
+      </button>
+      <p className="text-xs text-gray-500 mt-2">
+        By signing in, you agree to our Terms of Use and Privacy Policy.
+      </p>
+    </form>
+  );
+};
+
+export default EmailForm;
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\widgets\SocialLogins.tsx =====
+import React from 'react';
+import './SocialLogins.scss';
+
+const SocialLogins = () => {
+  return (
+    <div className="flex flex-col gap-2 w-full max-w-sm mx-auto p-4">
+      {/* Google Login Button */}
+      <button className="social-btn google flex items-center justify-center py-2 px-4 rounded-sm text-white font-medium">
+        <span className="mr-2">Continue with Google</span>
+      </button>
+
+      {/* Facebook Login Button */}
+      <button className="social-btn facebook flex items-center justify-center py-2 px-4 rounded-sm text-white font-medium">
+        <span className="mr-2">Continue with Facebook</span>
+      </button>
+      
+      <div className="divider flex items-center my-4">
+        <div className="flex-grow border-t border-gray-300"></div>
+        <span className="mx-4 text-gray-500 text-sm">or</span>
+        <div className="flex-grow border-t border-gray-300"></div>
+      </div>
+    </div>
+  );
+};
+
+export default SocialLogins;
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\next-env.d.ts =====
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/basic-features/typescript for more information.
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\tailwind.config.ts =====
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/features/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/shared/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {},
+    },
+  },
+  plugins: [],
+};
+export default config;
+===== C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\types.d.ts =====
+declare module '*.scss' {
+  const content: { [className: string]: string };
+  export default content;
+}

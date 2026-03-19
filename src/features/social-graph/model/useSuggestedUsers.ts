@@ -7,8 +7,10 @@ export const useSuggestedUsers = () => {
     queryKey: ["network", "suggested"],
     queryFn: async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const { data } = await axios.get(`${apiUrl}/network/suggested`);
-      return data;
+      const { data } = await axios.get(`${apiUrl}/network/suggested`, {
+        withCredentials: true,
+      });
+      return data.data ?? data;
     },
     staleTime: 5 * 60 * 1000,
   });

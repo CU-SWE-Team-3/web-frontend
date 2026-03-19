@@ -1,1 +1,8 @@
-{}
+{
+  "features\\auth\\model\\useAuthStore.ts -> axios": {
+    "id": "features\\auth\\model\\useAuthStore.ts -> axios",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_axios_index_js.js"
+    ]
+  }
+}

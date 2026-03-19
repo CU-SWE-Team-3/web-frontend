@@ -4,6 +4,12 @@ export const ROUTES = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
   FEED: '/feed',
+  SETTINGS: '/settings',
+  FOR_ARTISTS: '/for-artists',
   PROFILE: (username: string) => `/profile/${username}`,
+  FOLLOWERS: (username: string) => `/profile/${username}/followers`,
+  FOLLOWING: (username: string) => `/profile/${username}/following`,
+  LIKES: (username: string) => `/profile/${username}/likes`,
 } as const
