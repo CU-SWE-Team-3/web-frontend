@@ -5,10 +5,17 @@ import Link from 'next/link';
 import { NavBar } from '@/shared/ui';
 import { ROUTES } from '@/shared/constants/routes';
 
+import { useRouter } from 'next/navigation';
+
 export default function FeedPage() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-[#111111] text-white flex flex-col">
-      <NavBar />
+      <NavBar
+        isLoggedIn={true}
+        onUpload={() => router.push(ROUTES.UPLOAD)}
+      />
       
       {/* Dummy Feed Layout */}
       <main className="flex-1 p-6 max-w-[1240px] mx-auto w-full pt-12">

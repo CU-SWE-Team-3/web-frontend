@@ -1,77 +1,34 @@
 {
   "pages": {
-    "/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/layout.css",
-      "static/chunks/app/layout.js"
-    ],
-    "/(main)/profile/[username]/likes/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(main)/profile/[username]/likes/page.js"
-    ],
     "/(main)/feed/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/(main)/feed/page.css",
       "static/chunks/app/(main)/feed/page.js"
     ],
-    "/page": [
+    "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
-    "/(auth)/login/page": [
+    "/upload/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/(auth)/login/page.css",
-      "static/chunks/app/(auth)/login/page.js"
+      "static/css/app/upload/page.css",
+      "static/chunks/app/upload/page.js"
     ],
-    "/(auth)/layout": [
+    "/my-tracks/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/layout.js"
+      "static/css/app/my-tracks/page.css",
+      "static/chunks/app/my-tracks/page.js"
     ],
-    "/(auth)/register/page": [
+    "/tracks/[trackId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/(auth)/register/page.css",
-      "static/chunks/app/(auth)/register/page.js"
-    ],
-    "/for-artists/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/for-artists/page.js"
-    ],
-    "/(main)/settings/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/(main)/settings/page.css",
-      "static/chunks/app/(main)/settings/page.js"
-    ],
-    "/(main)/profile/[username]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/(main)/profile/[username]/page.css",
-      "static/chunks/app/(main)/profile/[username]/page.js"
-    ],
-    "/(main)/profile/[username]/followers/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/(main)/profile/[username]/followers/page.css",
-      "static/chunks/app/(main)/profile/[username]/followers/page.js"
-    ],
-    "/(main)/profile/[username]/following/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/(main)/profile/[username]/following/page.css",
-      "static/chunks/app/(main)/profile/[username]/following/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/css/app/tracks/[trackId]/page.css",
+      "static/chunks/app/tracks/[trackId]/page.js"
     ]
   }
 }
