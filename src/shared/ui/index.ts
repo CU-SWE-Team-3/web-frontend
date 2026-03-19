@@ -99,3 +99,7 @@ export { SoundCloudLogo } from './Brand';
 export type { SoundCloudLogoProps } from './Brand';
 
 export * from './icons';
+
+/* ---- Module 4 Components ---- */
+export { default as ImageCropper } from './ImageCropper';
+export { default as UploadDropzone } from './UploadDropzone';

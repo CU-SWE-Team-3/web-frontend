@@ -12,4 +12,6 @@ export const ROUTES = {
   FOLLOWERS: (username: string) => `/profile/${username}/followers`,
   FOLLOWING: (username: string) => `/profile/${username}/following`,
   LIKES: (username: string) => `/profile/${username}/likes`,
+  UPLOAD: '/upload',
+  MY_TRACKS: '/my-tracks',
 } as const
