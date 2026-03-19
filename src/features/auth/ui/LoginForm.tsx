@@ -63,29 +63,33 @@ const LoginForm = () => {
       const response = await axios.post(
         `${apiUrl}/auth/login`,
         { email, password },
-        { withCredentials: true } // required so browser stores the HttpOnly cookie
+        { withCredentials: true }
       )
-      // Response is { success, data: { user } } — no accessToken in body
-      login(response.data.data.user)
-      router.push(ROUTES.FEED)
-    } catch {
-      setErrors({ general: 'Incorrect email or password. Please try again.' })
+      const user = response.data?.data?.user
+      if (user) {
+        login(user)
+        router.push(ROUTES.FEED)
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Invalid email or password.'
+      setErrors({ general: message })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+    <form onSubmit={handleSubmit} data-testid="login-form" className="flex flex-col gap-4 w-full">
 
       {errors.general && (
-        <div className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
+        <div data-testid="login-error" className="bg-red-500/10 border border-red-500 text-red-400 text-sm px-4 py-2 rounded-sm">
           {errors.general}
         </div>
       )}
 
       <AppInput
         id="login-email"
+        data-testid="login-email-input"
         type="email"
         label="Email address"
         placeholder="your@email.com"
@@ -97,6 +101,7 @@ const LoginForm = () => {
 
       <AppInput
         id="login-password"
+        data-testid="login-password-input"
         type="password"
         label="Password"
         placeholder="Your password"
@@ -107,12 +112,12 @@ const LoginForm = () => {
       />
 
       <div className="text-right">
-        <Link href={ROUTES.FORGOT_PASSWORD} className="text-xs text-[#ff5500] hover:underline">
+        <Link href={ROUTES.FORGOT_PASSWORD} data-testid="login-forgot-password-link" className="text-xs text-[#ff5500] hover:underline">
           Forgot your password?
         </Link>
       </div>
 
-      <AppButton type="submit" fullWidth isLoading={isLoading}>
+      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="login-submit-btn">
         Sign In
       </AppButton>
 
@@ -126,6 +131,7 @@ const LoginForm = () => {
       <button
         type="button"
         onClick={handleGoogleLogin}
+        data-testid="login-google-btn"
         className="w-full h-10 flex items-center justify-center gap-3 bg-white text-black text-sm font-medium rounded-sm hover:bg-gray-100 transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 48 48">
@@ -141,6 +147,7 @@ const LoginForm = () => {
       <button
         type="button"
         onClick={handleFacebookLogin}
+        data-testid="login-facebook-btn"
         className="w-full h-10 flex items-center justify-center gap-3 bg-[#1877f2] text-white text-sm font-medium rounded-sm hover:bg-[#166fe5] transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
@@ -151,7 +158,7 @@ const LoginForm = () => {
 
       <p className="text-center text-xs text-[#999] mt-2">
         Don&apos;t have an account?{' '}
-        <Link href={ROUTES.REGISTER} className="text-[#ff5500] hover:underline font-medium">
+        <Link href={ROUTES.REGISTER} data-testid="login-register-link" className="text-[#ff5500] hover:underline font-medium">
           Create one for free
         </Link>
       </p>

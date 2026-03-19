@@ -40,7 +40,7 @@ const ForgotPasswordForm = () => {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div data-testid="forgot-password-success" className="flex flex-col items-center gap-4 text-center">
         <div className="w-16 h-16 rounded-full bg-[#ff5500]/20 flex items-center justify-center">
           <svg className="w-8 h-8 text-[#ff5500]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -51,7 +51,7 @@ const ForgotPasswordForm = () => {
           If <span className="text-white">{email}</span> is registered, you&apos;ll receive a
           password reset link shortly. Check your spam folder too.
         </p>
-        <Link href={ROUTES.LOGIN} className="text-[#ff5500] text-sm hover:underline">
+        <Link href={ROUTES.LOGIN} data-testid="forgot-password-back-link" className="text-[#ff5500] text-sm hover:underline">
           Back to Sign In
         </Link>
       </div>
@@ -59,7 +59,7 @@ const ForgotPasswordForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+    <form onSubmit={handleSubmit} data-testid="forgot-password-form" className="flex flex-col gap-5 w-full">
       <p className="text-[#999] text-sm leading-relaxed">
         Enter the email address linked to your account.
         We&apos;ll send you a link to reset your password.
@@ -67,6 +67,7 @@ const ForgotPasswordForm = () => {
 
       <AppInput
         id="forgot-email"
+        data-testid="forgot-password-email-input"
         type="email"
         label="Email address"
         placeholder="your@email.com"
@@ -76,13 +77,13 @@ const ForgotPasswordForm = () => {
         required
       />
 
-      <AppButton type="submit" fullWidth isLoading={isLoading}>
+      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="forgot-password-submit-btn">
         Send Reset Link
       </AppButton>
 
       <p className="text-center text-xs text-[#999]">
         Remembered it?{' '}
-        <Link href={ROUTES.LOGIN} className="text-[#ff5500] hover:underline font-medium">
+        <Link href={ROUTES.LOGIN} data-testid="forgot-password-signin-link" className="text-[#ff5500] hover:underline font-medium">
           Sign in
         </Link>
       </p>

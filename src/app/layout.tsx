@@ -1,21 +1,20 @@
-import type { Metadata } from 'next';
-import '@/shared/ui/tokens/globals.scss'; // Ensure global styles and tokens are loaded
+import type { Metadata } from 'next'
+import { Providers } from './providers'
+import './globals.scss'
 
 export const metadata: Metadata = {
   title: 'BioBeats',
-  description: 'SoundCloud Clone User Profile',
-};
+  description: 'SoundCloud Clone',
+}
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-[#111] text-white antialiased">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
-  );
+  )
 }

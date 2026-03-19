@@ -9,7 +9,7 @@ export const useUnblockUser = () => {
   return useMutation<void, Error, string, { previousBlockedUsers: BlockedUser[] | undefined }>({
     mutationFn: async (userId: string) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/network/${userId}/block`);
+      await axios.delete(`${apiUrl}/network/${userId}/block`, { withCredentials: true });
     },
     
     onMutate: async (unblockedUserId) => {

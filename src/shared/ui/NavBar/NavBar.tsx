@@ -1,4 +1,6 @@
 import { type FC, type ReactNode } from 'react';
+import Link from 'next/link';
+import { ROUTES } from '@/shared/constants/routes';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
 import { SoundCloudLogo } from '../Brand';
@@ -28,10 +30,12 @@ export const NavBar: FC<NavBarProps> = ({
 }) => (
   <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Logo */}
-    <div className={s.logo}>
-      <SoundCloudLogo size={36} color="var(--sc-primary)" />
-      <span className={s.logoText}>SOUNDCLOUD</span>
-    </div>
+    <Link href={ROUTES.FEED}>
+      <div className={s.logo}>
+        <SoundCloudLogo size={36} color="var(--sc-primary)" />
+        <span className={s.logoText}>SOUNDCLOUD</span>
+      </div>
+    </Link>
 
     {/* Search */}
     <div className={s.searchWrap}>
@@ -48,8 +52,8 @@ export const NavBar: FC<NavBarProps> = ({
         </>
       ) : (
         <>
-          <button className={s.ghostBtn} onClick={onSignIn}>Sign in</button>
-          <button className={s.primaryBtn} onClick={onCreateAccount}>Create account</button>
+          <Link href={ROUTES.LOGIN} className={s.ghostBtn}>Sign in</Link>
+          <Link href={ROUTES.REGISTER} className={s.primaryBtn}>Create account</Link>
         </>
       )}
     </div>

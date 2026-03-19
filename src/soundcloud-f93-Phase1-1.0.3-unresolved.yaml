@@ -1,0 +1,1699 @@
+openapi: 3.0.3
+
+info:
+  title: BioBeats API
+  version: 1.0.3
+  description: REST API for BioBeats — music streaming platform
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/soundcloud-f93/Phase1/1.0.3
+  - url: http://localhost:5000/api
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Tracks
+  - name: Network
+
+# ==========================================
+# REUSABLE COMPONENTS
+# ==========================================
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        displayName:
+          type: string
+          example: "Ahmed Karim"
+        permalink:
+          type: string
+          example: "ahmed-karim"
+        avatarUrl:
+          type: string
+          example: "https://biobeats.blob.core.windows.net/avatars/avatar-1234.jpg"
+        role:
+          type: string
+          enum: [Artist, Listener, Admin]
+        isEmailVerified:
+          type: boolean
+        isPremium:
+          type: boolean
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+
+    PublicProfile:
+      type: object
+      properties:
+        displayName:
+          type: string
+        permalink:
+          type: string
+        avatarUrl:
+          type: string
+        coverUrl:
+          type: string
+        bio:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        role:
+          type: string
+        isPremium:
+          type: boolean
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        socialLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialLink'
+        isPrivate:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PrivateProfile:
+      type: object
+      description: Returned when a profile is set to private — limited fields only
+      properties:
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        permalink:
+          type: string
+        role:
+          type: string
+        isPrivate:
+          type: boolean
+          example: true
+
+    SocialLink:
+      type: object
+      properties:
+        _id:
+          type: string
+        platform:
+          type: string
+          example: "twitter"
+        url:
+          type: string
+          example: "https://twitter.com/ahmedkarim"
+
+    Track:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        permalink:
+          type: string
+        description:
+          type: string
+        genre:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        releaseDate:
+          type: string
+          format: date-time
+        artworkUrl:
+          type: string
+        hlsUrl:
+          type: string
+          description: HLS playlist URL for streaming. Use this — never audioUrl.
+          example: "https://biobeats.blob.core.windows.net/hls/trackid/playlist.m3u8"
+        waveform:
+          type: array
+          items:
+            type: integer
+          description: Array of 150 normalised peak values (0-100)
+        duration:
+          type: integer
+          description: Duration in seconds
+        format:
+          type: string
+          example: "audio/mpeg"
+        isPublic:
+          type: boolean
+        processingState:
+          type: string
+          enum: [Processing, Finished, Failed]
+        playCount:
+          type: integer
+        likeCount:
+          type: integer
+        repostCount:
+          type: integer
+        commentCount:
+          type: integer
+        artist:
+          type: object
+          properties:
+            _id:
+              type: string
+            displayName:
+              type: string
+            permalink:
+              type: string
+            avatarUrl:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    FeedTrack:
+      type: object
+      description: Condensed track shape returned in the feed
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        permalink:
+          type: string
+        artworkUrl:
+          type: string
+        hlsUrl:
+          type: string
+        waveform:
+          type: array
+          items:
+            type: integer
+        duration:
+          type: integer
+        genre:
+          type: string
+        playCount:
+          type: integer
+        likeCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        artist:
+          type: object
+          properties:
+            _id:
+              type: string
+            displayName:
+              type: string
+            permalink:
+              type: string
+            avatarUrl:
+              type: string
+
+    FollowCounts:
+      type: object
+      properties:
+        myFollowingCount:
+          type: integer
+          description: Updated followingCount for the logged-in user
+        theirFollowerCount:
+          type: integer
+          description: Updated followerCount for the target user
+
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        status:
+          type: string
+          enum: [fail, error]
+        message:
+          type: string
+
+# ==========================================
+# PATHS
+# ==========================================
+paths:
+
+  # ==========================================
+  # AUTH
+  # ==========================================
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, displayName, captchaToken]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                displayName:
+                  type: string
+                age:
+                  type: integer
+                gender:
+                  type: string
+                  enum: [Female, Male, Custom, "Prefer not to say"]
+                captchaToken:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      description: Sets accessToken and refreshToken as HttpOnly cookies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful. Cookies are set automatically.
+          headers:
+            Set-Cookie:
+              description: accessToken (15m) and refreshToken (7d) HttpOnly cookies
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current user
+      description: Clears cookies and revokes refresh token in the database
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Reads refreshToken from cookie or request body. Returns new cookies and current user.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Only needed for mobile clients not using cookies
+      responses:
+        '200':
+          description: Tokens refreshed. New cookies are set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Refresh token missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email verified. Returns updated user with isEmailVerified true.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Resend email verification link
+      description: Always returns 200 to prevent email enumeration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Response is always 200 regardless of whether the account exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset email
+      description: Always returns 200 to prevent email enumeration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Reset link sent if account exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/reset-password:
+    patch:
+      tags: [Auth]
+      summary: Reset password using token from email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/update-email:
+    patch:
+      tags: [Auth]
+      summary: Request an email address change
+      description: Sends a verification link to the new email address
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newEmail]
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Verification email sent to new address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/confirm-email-update:
+    post:
+      tags: [Auth]
+      summary: Confirm and apply the email address change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google:
+    get:
+      tags: [Auth]
+      summary: Get Google OAuth redirect URL
+      responses:
+        '200':
+          description: Google OAuth URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+
+  /auth/google/callback:
+    get:
+      tags: [Auth]
+      summary: Handle Google OAuth callback (web)
+      description: Sets HttpOnly cookies. Returns user only — no tokens in body.
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Google login successful. Cookies set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Missing authorization code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google/mobile:
+    post:
+      tags: [Auth]
+      summary: Google login for mobile clients
+      description: Mobile only — returns token and refreshToken in body since mobile apps manage their own token storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+      responses:
+        '200':
+          description: Google mobile login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                      refreshToken:
+                        type: string
+        '400':
+          description: Missing idToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==========================================
+  # PROFILE
+  # ==========================================
+
+  /profile/{permalink}:
+    get:
+      tags: [Profile]
+      summary: Get a public profile by permalink
+      description: |
+        Returns the full profile if public.
+        If the profile is private, returns a limited shape with isPrivate:true
+        and only displayName, avatarUrl, permalink, role.
+      parameters:
+        - in: path
+          name: permalink
+          required: true
+          schema:
+            type: string
+          example: ahmed-karim
+      responses:
+        '200':
+          description: Profile found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        oneOf:
+                          - $ref: '#/components/schemas/PublicProfile'
+                          - $ref: '#/components/schemas/PrivateProfile'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profile/update:
+    patch:
+      tags: [Profile]
+      summary: Update profile fields
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                permalink:
+                  type: string
+                bio:
+                  type: string
+                  maxLength: 500
+                country:
+                  type: string
+                city:
+                  type: string
+                genres:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          displayName:
+                            type: string
+                          permalink:
+                            type: string
+                          bio:
+                            type: string
+                          country:
+                            type: string
+                          city:
+                            type: string
+                          genres:
+                            type: array
+                            items:
+                              type: string
+
+  /profile/upload-images:
+    patch:
+      tags: [Profile]
+      summary: Upload avatar and/or cover photo
+      description: Accepts multipart form with optional avatar and/or cover fields. Returns only the updated URLs.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Max 5MB image
+                cover:
+                  type: string
+                  format: binary
+                  description: Max 5MB image
+      responses:
+        '200':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      avatarUrl:
+                        type: string
+                        example: "https://biobeats.blob.core.windows.net/avatars/avatar-1234.jpg"
+                      coverUrl:
+                        type: string
+                        example: "https://biobeats.blob.core.windows.net/covers/cover-5678.jpg"
+        '400':
+          description: No files provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profile/privacy:
+    patch:
+      tags: [Profile]
+      summary: Toggle profile privacy
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isPrivate]
+              properties:
+                isPrivate:
+                  type: boolean
+      responses:
+        '200':
+          description: Privacy updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      isPrivate:
+                        type: boolean
+
+  /profile/social-links:
+    patch:
+      tags: [Profile]
+      summary: Replace all social links
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [socialLinks]
+              properties:
+                socialLinks:
+                  type: array
+                  maxItems: 10
+                  items:
+                    $ref: '#/components/schemas/SocialLink'
+      responses:
+        '200':
+          description: Social links updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      socialLinks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SocialLink'
+
+  /profile/social-links/{linkId}:
+    delete:
+      tags: [Profile]
+      summary: Remove a single social link by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Social link removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      socialLinks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SocialLink'
+
+  /profile/tier:
+    patch:
+      tags: [Profile]
+      summary: Update account tier (role)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [Artist, Listener, Admin]
+      responses:
+        '200':
+          description: Tier updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+
+  # ==========================================
+  # TRACKS
+  # ==========================================
+
+  /tracks/upload:
+    post:
+      tags: [Tracks]
+      summary: Initiate a track upload
+      description: |
+        Returns a signed Azure SAS URL valid for 15 minutes.
+        Client uploads the audio file directly to Azure using this URL (PUT request),
+        then calls PATCH /tracks/{id}/confirm to trigger processing.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, format, size, duration]
+              properties:
+                title:
+                  type: string
+                format:
+                  type: string
+                  enum: [audio/mpeg, audio/mp3, audio/wav, audio/x-wav, audio/wave]
+                size:
+                  type: integer
+                  description: File size in bytes
+                duration:
+                  type: number
+                  description: Duration in seconds (client-side estimate, overwritten after processing)
+      responses:
+        '201':
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trackId:
+                        type: string
+                      uploadUrl:
+                        type: string
+                        format: uri
+                        description: Signed Azure SAS URL. PUT the audio file directly to this.
+        '400':
+          description: Unsupported format or upload limit reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/confirm:
+    patch:
+      tags: [Tracks]
+      summary: Confirm upload and trigger processing
+      description: |
+        Call this after successfully uploading to Azure.
+        Queues the track for FFmpeg transcoding (HLS + waveform extraction).
+        processingState will be Processing. Poll GET /{permalink} until Finished.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Processing queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trackId:
+                        type: string
+                      permalink:
+                        type: string
+                      title:
+                        type: string
+                      processingState:
+                        type: string
+                        enum: [Processing]
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{permalink}:
+    get:
+      tags: [Tracks]
+      summary: Get a track by permalink
+      description: |
+        Returns the full track for playback. Only available when processingState is Finished.
+        audioUrl is never returned — stream via hlsUrl only.
+      parameters:
+        - in: path
+          name: permalink
+          required: true
+          schema:
+            type: string
+          example: my-track-title
+      responses:
+        '200':
+          description: Track found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Track not found or still processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/metadata:
+    patch:
+      tags: [Tracks]
+      summary: Update track metadata
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                genre:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                releaseDate:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Metadata updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Track not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/visibility:
+    patch:
+      tags: [Tracks]
+      summary: Toggle track public/private visibility
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isPublic]
+              properties:
+                isPublic:
+                  type: boolean
+      responses:
+        '200':
+          description: Visibility updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Invalid input or permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/artwork:
+    patch:
+      tags: [Tracks]
+      summary: Upload track artwork
+      description: Returns only the updated artworkUrl
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [artwork]
+              properties:
+                artwork:
+                  type: string
+                  format: binary
+                  description: Image file, max 5MB
+      responses:
+        '200':
+          description: Artwork uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      artworkUrl:
+                        type: string
+        '400':
+          description: No file provided or permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/download:
+    get:
+      tags: [Tracks]
+      summary: Download track audio (Premium only)
+      description: Streams the original audio file as a binary download. Requires isPremium = true.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Binary audio stream
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="my_track.mp3"'
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Premium subscription required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}:
+    delete:
+      tags: [Tracks]
+      summary: Delete a track
+      description: Deletes the track document and the audio file from Azure Blob Storage
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Track deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '403':
+          description: Not the track owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==========================================
+  # NETWORK
+  # ==========================================
+
+  /network/feed:
+    get:
+      tags: [Network]
+      summary: Get feed of recent tracks from followed artists
+      description: Returns up to 20 public finished tracks from users the logged-in user follows, sorted newest first
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Feed retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeedTrack'
+
+  /network/suggested:
+    get:
+      tags: [Network]
+      summary: Get suggested users to follow
+      description: Returns mutual-follow suggestions first, falls back to popular users
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Suggested users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/blocked-users:
+    get:
+      tags: [Network]
+      summary: Get list of blocked users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Blocked users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        displayName:
+                          type: string
+                        permalink:
+                          type: string
+                        avatarUrl:
+                          type: string
+
+  /network/{userId}/followers:
+    get:
+      tags: [Network]
+      summary: Get followers of a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Followers list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/{userId}/following:
+    get:
+      tags: [Network]
+      summary: Get users that a user is following
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Following list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/{id}/follow:
+    post:
+      tags: [Network]
+      summary: Follow a user
+      description: Returns updated follower/following counts so the frontend can update counters without a second request
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to follow
+      responses:
+        '200':
+          description: Followed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/FollowCounts'
+        '400':
+          description: Already following or cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Network]
+      summary: Unfollow a user
+      description: Returns updated follower/following counts
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to unfollow
+      responses:
+        '200':
+          description: Unfollowed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/FollowCounts'
+        '400':
+          description: Not following this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /network/{userId}/block:
+    post:
+      tags: [Network]
+      summary: Block a user
+      description: Also removes any existing follow relationship in both directions
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: blocked
+        '400':
+          description: Already blocked or cannot block yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Network]
+      summary: Unblock a user
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User unblocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: unblocked
+        '400':
+          description: User was not blocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

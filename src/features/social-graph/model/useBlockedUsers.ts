@@ -10,7 +10,8 @@ export const useBlockedUsers = () => {
     queryFn: async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const { data } = await axios.get<BlockedUsersResponse>(
-        `${apiUrl}/network/blocked-users`
+        `${apiUrl}/network/blocked-users`,
+        { withCredentials: true }
       );
 
       return data.data.map((user) => ({

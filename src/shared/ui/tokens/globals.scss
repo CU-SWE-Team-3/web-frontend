@@ -1,6 +1,4 @@
-/* ============================================ */
-/* SoundCloud Design System — Global Tokens     */
-/* ============================================ */
+/* SoundCloud Design System - Global Tokens */
 
 :root {
   /* ---- Brand Colors ---- */
@@ -57,13 +55,13 @@
   /* ---- Typography ---- */
   --sc-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     Roboto, Oxygen, Ubuntu, sans-serif;
-  --sc-font-size-xs: 0.6875rem;   /* 11px */
-  --sc-font-size-sm: 0.75rem;     /* 12px */
-  --sc-font-size-md: 0.875rem;    /* 14px */
-  --sc-font-size-lg: 1rem;        /* 16px */
-  --sc-font-size-xl: 1.25rem;     /* 20px */
-  --sc-font-size-2xl: 1.5rem;     /* 24px */
-  --sc-font-size-3xl: 2rem;       /* 32px */
+  --sc-font-size-xs: 0.6875rem;
+  --sc-font-size-sm: 0.75rem;
+  --sc-font-size-md: 0.875rem;
+  --sc-font-size-lg: 1rem;
+  --sc-font-size-xl: 1.25rem;
+  --sc-font-size-2xl: 1.5rem;
+  --sc-font-size-3xl: 2rem;
   --sc-font-weight-regular: 400;
   --sc-font-weight-medium: 500;
   --sc-font-weight-semibold: 600;
@@ -72,16 +70,16 @@
   --sc-line-height-normal: 1.5;
 
   /* ---- Spacing (4px grid) ---- */
-  --sc-space-1: 0.25rem;  /* 4px */
-  --sc-space-2: 0.5rem;   /* 8px */
-  --sc-space-3: 0.75rem;  /* 12px */
-  --sc-space-4: 1rem;     /* 16px */
-  --sc-space-5: 1.25rem;  /* 20px */
-  --sc-space-6: 1.5rem;   /* 24px */
-  --sc-space-8: 2rem;     /* 32px */
-  --sc-space-10: 2.5rem;  /* 40px */
-  --sc-space-12: 3rem;    /* 48px */
-  --sc-space-16: 4rem;    /* 64px */
+  --sc-space-1: 0.25rem;
+  --sc-space-2: 0.5rem;
+  --sc-space-3: 0.75rem;
+  --sc-space-4: 1rem;
+  --sc-space-5: 1.25rem;
+  --sc-space-6: 1.5rem;
+  --sc-space-8: 2rem;
+  --sc-space-10: 2.5rem;
+  --sc-space-12: 3rem;
+  --sc-space-16: 4rem;
 
   /* ---- Border Radius ---- */
   --sc-radius-sm: 2px;

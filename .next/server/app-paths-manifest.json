@@ -1,4 +1,9 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/(main)/profile/[username]/page": "app/(main)/profile/[username]/page.js"
+  "/(main)/profile/[username]/likes/page": "app/(main)/profile/[username]/likes/page.js",
+  "/page": "app/page.js",
+  "/for-artists/page": "app/for-artists/page.js",
+  "/(main)/profile/[username]/followers/page": "app/(main)/profile/[username]/followers/page.js",
+  "/(auth)/register/page": "app/(auth)/register/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js"
 }

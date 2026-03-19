@@ -16,6 +16,7 @@ interface ProfileSidebarProps {
   following: number;
   tracks: number;
   role?: string;
+  username?: string;
 }
 
 export const ProfileSidebar: FC<ProfileSidebarProps> = ({
@@ -23,10 +24,11 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
   following,
   tracks,
   role,
+  username,
 }) => (
   <aside className={s.sidebar}>
     {/* Stats */}
-    <ProfileStats followers={followers} following={following} tracks={tracks} />
+    <ProfileStats followers={followers} following={following} tracks={tracks} username={username} />
 
     <hr className={s.divider} />
 

@@ -7,7 +7,7 @@ export const useUnfollowUser = () => {
   return useMutation<void, Error, string>({
     mutationFn: async (userId: string) => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.delete(`${apiUrl}/network/${userId}/follow`);
+      await axios.delete(`${apiUrl}/network/${userId}/follow`, { withCredentials: true });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["network"] });

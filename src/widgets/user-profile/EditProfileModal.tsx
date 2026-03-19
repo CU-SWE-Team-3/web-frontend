@@ -5,7 +5,7 @@ import axios from 'axios';
 import { CloseIcon } from '@/shared/ui/icons';
 import s from './EditProfileModal.module.scss';
 
-const apiUrl = '/api/proxy';
+/* apiUrl is read inline from process.env.NEXT_PUBLIC_API_URL */
 
 interface EditProfileModalProps {
   open: boolean;
@@ -64,6 +64,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
     try {
       setSaving(true);
       setError(null);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       // 1. Update profile fields
       await axios.patch(
@@ -103,11 +104,11 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
 
   return (
     <div className={s.overlay} onClick={onClose}>
-      <div className={s.modal} onClick={(e) => e.stopPropagation()}>
+      <div data-testid="edit-profile-modal" className={s.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={s.header}>
           <h2 className={s.title}>Edit your Profile</h2>
-          <button className={s.closeBtn} onClick={onClose} aria-label="Close">
+          <button data-testid="edit-profile-close-btn" className={s.closeBtn} onClick={onClose} aria-label="Close">
             <CloseIcon size={20} />
           </button>
         </div>
@@ -136,6 +137,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                 onChange={handleAvatarSelect}
               />
               <button
+                data-testid="edit-profile-avatar-upload"
                 className={s.uploadImgBtn}
                 onClick={() => avatarFileRef.current?.click()}
               >
@@ -151,6 +153,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                   Display name<span className={s.required}>*</span>
                 </label>
                 <input
+                  data-testid="edit-profile-displayname"
                   className={s.fieldInput}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
@@ -297,10 +300,11 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
 
         {/* Footer */}
         <div className={s.footer}>
-          <button className={s.cancelBtn} onClick={onClose}>
+          <button data-testid="edit-profile-cancel-btn" className={s.cancelBtn} onClick={onClose}>
             Cancel
           </button>
           <button
+            data-testid="edit-profile-save-btn"
             className={s.saveBtn}
             onClick={handleSave}
             disabled={saving}
