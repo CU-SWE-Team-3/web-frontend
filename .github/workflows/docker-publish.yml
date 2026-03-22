@@ -25,3 +25,5 @@ jobs:
           tags: zkhaled389/biobeats-frontend:latest
           build-args: |
             NEXT_PUBLIC_API_URL=https://biobeats.duckdns.org/api
+            NEXT_PUBLIC_RECAPTCHA_SITE_KEY=6LeDUossAAAAAMWPlJONmtgHz_9DIWkponxfVlkJ
+            
