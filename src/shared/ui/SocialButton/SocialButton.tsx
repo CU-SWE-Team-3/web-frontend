@@ -25,6 +25,7 @@ export const SocialButton: FC<SocialButtonProps> = ({
   className,
 }) => (
   <button
+    data-testid={`social-button-${provider}`}
     className={[s.btn, s[provider], className].filter(Boolean).join(' ')}
     onClick={onClick}
   >

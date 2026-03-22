@@ -87,7 +87,7 @@ const TrackDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div data-testid="track-page" className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       {/* Hero Header Section */}
       <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-sc-surface-1 border border-white/5 mb-8">
         <div className="absolute inset-0 z-0">
@@ -106,6 +106,7 @@ const TrackDetailPage: React.FC = () => {
           <div className="shrink-0">
             <div className="relative group w-full aspect-square rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900">
               <img
+                data-testid="track-artwork"
                 src={track.artworkUrl}
                 alt={track.title}
                 className="w-full h-full object-cover"
@@ -160,17 +161,17 @@ const TrackDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 leading-tight drop-shadow-lg">
+              <h1 data-testid="track-title" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 leading-tight drop-shadow-lg">
                 {track.title}
               </h1>
               <p className="text-xl text-neutral-300 font-medium tracking-wide">
-                {track.artist} <span className="mx-3 text-white/20">•</span>{" "}
+                <span data-testid="track-artist">{track.artist}</span> <span className="mx-3 text-white/20">•</span>{" "}
                 <span className="text-orange-400">{track.genre}</span>
               </p>
             </div>
 
             <div className="mt-8 mb-4 xl:mb-0">
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/5 shadow-inner">
+              <div data-testid="track-waveform" className="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/5 shadow-inner">
                 <WaveformPlayer waveform={track.waveform} />
               </div>
             </div>
@@ -212,26 +213,31 @@ const TrackDetailPage: React.FC = () => {
           {/* Comment Input */}
           <div className="bg-[#1a1a1a] p-3 rounded flex items-center gap-3 border border-[#333] mt-6">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 shrink-0"></div>
-            <input type="text" placeholder="Write a comment" className="flex-1 bg-transparent border-none text-[13px] text-white outline-none placeholder-[#999]" />
+            <input data-testid="track-comment-input" type="text" placeholder="Write a comment" className="flex-1 bg-transparent border-none text-[13px] text-white outline-none placeholder-[#999]" />
             <button className="text-[#999] hover:text-white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 py-2">
-            <button className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Share">
+            <button data-testid="track-like-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Like">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </button>
+            <button data-testid="track-share-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Share">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
             </button>
-            <button className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Repost">
+            <button data-testid="track-repost-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Repost">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/></svg>
             </button>
             <button className="px-4 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[12px] text-[#ccc] flex items-center gap-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link</button>
-            <button className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center">
+            <button data-testid="track-more-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
             </button>
           </div>
 
           {/* Empty Section */}
-          <div className="flex mt-8">
+          <div data-testid="track-comments-list" className="flex mt-8">
             <div className="w-14 items-center flex flex-col gap-2 shrink-0">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-[#222]">
                  <img src={track.artworkUrl || "https://placehold.co/100x100"} alt="User" className="w-full h-full object-cover" />

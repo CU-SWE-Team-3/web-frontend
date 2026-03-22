@@ -12,6 +12,7 @@ export const NotificationBell: FC<NotificationBellProps> = ({
   count = 0, onClick, className,
 }) => (
   <button
+    data-testid="notification-bell"
     className={className}
     onClick={onClick}
     aria-label={`Notifications${count > 0 ? ` (${count} unread)` : ''}`}

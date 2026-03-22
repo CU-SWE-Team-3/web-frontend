@@ -16,10 +16,10 @@ export const EmptyState: FC<EmptyStateProps> = ({
   action,
   className,
 }) => (
-  <div className={[s.empty, className].filter(Boolean).join(' ')}>
-    {icon && <span className={s.icon}>{icon}</span>}
-    <span className={s.title}>{title}</span>
-    {description && <span className={s.description}>{description}</span>}
-    {action}
+  <div data-testid="empty-state" className={[s.empty, className].filter(Boolean).join(' ')}>
+    {icon && <div data-testid="empty-state-icon" className={s.icon}>{icon}</div>}
+    <div data-testid="empty-state-title" className={s.title}>{title}</div>
+    {description && <div data-testid="empty-state-description" className={s.description}>{description}</div>}
+    <div data-testid="empty-state-action">{action}</div>
   </div>
 );

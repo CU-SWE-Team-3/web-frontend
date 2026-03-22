@@ -25,7 +25,7 @@ export const ProfileStats: FC<ProfileStatsProps> = ({
     {username ? (
       <Link href={`/profile/${username}/followers`} className={s.stat} style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
         <span className={s.label}>Followers</span>
-        <span className={s.value}>{followers}</span>
+        <span data-testid="profile-followers-count" className={s.value}>{followers}</span>
       </Link>
     ) : (
       <div
@@ -34,13 +34,13 @@ export const ProfileStats: FC<ProfileStatsProps> = ({
         style={{ cursor: onFollowersClick ? 'pointer' : 'default' }}
       >
         <span className={s.label}>Followers</span>
-        <span className={s.value}>{followers}</span>
+        <span data-testid="profile-followers-count" className={s.value}>{followers}</span>
       </div>
     )}
     {username ? (
       <Link href={`/profile/${username}/following`} className={s.stat} style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
         <span className={s.label}>Following</span>
-        <span className={s.value}>{following}</span>
+        <span data-testid="profile-following-count" className={s.value}>{following}</span>
       </Link>
     ) : (
       <div
@@ -49,12 +49,12 @@ export const ProfileStats: FC<ProfileStatsProps> = ({
         style={{ cursor: onFollowingClick ? 'pointer' : 'default' }}
       >
         <span className={s.label}>Following</span>
-        <span className={s.value}>{following}</span>
+        <span data-testid="profile-following-count" className={s.value}>{following}</span>
       </div>
     )}
     <div className={s.stat}>
       <span className={s.label}>Tracks</span>
-      <span className={s.value}>{tracks}</span>
+      <span data-testid="profile-tracks-count" className={s.value}>{tracks}</span>
     </div>
   </div>
 );

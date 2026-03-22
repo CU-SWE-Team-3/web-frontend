@@ -133,6 +133,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                 className="max-h-full max-w-full"
               >
                 <img
+                  data-testid="image-cropper-image"
                   ref={imgRef}
                   alt="Crop me"
                   src={imgSrc}

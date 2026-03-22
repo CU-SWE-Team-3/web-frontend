@@ -10,6 +10,7 @@ export const VerifiedBadge: FC<VerifiedBadgeProps> = ({
   className,
 }) => (
   <svg
+    data-testid="verified-badge"
     className={className}
     width={size}
     height={size}

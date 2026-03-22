@@ -33,6 +33,7 @@ export const DropZone: FC<DropZoneProps> = ({
 
   return (
     <div
+      data-testid="drop-zone"
       className={[s.zone, over ? s.dragOver : '', className].filter(Boolean).join(' ')}
       onDragOver={(e) => { handleDrag(e); setOver(true); }}
       onDragLeave={(e) => { handleDrag(e); setOver(false); }}

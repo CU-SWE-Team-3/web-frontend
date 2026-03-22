@@ -15,6 +15,7 @@ export const GenreTag: FC<GenreTagProps> = ({
   className,
 }) => (
   <span
+    data-testid="genre-tag"
     className={[s.tag, s[variant], className].filter(Boolean).join(' ')}
     onClick={onClick}
     role={onClick ? 'button' : undefined}

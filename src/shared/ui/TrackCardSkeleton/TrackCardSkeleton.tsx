@@ -7,6 +7,7 @@ export interface TrackCardSkeletonProps {
 
 export const TrackCardSkeleton: FC<TrackCardSkeletonProps> = ({ className }) => (
   <div
+    data-testid="track-card-skeleton"
     className={className}
     style={{
       display: 'flex',

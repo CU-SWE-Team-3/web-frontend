@@ -75,14 +75,14 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
       <>
         <hr className={s.divider} />
         <div className={s.bioBlock}>
-          <p className={s.bioText}>{bio}</p>
+          <p data-testid="profile-bio" className={s.bioText}>{bio}</p>
         </div>
       </>
     )}
 
     {/* Social Links */}
     {socialLinks && socialLinks.length > 0 && (
-      <div className={s.socialLinksBlock}>
+      <div data-testid="profile-social-links" className={s.socialLinksBlock}>
         {socialLinks.map((link, i) => {
           const { icon } = detectPlatform(link.url);
           const label = link.label || link.platform || link.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
@@ -129,7 +129,7 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
             <span className={s.followingTitle}>{followingUsers.length} FOLLOWING</span>
             <Link href={ROUTES.PROFILE(username || '') + '/following'} className={s.viewAllLink}>View all</Link>
           </div>
-          <div className={s.followingList}>
+          <div data-testid="profile-following-list" className={s.followingList}>
             {followingUsers.slice(0, 3).map((user) => (
               <Link href={ROUTES.PROFILE(user.username || user.id)} key={user.id} className={s.followingItem}>
                 <img

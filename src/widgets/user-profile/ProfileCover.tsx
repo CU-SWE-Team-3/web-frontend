@@ -238,12 +238,13 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
         <div className={s.avatarBlock}>
           {displayAvatarUrl ? (
             <img
+              data-testid="profile-avatar"
               src={displayAvatarUrl}
               alt={displayName}
               className={s.avatarCircle}
             />
           ) : (
-            <div className={s.avatarCircle} />
+            <div data-testid="profile-avatar" className={s.avatarCircle} />
           )}
           <input
             ref={avatarInputRef}
@@ -288,7 +289,7 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
         </div>
 
         <div className={s.userText}>
-          <h1 className={s.nameTag}>{displayName}</h1>
+          <h1 data-testid="profile-display-name" className={s.nameTag}>{displayName}</h1>
           <span className={s.subName}>{subName}</span>
           <span className={s.locationTag}>{location}</span>
         </div>

@@ -39,11 +39,11 @@ export const UserAvatar: FC<UserAvatarProps> = ({
   const classes = [s.avatar, s[size], className].filter(Boolean).join(' ');
 
   return (
-    <div className={classes} aria-label={name} role="img">
+    <div className={classes} aria-label={name} role="img" data-testid="user-avatar">
       {src ? (
-        <img className={s.image} src={src} alt={name} />
+        <img className={s.image} src={src} alt={name} data-testid="user-avatar-image" />
       ) : (
-        <div className={s.fallback} style={{ background: bg }}>
+        <div className={s.fallback} style={{ background: bg }} data-testid="user-avatar-fallback">
           {initial}
         </div>
       )}

@@ -40,7 +40,7 @@ const BlockedUserRow: React.FC<RowProps> = ({ user, onUnblock, isUnblocking }) =
       gap: "var(--sc-space-3)",
       paddingBlock: "var(--sc-space-3)",
     }}
-    data-testid="blocked-user-row"
+    data-testid="settings-blocked-user-item"
   >
     <UserAvatar
       src={user.avatarUrl}
@@ -65,7 +65,7 @@ const BlockedUserRow: React.FC<RowProps> = ({ user, onUnblock, isUnblocking }) =
       loading={isUnblocking}
       leftIcon={<BanIcon size={14} />}
       onClick={() => onUnblock(user.id)}
-      data-testid="unblock-button"
+      data-testid="settings-unblock-button"
       style={{ marginLeft: "auto", color: "var(--sc-primary)" }}
     >
       Blocked

@@ -19,6 +19,7 @@ export const LikeButton: FC<LikeButtonProps> = ({
   liked, count, onClick, className,
 }) => (
   <button
+    data-testid="like-button"
     className={className}
     onClick={onClick}
     aria-label={liked ? 'Unlike' : 'Like'}

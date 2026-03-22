@@ -14,6 +14,7 @@ export const SoundCloudLogo: FC<SoundCloudLogoProps> = ({
   const h = size * 0.6;
   return (
     <svg
+      data-testid="verified-badge"
       className={className}
       width={size}
       height={h}

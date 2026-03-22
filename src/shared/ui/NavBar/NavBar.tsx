@@ -49,17 +49,17 @@ export const NavBar: FC<NavBarProps> = ({
   };
 
   return (
-  <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
+  <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Left: Logo + Nav Links */}
     <div className={s.leftSection}>
-      <Link href={ROUTES.FEED} className={s.logoLink}>
+      <Link href={ROUTES.FEED} className={s.logoLink} data-testid="navbar-logo">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="var(--sc-primary)">
           <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
         </svg>
       </Link>
-      <Link href={ROUTES.HOME} className={s.navLink}>Home</Link>
-      <Link href={ROUTES.FEED} className={s.navLink}>Feed</Link>
-      <span className={s.navLink}>Library</span>
+      <Link href={ROUTES.HOME} className={s.navLink} data-testid="navbar-home-link">Home</Link>
+      <Link href={ROUTES.FEED} className={s.navLink} data-testid="navbar-feed-link">Feed</Link>
+      <span className={s.navLink} data-testid="navbar-library-link">Library</span>
     </div>
 
     {/* Center: Search */}
@@ -73,8 +73,8 @@ export const NavBar: FC<NavBarProps> = ({
         <>
           <span className={s.tryProLink}>Try Artist Pro</span>
           <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
-          <button className={s.navTextLink} onClick={onUpload}>Upload</button>
-          <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED}>
+          <button className={s.navTextLink} onClick={onUpload} data-testid="navbar-upload-button">Upload</button>
+          <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED} data-testid="navbar-user-avatar">
             <div className={s.avatarSmall}>
               {user?.avatarUrl && <img src={user.avatarUrl} alt="avatar" className={s.avatarImg} />}
             </div>
@@ -82,7 +82,7 @@ export const NavBar: FC<NavBarProps> = ({
 
           {/* Dropdown trigger */}
           <div ref={dropdownRef} className={s.dropdownWrapper}>
-            <button className={s.iconBtn} onClick={() => setDropdownOpen(!dropdownOpen)}>
+            <button className={s.iconBtn} onClick={() => setDropdownOpen(!dropdownOpen)} data-testid="navbar-user-dropdown">
               <ChevronDownIcon size={16} />
             </button>
 
@@ -92,6 +92,7 @@ export const NavBar: FC<NavBarProps> = ({
                   href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'}
                   className={s.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-profile"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   Profile
@@ -100,12 +101,13 @@ export const NavBar: FC<NavBarProps> = ({
                   href={ROUTES.SETTINGS}
                   className={s.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-settings"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                   Settings
                 </Link>
                 <div className={s.dropdownDivider} />
-                <button className={s.dropdownItem} onClick={handleLogout}>
+                <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-dropdown-signout">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                   Sign out
                 </button>
@@ -113,15 +115,15 @@ export const NavBar: FC<NavBarProps> = ({
             )}
           </div>
 
-          <button className={s.iconBtn}><NotificationIcon size={18} /></button>
-          <button className={s.iconBtn}><MessageIcon size={18} /></button>
-          <button className={s.iconBtn}><MoreIcon size={18} /></button>
+          <button className={s.iconBtn} data-testid="navbar-notifications-button"><NotificationIcon size={18} /></button>
+          <button className={s.iconBtn} data-testid="navbar-messages-button"><MessageIcon size={18} /></button>
+          <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
       ) : (
         <>
-          <Link href={ROUTES.LOGIN} className={s.ghostBtn}>Sign in</Link>
-          <Link href={ROUTES.REGISTER} className={s.primaryBtn}>Create account</Link>
-          <button className={s.iconBtn}><MoreIcon size={18} /></button>
+          <Link href={ROUTES.LOGIN} className={s.ghostBtn} data-testid="navbar-signin-button">Sign in</Link>
+          <Link href={ROUTES.REGISTER} className={s.primaryBtn} data-testid="navbar-create-account-button">Create account</Link>
+          <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
       )}
     </div>

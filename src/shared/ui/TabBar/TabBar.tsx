@@ -26,6 +26,7 @@ export const TabBar: FC<TabBarProps> = ({
       <button
         key={tab.key}
         role="tab"
+        data-testid={`tab-bar-item-${tab.key}`}
         className={`${s.tab} ${activeKey === tab.key ? s.active : ''}`}
         aria-selected={activeKey === tab.key}
         onClick={() => onTabChange(tab.key)}

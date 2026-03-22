@@ -2,10 +2,11 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { NavBar } from "@/shared/ui";
-import { ROUTES } from "@/shared/constants/routes";
-import { useAuthStore } from "@/features/auth/model/useAuthStore";
-import apiClient from "@/shared/api/client";
+import { NavBar } from "../../shared/ui/NavBar/NavBar";
+import { SearchBar } from "../../shared/ui/SearchBar/SearchBar";
+import { ROUTES } from "../../shared/constants/routes";
+import { useAuthStore } from "../../features/auth/model/useAuthStore";
+import apiClient from "../../shared/api/client";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ACCEPTED_AUDIO = ".mp3,.wav,.flac,.aiff,.ogg,.aac,.mp4,.m4a,.wma";
@@ -194,7 +195,7 @@ export default function UploadPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: 12, color: "#999" }}>{file?.name}</span>
             {/* Progress bar */}
-            <div style={{ width: 160, height: 4, background: "#333", borderRadius: 2, overflow: "hidden" }}>
+            <div data-testid="upload-progress-bar" style={{ width: 160, height: 4, background: "#333", borderRadius: 2, overflow: "hidden" }}>
               <div style={{ width: `${uploadProgress}%`, height: "100%", background: uploadComplete ? "#3bc96b" : "#f50", borderRadius: 2, transition: "width 300ms" }} />
             </div>
             <span style={{ fontSize: 12, color: uploadComplete ? "#3bc96b" : "#999" }}>
@@ -207,7 +208,7 @@ export default function UploadPage() {
         <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
       )}
 
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 100px" }}>
+      <main data-testid="upload-page" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 100px" }}>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* DROPZONE STATE                                                 */}
@@ -231,7 +232,7 @@ export default function UploadPage() {
             </p>
 
             {/* Dropzone */}
-            <div onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onClick={() => fileInputRef.current?.click()}
+            <div data-testid="upload-dropzone" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onClick={() => fileInputRef.current?.click()}
               style={{ padding: "80px 40px", border: `2px dashed ${isDragOver ? "#f50" : "#444"}`, borderRadius: 8, textAlign: "center", cursor: "pointer", transition: "all 200ms", background: isDragOver ? "rgba(255,85,0,0.05)" : "transparent" }}>
               <div style={{ marginBottom: 20 }}>
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
@@ -240,12 +241,12 @@ export default function UploadPage() {
                 </svg>
               </div>
               <p style={{ fontSize: 16, color: "#ccc", marginBottom: 20 }}>Drag and drop audio files to get started.</p>
-              <button type="button" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+              <button data-testid="upload-browse-button" type="button" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 style={{ padding: "10px 28px", fontSize: 14, fontWeight: 600, color: "#fff", background: "#333", border: "none", borderRadius: 100, cursor: "pointer" }}
                 onMouseOver={(e) => e.currentTarget.style.background = "#444"} onMouseOut={(e) => e.currentTarget.style.background = "#333"}>
                 Choose files
               </button>
-              <input ref={fileInputRef} type="file" accept={ACCEPTED_AUDIO} style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }} />
+              <input data-testid="upload-dropzone-input" ref={fileInputRef} type="file" accept={ACCEPTED_AUDIO} style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }} />
             </div>
 
             {fileError && <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(229,57,53,0.1)", border: "1px solid rgba(229,57,53,0.3)", borderRadius: 4, color: "#ef5350", fontSize: 13 }}>{fileError}</div>}
@@ -274,13 +275,13 @@ export default function UploadPage() {
                       ))}
                     </div>
                     {/* Start recording button */}
-                    <button onClick={isRecording ? stopRecording : startRecording}
+                    <button data-testid="upload-record-button" onClick={isRecording ? stopRecording : startRecording}
                       style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 24px", borderRadius: 100, background: isRecording ? "#cc0000" : "#333", border: "1px solid #555", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#e53935", display: "inline-block" }} />
                       {isRecording ? "Stop recording" : "Start recording"}
                     </button>
                     {/* Timer */}
-                    <span style={{ fontSize: 14, fontFamily: "monospace", color: isRecording ? "#e53935" : "#666" }}>{formatTime(recordTime)}</span>
+                    <span data-testid="upload-record-timer" style={{ fontSize: 14, fontFamily: "monospace", color: isRecording ? "#e53935" : "#666" }}>{formatTime(recordTime)}</span>
                   </div>
                 </div>
               )}
@@ -292,11 +293,11 @@ export default function UploadPage() {
         {/* METADATA FORM STATE                                            */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {stage === "form" && (
-          <>
+          <div data-testid="metadata-form">
             <div style={{ display: "flex", gap: 32, marginTop: 8 }}>
               {/* ── Left: Artwork ── */}
               <div style={{ flexShrink: 0 }}>
-                <div onClick={() => artworkInputRef.current?.click()}
+                <div data-testid="metadata-artwork-upload" onClick={() => artworkInputRef.current?.click()}
                   style={{ width: 260, height: 260, background: artworkUrl ? `url(${artworkUrl}) center/cover` : "#1a1a1a", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", border: "1px dashed #555" }}>
                   {!artworkUrl && (
                     <div style={{ textAlign: "center", color: "#666" }}>
@@ -321,7 +322,7 @@ export default function UploadPage() {
                 {/* Track title */}
                 <div style={{ marginBottom: 24 }}>
                   <label style={lbl}>Track title <span style={{ color: "#f50" }}>*</span> <InfoIcon /></label>
-                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Name your track" style={inp} />
+                  <input data-testid="metadata-title-input" type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Name your track" style={inp} />
                 </div>
 
                 {/* Track link */}
@@ -342,7 +343,7 @@ export default function UploadPage() {
                   <label style={lbl}>Genre</label>
                   <div style={{ ...inp, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", padding: "0 12px" }}
                     onClick={() => setGenreOpen(!genreOpen)}>
-                    <input type="text" value={genreOpen ? genreSearch : (genre || "")} placeholder="Add or search for genre"
+                    <input data-testid="metadata-genre-input" type="text" value={genreOpen ? genreSearch : (genre || "")} placeholder="Add or search for genre"
                       onChange={(e) => { setGenreSearch(e.target.value); if (!genreOpen) setGenreOpen(true); }}
                       onClick={(e) => { e.stopPropagation(); setGenreOpen(true); }}
                       style={{ background: "transparent", border: "none", outline: "none", color: "#fff", fontSize: 14, flex: 1, padding: "10px 0" }} />
@@ -369,13 +370,13 @@ export default function UploadPage() {
                 {/* Tags */}
                 <div style={{ marginBottom: 24 }}>
                   <label style={lbl}>Tags <InfoIcon /></label>
-                  <input type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Add styles, moods, tempo." style={inp} />
+                  <input data-testid="metadata-tags-input" type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Add styles, moods, tempo." style={inp} />
                 </div>
 
                 {/* Description */}
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ ...lbl, fontWeight: 700 }}>Description</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                  <textarea data-testid="metadata-description-input" value={description} onChange={(e) => setDescription(e.target.value)}
                     placeholder="Tracks with descriptions tend to get more plays and engagements." rows={3}
                     style={{ ...inp, resize: "vertical", minHeight: 80, lineHeight: "1.5" }} />
                 </div>
@@ -386,7 +387,7 @@ export default function UploadPage() {
                   <div style={{ display: "flex", gap: 24 }}>
                     {(["public", "private", "schedule"] as const).map((opt) => (
                       <label key={opt} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                        <input type="radio" name="privacy" checked={privacy === opt} onChange={() => setPrivacy(opt)}
+                        <input data-testid={`metadata-privacy-toggle-${opt}`} type="radio" name="privacy" checked={privacy === opt} onChange={() => setPrivacy(opt)}
                           style={{ accentColor: "#f50" }} />
                         <span style={{ fontSize: 14, color: "#ccc", textTransform: "capitalize" }}>{opt === "schedule" ? "Schedule" : opt === "public" ? "Public" : "Private"}</span>
                       </label>
@@ -407,7 +408,7 @@ export default function UploadPage() {
             </div>
 
             {saveError && <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(229,57,53,0.1)", border: "1px solid rgba(229,57,53,0.3)", borderRadius: 4, color: "#ef5350", fontSize: 13 }}>{saveError}</div>}
-          </>
+          </div>
         )}
       </main>
 
@@ -417,7 +418,7 @@ export default function UploadPage() {
           <p style={{ fontSize: 12, color: "#777" }}>
             By uploading, you confirm that your sounds comply with our <a href="#" style={{ color: "#fff", textDecoration: "underline" }}>Terms of Use</a> and you don&apos;t infringe anyone else&apos;s rights.
           </p>
-          <button onClick={handleUpload} disabled={isSaving || !title.trim()}
+          <button data-testid="metadata-save-button" onClick={handleUpload} disabled={isSaving || !title.trim()}
             style={{ padding: "10px 40px", fontSize: 14, fontWeight: 700, color: "#fff", background: isSaving || !title.trim() ? "#1b5e20" : "#2e7d32", border: "none", borderRadius: 4, cursor: isSaving || !title.trim() ? "not-allowed" : "pointer", transition: "all 150ms", opacity: isSaving || !title.trim() ? 0.6 : 1 }}>
             {isSaving ? "Uploading..." : "Upload"}
           </button>

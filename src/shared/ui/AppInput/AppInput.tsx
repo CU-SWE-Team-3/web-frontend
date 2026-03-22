@@ -35,7 +35,7 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
       .join(' ');
 
     return (
-      <div className={wrapperCls}>
+      <div className={wrapperCls} data-testid="app-input">
         {label && (
           <label htmlFor={inputId} className={s.label}>
             {label}
@@ -44,12 +44,13 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
 
         <div className={s.inputWrap}>
           {leftIcon && (
-            <span className={`${s.icon} ${s.iconLeft}`}>{leftIcon}</span>
+            <span className={`${s.icon} ${s.iconLeft}`} data-testid="app-input-left-icon">{leftIcon}</span>
           )}
 
           <input
             ref={ref}
             id={inputId}
+            data-testid="app-input"
             className={inputCls}
             disabled={disabled}
             aria-invalid={!!error || undefined}
@@ -60,12 +61,12 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
           />
 
           {rightIcon && (
-            <span className={`${s.icon} ${s.iconRight}`}>{rightIcon}</span>
+            <span className={`${s.icon} ${s.iconRight}`} data-testid="app-input-right-icon">{rightIcon}</span>
           )}
         </div>
 
         {error && (
-          <span id={`${inputId}-error`} className={s.errorMsg} role="alert">
+          <span id={`${inputId}-error`} className={s.errorMsg} role="alert" data-testid="app-input-error">
             {error}
           </span>
         )}

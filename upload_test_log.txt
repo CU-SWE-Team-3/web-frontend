@@ -1,0 +1,9 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 07:26:40
+[2m   Duration [22m 3.92s[2m (transform 916ms, setup 199ms, import 0ms, tests 0ms, environment 1.43s)[22m
+

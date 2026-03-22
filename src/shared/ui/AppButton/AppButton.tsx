@@ -48,15 +48,16 @@ export const AppButton = forwardRef<HTMLButtonElement, AppButtonProps>(
     return (
       <button
         ref={ref}
+        data-testid="app-button"
         className={classes}
         disabled={disabled || isWaiting}
         aria-busy={isWaiting || undefined}
         {...rest}
       >
-        {isWaiting && <span className={s.spinner} />}
-        {leftIcon && <span className="flex shrink-0">{leftIcon}</span>}
+        {isWaiting && <span className={s.spinner} data-testid="app-button-spinner" />}
+        {leftIcon && <span className="flex shrink-0" data-testid="app-button-left-icon">{leftIcon}</span>}
         {children}
-        {rightIcon && <span className="flex shrink-0">{rightIcon}</span>}
+        {rightIcon && <span className="flex shrink-0" data-testid="app-button-right-icon">{rightIcon}</span>}
       </button>
     );
   },

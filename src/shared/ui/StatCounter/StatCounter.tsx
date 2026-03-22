@@ -21,9 +21,9 @@ function formatStat(v: string | number): string {
 export const StatCounter: FC<StatCounterProps> = ({ stats, className }) => (
   <div className={[s.row, className].filter(Boolean).join(' ')}>
     {stats.map((stat) => (
-      <div key={stat.label} className={s.counter}>
+      <div key={stat.label} className={s.counter} data-testid={`stat-counter-${stat.label.toLowerCase()}`}>
         <span className={s.label}>{stat.label}</span>
-        <span className={s.value}>{formatStat(stat.value)}</span>
+        <span className={s.value} data-testid={`stat-counter-value-${stat.label.toLowerCase()}`}>{formatStat(stat.value)}</span>
       </div>
     ))}
   </div>

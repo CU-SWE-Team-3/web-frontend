@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { UploadCloud, X } from "lucide-react";
-import { AppButton } from "@/shared/ui";
+import { AppButton } from "./AppButton";
 
 interface UploadDropzoneProps {
   file: File | null;

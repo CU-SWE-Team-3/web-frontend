@@ -50,6 +50,7 @@ export const AppModal: FC<AppModalProps> = ({
   return (
     <div
       ref={overlayRef}
+      data-testid="app-modal-overlay"
       className={s.overlay}
       onClick={(e) => { if (e.target === overlayRef.current) onOpenChange(false); }}
       role="dialog"
@@ -57,23 +58,25 @@ export const AppModal: FC<AppModalProps> = ({
       aria-label={title}
     >
       <div
+        data-testid="app-modal-panel"
         className={[s.panel, className].filter(Boolean).join(' ')}
         style={{ maxWidth: WIDTH[size] }}
       >
         {(title || description) && (
-          <div className={s.header}>
-            {title && <h2 className={s.title}>{title}</h2>}
-            {description && <p className={s.description}>{description}</p>}
+          <div className={s.header} data-testid="app-modal-header">
+            {title && <h2 className={s.title} data-testid="app-modal-title">{title}</h2>}
+            {description && <p className={s.description} data-testid="app-modal-description">{description}</p>}
           </div>
         )}
         <button
           className={s.closeBtn}
+          data-testid="app-modal-close-button"
           onClick={() => onOpenChange(false)}
           aria-label="Close"
         >
           ✕
         </button>
-        <div className={s.body}>{children}</div>
+        <div className={s.body} data-testid="app-modal-body">{children}</div>
       </div>
     </div>
   );
