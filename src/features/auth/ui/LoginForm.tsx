@@ -1,17 +1,11 @@
-'use client'
-
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
-import { AppInput, AppButton } from '@/shared/ui'
+import { AppInput } from '../../../shared/ui/AppInput/AppInput'
+import { AppButton } from '../../../shared/ui/AppButton/AppButton'
 import { useAuthStore } from '../model/useAuthStore'
-import { ROUTES } from '@/shared/constants/routes'
-
-// ─── LoginForm ─────────────────────────────────────────────────────────────
-// POST /auth/login  → sets HttpOnly cookies, returns { data: { user } }
-// No accessToken in body — the backend sets it as an HttpOnly cookie.
-// GET  /auth/google → returns { data: { url } } → redirect browser there.
+import { ROUTES } from '../../../shared/constants/routes'
 
 const LoginForm = () => {
   const router = useRouter()
@@ -32,12 +26,10 @@ const LoginForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  // GET /auth/google → { success, data: { url } }
   const handleGoogleLogin = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       const response = await axios.get(`${apiUrl}/auth/google`, { withCredentials: true })
-      // The YAML spec says response.data.data.url, but let's handle both just in case
       const authUrl = response.data?.data?.url || response.data?.url
       if (!authUrl) throw new Error('No URL returned from backend')
       window.location.href = authUrl
@@ -50,8 +42,6 @@ const LoginForm = () => {
     setErrors({ general: 'Facebook login is coming soon! Please use Email or Google.' })
   }
 
-  // POST /auth/login { email, password }
-  // Response: { data: { user } }  — token is set as HttpOnly cookie automatically
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
@@ -118,7 +108,7 @@ const LoginForm = () => {
         </Link>
       </div>
 
-      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="login-submit-btn">
+      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="login-submit-button">
         Sign In
       </AppButton>
 

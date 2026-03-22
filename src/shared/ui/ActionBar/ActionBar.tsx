@@ -21,6 +21,7 @@ export const ActionBar: FC<ActionBarProps> = ({ actions, className }) => (
     {actions.map((action) => (
       <button
         key={action.key}
+        data-testid={`action-bar-item-${action.key}`}
         className={[
           s.actionBtn,
           action.label ? s.withLabel : '',
@@ -32,7 +33,7 @@ export const ActionBar: FC<ActionBarProps> = ({ actions, className }) => (
         aria-label={action.label ?? action.key}
       >
         {action.icon}
-        {action.label && <span>{action.label}</span>}
+        {action.label && <span data-testid={`action-bar-label-${action.key}`}>{action.label}</span>}
       </button>
     ))}
   </div>

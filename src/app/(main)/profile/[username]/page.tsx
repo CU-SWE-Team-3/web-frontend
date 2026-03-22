@@ -202,6 +202,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
                   </svg>
                   <p style={{ color: '#888', fontSize: 14, margin: 0 }}>More uploads means more listeners.</p>
                   <button
+                    data-testid="profile-upload-more-button"
                     onClick={() => router.push(ROUTES.UPLOAD)}
                     style={{
                       padding: '8px 24px', borderRadius: 100,
@@ -219,7 +220,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
             <div className={s.empty}>
               <span className={s.emptyText}>Seems a little quiet over here</span>
               {isOwnProfile && (
-                <button data-testid="profile-upload-btn" className={s.uploadBtn} onClick={() => router.push(ROUTES.UPLOAD)}>Upload now</button>
+                <button data-testid="profile-upload-more-button" className={s.uploadBtn} onClick={() => router.push(ROUTES.UPLOAD)}>Upload now</button>
               )}
             </div>
           )}

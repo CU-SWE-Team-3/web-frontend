@@ -85,7 +85,7 @@ const PrivacyTab = () => {
       </div>
 
       {/* Blocked users section */}
-      <div data-testid="settings-blocked-users" style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--sc-border)' }}>
+      <div data-testid="settings-blocked-users-list" style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--sc-border)' }}>
         <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--sc-text-primary)', marginBottom: 16 }}>Blocked users</h3>
         <BlockedUsersList />
       </div>

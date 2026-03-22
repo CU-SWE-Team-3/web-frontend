@@ -109,7 +109,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     <div data-testid="waveform-player" className="w-full">
       <div className="flex items-center gap-6">
         <AppButton
-          data-testid="waveform-play-button"
+          data-testid="track-play-button"
           type="button"
           onClick={togglePlay}
           className="h-14 w-14 shrink-0 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-105 transition-all focus:outline-none shadow-[0_0_15px_rgba(249,115,22,0.3)] pointer-events-auto cursor-pointer"

@@ -33,10 +33,10 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
   title, artist, coverUrl, timeAgo, plays, likes, reposts, comments,
   liked, audioUrl, waveformSlot, actionsSlot, onPlay, className,
 }) => (
-  <div className={[s.card, className].filter(Boolean).join(' ')}>
+  <div data-testid="track-card" className={[s.card, className].filter(Boolean).join(' ')}>
     <div className={s.coverWrap}>
       {coverUrl ? (
-        <img className={s.coverImg} src={coverUrl} alt={title} />
+        <img data-testid="track-card-artwork" className={s.coverImg} src={coverUrl} alt={title} />
       ) : (
         <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
       )}
@@ -49,12 +49,12 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
       <div className={s.header}>
         <div className={s.meta}>
           <span className={s.artist}>{artist}</span>
-          <span className={s.title}>{title}</span>
+          <span data-testid="track-card-title" className={s.title}>{title}</span>
         </div>
         {timeAgo && <span className={s.time}>{timeAgo}</span>}
       </div>
 
-      <div className={s.waveform}>
+      <div data-testid="track-card-waveform" className={s.waveform}>
         {waveformSlot || (audioUrl ? (
           <Suspense fallback={<div style={{ height: 80, background: '#222' }} />}>
             <WaveformPlayer audioUrl={audioUrl} />
@@ -65,11 +65,11 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
       <div className={s.footer}>
         <div className={s.stats}>
           {likes !== undefined && (
-            <span className={`${s.stat} ${liked ? s.statActive : ''}`}>♥ {fmt(likes)}</span>
+            <span data-testid="track-card-likes" className={`${s.stat} ${liked ? s.statActive : ''}`}>♥ {fmt(likes)}</span>
           )}
-          {reposts !== undefined && <span className={s.stat}>↻ {fmt(reposts)}</span>}
-          {plays !== undefined && <span className={s.stat}>▶ {fmt(plays)}</span>}
-          {comments !== undefined && <span className={s.stat}>💬 {fmt(comments)}</span>}
+          {reposts !== undefined && <span data-testid="track-card-reposts" className={s.stat}>↻ {fmt(reposts)}</span>}
+          {plays !== undefined && <span data-testid="track-card-plays" className={s.stat}>▶ {fmt(plays)}</span>}
+          {comments !== undefined && <span data-testid="track-card-comments" className={s.stat}>💬 {fmt(comments)}</span>}
         </div>
         {actionsSlot}
       </div>

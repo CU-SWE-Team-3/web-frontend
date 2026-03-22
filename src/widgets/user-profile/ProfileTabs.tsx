@@ -129,7 +129,7 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
         </button>
 
         {isOwnProfile && (
-          <button className={s.actionBtn} onClick={onEditClick}>
+          <button data-testid="profile-edit-button" className={s.actionBtn} onClick={onEditClick}>
             <EditIcon size={14} /> Edit
           </button>
         )}

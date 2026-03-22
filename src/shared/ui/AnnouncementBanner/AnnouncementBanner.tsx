@@ -24,7 +24,7 @@ export const AnnouncementBanner: FC<AnnouncementBannerProps> = ({
   if (!visible) return null;
 
   return (
-    <div className={[s.banner, className].filter(Boolean).join(' ')} role="banner">
+    <div data-testid="announcement-banner" className={[s.banner, className].filter(Boolean).join(' ')} role="banner">
       <span className={s.icon}>{icon}</span>
       <span>
         {children}
@@ -39,6 +39,7 @@ export const AnnouncementBanner: FC<AnnouncementBannerProps> = ({
       </span>
       {dismissible && (
         <button
+          data-testid="announcement-banner-dismiss"
           className={s.dismiss}
           onClick={() => setVisible(false)}
           aria-label="Dismiss"

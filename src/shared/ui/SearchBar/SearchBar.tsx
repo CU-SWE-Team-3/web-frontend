@@ -31,9 +31,10 @@ export const SearchBar: FC<SearchBarProps> = ({
   }, [onChange]);
 
   return (
-    <div className={[s.wrap, className].filter(Boolean).join(' ')}>
+    <div data-testid="navbar-search-bar" className={[s.wrap, className].filter(Boolean).join(' ')}>
       <span className={s.searchIcon}>🔍</span>
       <input
+        data-testid="navbar-search-input"
         className={s.input}
         type="text"
         value={value}
@@ -41,7 +42,7 @@ export const SearchBar: FC<SearchBarProps> = ({
         placeholder={placeholder}
       />
       {value.length > 0 && (
-        <button className={s.clearBtn} onClick={handleClear} aria-label="Clear search">
+        <button className={s.clearBtn} onClick={handleClear} aria-label="Clear search" data-testid="navbar-search-clear-button">
           ✕
         </button>
       )}

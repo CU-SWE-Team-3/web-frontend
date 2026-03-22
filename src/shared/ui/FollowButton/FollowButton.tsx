@@ -28,6 +28,7 @@ export const FollowButton: FC<FollowButtonProps> = ({
 
   return (
     <button
+      data-testid={isFollowing ? 'follow-button-following' : 'follow-button-follow'}
       className={[
         s.followBtn,
         isFollowing ? s.following : '',

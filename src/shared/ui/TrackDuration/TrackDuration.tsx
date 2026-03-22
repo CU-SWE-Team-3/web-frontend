@@ -13,6 +13,7 @@ function fmtDuration(sec: number): string {
 
 export const TrackDuration: FC<TrackDurationProps> = ({ seconds, className }) => (
   <span
+    data-testid="track-duration"
     className={className}
     style={{
       fontFamily: 'var(--sc-font-family)',

@@ -36,13 +36,14 @@ export const SidebarNav: FC<SidebarNavProps> = ({
   onTrackClick,
   className,
 }) => (
-  <aside className={[s.sidebar, className].filter(Boolean).join(' ')}>
+  <aside data-testid="sidebar-nav" className={[s.sidebar, className].filter(Boolean).join(' ')}>
     {/* Top: Navigation Links */}
     <div className={s.section}>
       {links.map((link) => (
         link.href ? (
           <Link
             key={link.key}
+            data-testid={`sidebar-nav-link-${link.key}`}
             href={link.href}
             className={`${s.navItem} ${link.active ? s.navItemActive : ''}`}
           >
@@ -63,6 +64,8 @@ export const SidebarNav: FC<SidebarNavProps> = ({
         )
       ))}
     </div>
+
+
 
     {/* Middle: Recently Played */}
     {recentTracks.length > 0 && (

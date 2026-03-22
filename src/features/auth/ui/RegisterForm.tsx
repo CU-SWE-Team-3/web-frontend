@@ -5,15 +5,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { AppInput, AppButton } from '@/shared/ui'
-import { ROUTES } from '@/shared/constants/routes'
+import { AppInput } from '../../../shared/ui/AppInput/AppInput'
+import { AppButton } from '../../../shared/ui/AppButton/AppButton'
+import { ROUTES } from '../../../shared/constants/routes'
 import { useAuthStore } from '../model/useAuthStore'
-
-// ─── RegisterForm ─────────────────────────────────────────────────────────────
-// POST /auth/register
-// Body: { email, password, displayName, captchaToken, age?, gender? }
-// Required: email, password, displayName, captchaToken
-// confirmPassword is frontend-only validation — NOT sent to the backend.
 
 const RegisterForm = () => {
   const router = useRouter()
@@ -44,7 +39,6 @@ const RegisterForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  // GET /auth/google → { data: { url } }
   const handleGoogleLogin = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -61,9 +55,6 @@ const RegisterForm = () => {
     setErrors({ general: 'Facebook registration is coming soon! Please use Email or Google.' })
   }
 
-  // POST /auth/register
-  // Body: { email, password, displayName, captchaToken }
-  // confirmPassword is frontend only — not sent to API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
@@ -82,7 +73,6 @@ const RegisterForm = () => {
         },
         { withCredentials: true }
       )
-      // If the backend returns user + token (auto-login after register)
       const user = response.data?.data?.user
       const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user && token) {
@@ -179,7 +169,7 @@ const RegisterForm = () => {
         <span className="text-[#ff5500] cursor-pointer hover:underline">Privacy Policy</span>.
       </p>
 
-      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="register-submit-btn">
+      <AppButton type="submit" fullWidth isLoading={isLoading} data-testid="register-submit-button">
         Create Account
       </AppButton>
 

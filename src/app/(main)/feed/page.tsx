@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import apiClient from '@/shared/api/client';
-import { NavBar } from '@/shared/ui';
+import { NavBar } from '../../../shared/ui/NavBar/NavBar';
 import { ROUTES } from '@/shared/constants/routes';
 import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
 import { useRouter } from 'next/navigation';
@@ -136,7 +136,7 @@ export default function FeedPage() {
     <div style={{ minHeight: '100vh', background: '#111', color: '#fff', fontFamily: 'var(--sc-font-family)' }}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}>
+      <main data-testid="feed-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}>
         {/* ─── Main Feed ─── */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>
@@ -154,15 +154,15 @@ export default function FeedPage() {
               <p style={{ color: '#777', fontSize: 13, marginTop: 8 }}>Follow artists or upload tracks to populate your feed.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {feedTracks.map((item: any) => {
                 const track = item.track;
                 if (!track) return null;
                 const liked = likedTracks.has(track._id);
                 return (
-                  <FeedTrackCard
-                    key={track._id}
-                    title={track.title}
+                  <div key={track._id} data-testid="feed-track-item">
+                    <FeedTrackCard
+                      title={track.title}
                     artist={track.artist?.displayName || 'Unknown Artist'}
                     coverUrl={track.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'}
                     timeAgo={new Date(item.createdAt).toLocaleDateString()}
@@ -176,6 +176,7 @@ export default function FeedPage() {
                     actionsSlot={
                       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                         <button
+                          data-testid="track-card-like-button"
                           onClick={() => {
                             setLikedTracks(prev => {
                               const next = new Set(prev);
@@ -197,6 +198,7 @@ export default function FeedPage() {
                       </div>
                     }
                   />
+                  </div>
                 );
               })}
             </div>
@@ -206,7 +208,7 @@ export default function FeedPage() {
         {/* ─── Sidebar ─── */}
         <aside style={{ width: 300, flexShrink: 0 }}>
           {/* Artists You Should Follow */}
-          <div style={{
+          <div data-testid="feed-artist-suggestions" style={{
             background: '#1a1a1a',
             borderRadius: 12,
             border: '1px solid rgba(255,255,255,0.06)',
@@ -242,6 +244,7 @@ export default function FeedPage() {
                         </div>
                       </div>
                       <button 
+                        data-testid="feed-artist-follow-button"
                         onClick={() => handleFollowToggle(artist._id)}
                         style={{
                           padding: '6px 14px',

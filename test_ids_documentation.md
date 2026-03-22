@@ -1,101 +1,126 @@
-# Blocked Users Feature - Test IDs Documentation
+# BioBeats Test IDs Documentation
 
-This document outlines the `data-testid` attributes implemented in the Blocked Users List feature (`/settings/blocked`). These IDs are stable and intended for use by the QA/Testing team for automated E2E and integration testing.
+This document outlines all the `data-testid` attributes implemented in the BioBeats application. These IDs are designed for automated unit and integration testing following the `component-element-modifier` naming convention.
 
-## Component: BlockedUsersList
+## Shared UI Components
 
-| Test ID | Description | State |
-|---------|-------------|-------|
-| `blocked-users-list` | The main container for the list of blocked users. | Success State |
-| `blocked-empty-state` | The container displaying the "You haven't blocked anyone" message. | Empty State |
-| `blocked-loading` | The container holding the skeleton loading placeholder rows. | Loading State |
+### Core Elements
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **NavBar** | `navbar` | Main navigation container |
+| | `navbar-logo` | Brand logo in navbar |
+| | `navbar-search-input` | Global search input |
+| | `navbar-upload-button` | Primary upload CTA |
+| | `navbar-user-avatar` | Current user's avatar |
+| | `navbar-user-dropdown` | User profile menu |
+| **AppButton** | `app-button` | Action button |
+| | `app-button-loading` | Spinner inside button |
+| **AppInput** | `app-input-container` | Input field wrapper |
+| | `app-input-label` | Field label |
+| | `app-input-field` | Native `<input>` |
+| | `app-input-error` | Validation error message |
+| **AppModal** | `app-modal-overlay` | Background overlay |
+| | `app-modal-panel` | Content container |
+| | `app-modal-header` | Title and description section |
+| | `app-modal-close-button` | Dismiss button |
+| **AppToast** | `app-toast` | Notification toast message |
 
-## Component: BlockedUserRow
+### Lists and Cards
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **TrackCard** | `track-card` | Individual track list item |
+| | `track-card-artwork` | Album art image |
+| | `track-card-title` | Clickable track title |
+| **FeedTrackCard** | `track-card-likes` | Like count |
+| | `track-card-reposts` | Repost count |
+| | `track-card-plays` | Play count |
+| | `track-card-comments` | Comment count |
+| **PlaylistCard** | `playlist-card` | Playlist gallery item |
+| | `playlist-card-artwork` | Cover art |
+| | `playlist-card-play-button` | Interactive play icon |
+| **SidebarTrackItem** | `sidebar-track-item` | Small track item in sidebars |
+| | `sidebar-track-artist` | Artist name |
+| | `sidebar-track-plays` | Play count tooltip/label |
 
-| Test ID | Description |
-|---------|-------------|
-| `blocked-user-row` | The container for a single blocked user row in the list. |
-| `blocked-user-avatar`| The avatar component displaying the user's image or fallback initials. |
-| `blocked-user-username`| The container holding the user's `@username` and display name. |
-| `unblock-button` | The clickable button to unblock the user. |
+### Interactive Elements
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **FollowButton** | `follow-button` | Follow/Unfollow CTA |
+| **LikeButton** | `like-button` | Heart/Favorite interactive |
+| **NotificationBell**| `notification-bell` | Alerts indicator |
+| **SocialButton** | `social-button-{provider}` | OAuth buttons (google, facebook, etc.) |
+| **TabBar** | `tab-bar` | Tab navigation root |
+| | `tab-bar-item` | Individual tab link |
+| **ActionBar** | `action-bar` | Horizontal list of actions |
+| | `action-bar-label` | Text label for action |
+
+### Status and Utility
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **VerifiedBadge** | `verified-badge` | Blue check indicator |
+| **EmptyState** | `empty-state` | Placeholder for empty lists |
+| | `empty-state-title` | Main message |
+| **SkeletonLoader** | `skeleton-loader` | Loading placeholder |
+| **SoundCloudLogo** | `brand-logo` | Main application logo |
 
 ---
 
-### Example Usage (Cypress)
-```javascript
-// Check if the list renders
-cy.get('[data-testid="blocked-users-list"]').should('exist')
+## Page-Specific Components
 
-// Check the empty state
-cy.get('[data-testid="blocked-empty-state"]').should('contain.text', "You haven't blocked anyone")
+### Authentication
+#### LoginForm
+- `login-form`: Form container
+- `login-email-input`: Email input
+- `login-password-input`: Password input
+- `login-submit-button`: Sign in button
+- `login-google-btn`: Google OAuth
+- `login-error`: General login error banner
 
-// Click the first unblock button
-cy.get('[data-testid="unblock-button"]').first().click()
-```
+#### RegisterForm
+- `register-form`: Form container
+- `register-displayname-input`: Display name input
+- `register-email-input`: Email input
+- `register-password-input`: Password input
+- `register-confirm-input`: Password confirmation
+- `register-submit-button`: Final signup button
+- `register-success`: Post-registration success message
+- `register-back-to-signin-btn`: CTA after registration
 
-### Example Usage (React Testing Library)
-```javascript
-// Wait for loading to finish
-await waitForElementToBeRemoved(() => screen.queryByTestId('blocked-loading'))
+### Upload Feature
+#### UploadPage
+- `upload-page`: Root container
+- `upload-dropzone`: Drag-and-drop area
+- `upload-dropzone-input`: Hidden file input
+- `upload-browse-button`: File selection CTA
+- `upload-progress-bar`: Audio processing progress
+- `upload-record-button`: MIC recording toggle
+- `upload-record-timer`: Recording duration display
 
-// Verify specific user row
-const firstRow = screen.getAllByTestId('blocked-user-row')[0]
-expect(within(firstRow).getByTestId('blocked-user-username')).toHaveTextContent('user_alias')
-```
+#### Metadata Form
+- `metadata-form`: The complete metadata entry form
+- `metadata-artwork-upload`: Artwork selection area
+- `metadata-title-input`: Track title field
+- `metadata-genre-input`: Searchable genre selection
+- `metadata-save-button`: Final upload submission
+- `metadata-privacy-toggle-{opt}`: Visibility radios (public, private)
 
 ---
 
-## Module 4: Tracks & Audio Upload
+## Usage Examples
 
-### Component: UploadDropzone
-| Test ID | Description |
-|---------|-------------|
-| `upload-dropzone` | The main container for the drag-and-drop zone. |
-| `upload-dropzone-area` | The visual drop area reacting to drag events. |
-| `upload-dropzone-input` | The hidden native file input. |
-| `upload-dropzone-remove` | Button to remove the selected file before upload. |
-| `upload-dropzone-error` | Container for displaying file validation errors. |
+### React Testing Library
+```javascript
+// Selecting the Nav Bar
+const navbar = screen.getByTestId('navbar');
 
-### Component: TrackForm
-| Test ID | Description |
-|---------|-------------|
-| `track-form` | The main `<form>` element. |
-| `track-form-file-preview` | The container showing the selected audio file before metadata entry. |
-| `track-form-title-input` | Input for the track title. |
-| `track-form-genre-select` | Select dropdown for the track genre. |
-| `track-form-date-input` | Date input for release date. |
-| `track-form-tags-input` | Text input for comma-separated tags. |
-| `track-form-description-input` | Textarea for the track description. |
-| `track-form-visibility-public` | Button to set track as Public. |
-| `track-form-visibility-private` | Button to set track as Private. |
-| `track-form-status-processing` | Button to set track as Processing (Mock UI only). |
-| `track-form-status-finished` | Button to set track as Finished (Mock UI only). |
-| `track-form-submit-button` | The final submit button to upload or save metadata. |
+// Verifying track stats in a card
+const likes = within(trackCard).getByTestId('track-card-likes');
+expect(likes).toHaveTextContent('1.2K');
+```
 
-### Component: WaveformPlayer
-| Test ID | Description |
-|---------|-------------|
-| `waveform-player` | The main container for the audio player. |
-| `waveform-play-button` | The toggle button for Play/Pause. |
-| `waveform-current-time` | Element displaying the current playback time. |
-| `waveform-duration` | Element displaying the total track duration. |
-
-### Component: TrackCard
-| Test ID | Description |
-|---------|-------------|
-| `track-card-{trackId}` | The root article element for a track. The ID contains the track's unique ID. |
-| `track-card-title-link` | The hyperlink on the track title. |
-| `track-card-status` | The badge displaying the processing status. |
-| `track-card-visibility` | The badge displaying public/private visibility. |
-| `track-card-copy-link-btn` | Button to copy the secret link (Private tracks only). |
-| `track-card-edit-btn` | Button to open the track in edit mode. |
-| `track-card-delete-btn` | Button to delete the track. |
-
-### Component: ImageCropper
-| Test ID | Description |
-|---------|-------------|
-| `image-cropper-modal` | The root modal overlay for the image cropper. |
-| `image-cropper-close` | The "X" icon to close the modal. |
-| `image-cropper-cancel` | The "Cancel" button to close the modal without saving. |
-| `image-cropper-apply` | The "Crop & Apply" button to save the cropped image. |
-
+### Cypress (E2E)
+```javascript
+// Interact with the Login form
+cy.get('[data-testid="login-email-input"]').type('test@biobeats.com');
+cy.get('[data-testid="login-submit-button"]').click();
+```

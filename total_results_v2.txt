@@ -1,0 +1,111 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend[39m
+
+ [32mΓ£ô[39m src/shared/ui/ProfileTrackCard/__tests__/ProfileTrackCard.test.tsx[2m > [22mProfileTrackCard[2m > [22mrenders track card with full test IDs[32m 59[2mms[22m[39m[35m 69 MB heap used[39m
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/ShareModal.test.tsx[2m > [22mShare Modal[2m > [22mdoes not render if closed[32m 23[2mms[22m[39m[35m 61 MB heap used[39m
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/ShareModal.test.tsx[2m > [22mShare Modal[2m > [22mrenders correctly with default URL[32m 23[2mms[22m[39m[35m 62 MB heap used[39m
+ [32mΓ£ô[39m src/shared/ui/TrackCard/__tests__/TrackCard.test.tsx[2m > [22mTrackCard[2m > [22mrenders correctly with given props[32m 75[2mms[22m[39m[35m 74 MB heap used[39m
+ [32mΓ£ô[39m src/features/auth/model/__tests__/AuthPersistence.test.tsx[2m > [22mAuth Persistence Tests[2m > [22msaves token to localStorage on login[32m 2[2mms[22m[39m[35m 66 MB heap used[39m
+ [32mΓ£ô[39m src/features/auth/model/__tests__/AuthPersistence.test.tsx[2m > [22mAuth Persistence Tests[2m > [22mreads token from localStorage and restores session on initAuth[32m 250[2mms[22m[39m[35m 74 MB heap used[39m
+ [32mΓ£ô[39m src/features/auth/model/__tests__/AuthPersistence.test.tsx[2m > [22mAuth Persistence Tests[2m > [22mclears localStorage and remains unauthenticated if token is invalid/expired[32m 8[2mms[22m[39m[35m 75 MB heap used[39m
+ [32mΓ£ô[39m src/features/auth/model/__tests__/AuthPersistence.test.tsx[2m > [22mAuth Persistence Tests[2m > [22mkeeps user logged in after page refresh if token is valid[32m 10[2mms[22m[39m[35m 76 MB heap used[39m
+ [31m├ù[39m src/widgets/user-profile/__tests__/ShareModal.test.tsx[2m > [22mShare Modal[2m > [22mcopies to clipboard on copy click[32m 192[2mms[22m[39m[35m 78 MB heap used[39m
+[31m   ΓåÆ [AsyncFunction writeText] is not a spy or a call to a spy![39m
+ [32mΓ£ô[39m src/shared/ui/TrackCard/__tests__/TrackCard.test.tsx[2m > [22mTrackCard[2m > [22mhandles play and like clicks[32m 200[2mms[22m[39m[35m 64 MB heap used[39m
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/ShareModal.test.tsx[2m > [22mShare Modal[2m > [22mcalls TinyURL when shorten checkbox is checked[32m 83[2mms[22m[39m[35m 67 MB heap used[39m
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/ShareModal.test.tsx[2m > [22mShare Modal[2m > [22mrestores original URL when shorten checkbox is unchecked[32m 115[2mms[22m[39m[35m 76 MB heap used[39m
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2mdoes not render if closed
+[22m[39m[EditProfileModal useEffect] open: [33mfalse[39m profile: {
+  "displayName": "Test Artist",
+  "firstName": "Test",
+  "lastName": "Artist",
+  "city": "New York",
+  "country": "USA",
+  "bio": "This is my bio",
+  "profileUrl": "testartist",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "genres": [
+    "pop",
+    "rock"
+  ],
+  "socialLinks": []
+}
+
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2mrenders and pre-fills current profile data
+[22m[39m[EditProfileModal useEffect] open: [33mtrue[39m profile: {
+  "displayName": "Test Artist",
+  "firstName": "Test",
+  "lastName": "Artist",
+  "city": "New York",
+  "country": "USA",
+  "bio": "This is my bio",
+  "profileUrl": "testartist",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "genres": [
+    "pop",
+    "rock"
+  ],
+  "socialLinks": []
+}
+
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2mallows updating fields
+[22m[39m[EditProfileModal useEffect] open: [33mtrue[39m profile: {
+  "displayName": "Test Artist",
+  "firstName": "Test",
+  "lastName": "Artist",
+  "city": "New York",
+  "country": "USA",
+  "bio": "This is my bio",
+  "profileUrl": "testartist",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "genres": [
+    "pop",
+    "rock"
+  ],
+  "socialLinks": []
+}
+
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22mEdit Profile Modal[2m > [22mdoes not render if closed[32m 18[2mms[22m[39m[35m 73 MB heap used[39m
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22mEdit Profile Modal[2m > [22mrenders and pre-fills current profile data[32m 33[2mms[22m[39m[35m 77 MB heap used[39m
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2msubmits updated data to the API and closes
+[22m[39m[EditProfileModal useEffect] open: [33mtrue[39m profile: {
+  "displayName": "Test Artist",
+  "firstName": "Test",
+  "lastName": "Artist",
+  "city": "New York",
+  "country": "USA",
+  "bio": "This is my bio",
+  "profileUrl": "testartist",
+  "avatarUrl": "https://example.com/avatar.jpg",
+  "genres": [
+    "pop",
+    "rock"
+  ],
+  "socialLinks": []
+}
+
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22mEdit Profile Modal[2m > [22mallows updating fields[33m 475[2mms[22m[39m[35m 104 MB heap used[39m
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2msubmits updated data to the API and closes
+[22m[39m[EditProfileModal handleSave] Sending PATCH /profile/update with payload: {
+  "displayName": "Test Artist",
+  "bio": "This is my bio",
+  "country": "USA",
+  "city": "New York",
+  "genres": [
+    "pop",
+    "rock"
+  ]
+}
+
+[90mstdout[2m | src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22m[2mEdit Profile Modal[2m > [22m[2msubmits updated data to the API and closes
+[22m[39m[EditProfileModal handleSave] /profile/update response: [33m200[39m {
+  "success": true
+}
+
+ [32mΓ£ô[39m src/widgets/user-profile/__tests__/EditProfileModal.test.tsx[2m > [22mEdit Profile Modal[2m > [22msubmits updated data to the API and closes[33m 345[2mms[22m[39m[35m 76 MB heap used[39m
+
+[2m Test Files [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 07:29:32
+[2m   Duration [22m 7.37s[2m (transform 4.23s, setup 4.45s, import 5.09s, tests 1.94s, environment 50.76s)[22m
+

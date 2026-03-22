@@ -47,6 +47,7 @@ export const AppToast: FC<AppToastProps> = ({
   return (
     <div
       role="alert"
+      data-testid="app-toast"
       style={{
         position: 'fixed',
         bottom: 'var(--sc-space-6)',

@@ -70,7 +70,7 @@ const RecordSection: React.FC<RecordSectionProps> = ({ onRecordingComplete }) =>
   }, []);
 
   return (
-    <div style={{
+    <div data-testid="record-section" style={{
       marginTop: 32,
       padding: '28px 32px',
       background: '#1a1a1a',
@@ -126,7 +126,7 @@ const RecordSection: React.FC<RecordSectionProps> = ({ onRecordingComplete }) =>
         </button>
 
         {/* Timer */}
-        <span style={{
+        <span data-testid="record-section-timer" style={{
           fontSize: 20, fontWeight: 700, fontFamily: 'monospace',
           color: isRecording ? '#ff5500' : '#555',
           minWidth: 60,

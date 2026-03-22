@@ -36,6 +36,7 @@ export const SkeletonLoader: FC<SkeletonLoaderProps> = ({
               ...blockStyle,
               width: i === lines - 1 ? '60%' : width,
             }}
+            data-testid="skeleton-loader"
           />
         ))}
       </div>
@@ -44,6 +45,7 @@ export const SkeletonLoader: FC<SkeletonLoaderProps> = ({
 
   return (
     <div
+      data-testid="skeleton-loader"
       className={[s.skeleton, radiusCls, className]
         .filter(Boolean)
         .join(' ')}

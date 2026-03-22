@@ -13,6 +13,7 @@ function fmt(n: number): string {
 
 export const PlayCount: FC<PlayCountProps> = ({ count, className }) => (
   <span
+    data-testid="play-count"
     className={className}
     style={{
       display: 'inline-flex',

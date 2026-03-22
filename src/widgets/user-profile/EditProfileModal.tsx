@@ -199,6 +199,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                   src={avatarPreview}
                   alt={displayName}
                   className={s.avatarPreview}
+                  data-testid="edit-profile-avatar"
                 />
               ) : (
                 <div className={s.avatarPreview} />
@@ -211,7 +212,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                 onChange={handleAvatarSelect}
               />
               <button
-                data-testid="edit-profile-avatar-upload"
+                data-testid="edit-profile-upload-image"
                 className={s.uploadImgBtn}
                 onClick={() => avatarFileRef.current?.click()}
               >
@@ -227,7 +228,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                   Display name<span className={s.required}>*</span>
                 </label>
                 <input
-                  data-testid="edit-profile-displayname"
+                  data-testid="edit-profile-display-name-input"
                   className={s.fieldInput}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
@@ -271,6 +272,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                 <div className={s.col}>
                   <label className={s.fieldLabel}>City</label>
                   <input
+                    data-testid="edit-profile-city-input"
                     className={s.fieldInput}
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -279,6 +281,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
                 <div className={s.col}>
                   <label className={s.fieldLabel}>Country</label>
                   <input
+                    data-testid="edit-profile-country-input"
                     className={s.fieldInput}
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
@@ -290,6 +293,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
               <div>
                 <label className={s.fieldLabel}>Bio</label>
                 <textarea
+                  data-testid="edit-profile-bio-input"
                   className={s.textarea}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -301,6 +305,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
               <div>
                 <label className={s.fieldLabel}>Favorite Genres</label>
                 <input
+                  data-testid="edit-profile-genres-input"
                   className={s.fieldInput}
                   value={genresStr}
                   onChange={(e) => setGenresStr(e.target.value)}
@@ -378,7 +383,7 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
             Cancel
           </button>
           <button
-            data-testid="edit-profile-save-btn"
+            data-testid="edit-profile-save-button"
             className={s.saveBtn}
             onClick={handleSave}
             disabled={saving}
