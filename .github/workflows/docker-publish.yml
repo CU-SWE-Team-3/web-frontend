@@ -23,3 +23,5 @@ jobs:
           context: .
           push: true
           tags: zkhaled389/biobeats-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://biobeats.duckdns.org/api
