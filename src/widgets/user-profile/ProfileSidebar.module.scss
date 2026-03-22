@@ -1,4 +1,4 @@
-﻿.sidebar {
+.sidebar {
   display: flex;
   flex-direction: column;
 }
@@ -7,6 +7,143 @@
   border: none;
   border-top: 1px solid var(--sc-border);
   margin: 0;
+}
+
+/* ---- Bio ---- */
+.bioBlock {
+  padding: 16px 0;
+}
+
+.bioText {
+  font-size: 14px;
+  color: var(--sc-text-secondary);
+  line-height: 1.6;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* ---- Social Links ---- */
+.socialLinksBlock {
+  padding: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sc-text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--sc-text-primary);
+  }
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.socialLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Following Section ---- */
+.followingBlock {
+  padding: 16px 0;
+}
+
+.followingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.followingTitle {
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  letter-spacing: 0.04em;
+}
+
+.viewAllLink {
+  font-size: 12px;
+  color: var(--sc-text-secondary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--sc-text-primary);
+  }
+}
+
+.followingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.followingItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .followingName {
+    color: var(--sc-text-primary);
+  }
+}
+
+.followingAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #333;
+}
+
+.followingInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.followingName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.followingMeta {
+  font-size: 11px;
+  color: var(--sc-text-secondary);
+}
+
+.followingBadge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  background: var(--sc-primary, #ff5500);
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 /* ---- ON TOUR ---- */
@@ -58,31 +195,6 @@
   &:hover {
     opacity: 0.9;
   }
-}
-
-/* ---- GO MOBILE ---- */
-.mobileBlock {
-  padding: 28px 0 16px;
-}
-
-.mobileTitle {
-  font-size: 12px;
-  font-weight: var(--sc-font-weight-bold);
-  color: var(--sc-text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 14px;
-}
-
-.badges {
-  display: flex;
-  gap: 10px;
-}
-
-.badge {
-  height: 40px;
-  border-radius: 6px;
-  cursor: pointer;
 }
 
 /* ---- Footer ---- */

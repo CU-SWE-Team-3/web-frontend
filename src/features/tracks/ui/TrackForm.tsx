@@ -5,6 +5,7 @@ import {
   ImageCropper,
   UploadDropzone,
 } from "@/shared/ui";
+import RecordSection from "@/shared/ui/RecordSection";
 import type {
   Track,
   TrackVisibility,
@@ -132,7 +133,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
     "block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form data-testid="track-form" onSubmit={handleSubmit} className="space-y-6">
       {mode === "create" && step === 1 && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
           <UploadDropzone
@@ -140,6 +141,10 @@ const TrackForm: React.FC<TrackFormProps> = ({
             error={fileError}
             onFileSelect={handleFileSelect}
           />
+          <RecordSection onRecordingComplete={(recordedFile) => {
+            setFile(recordedFile);
+            setFileError("");
+          }} />
           <div className="pt-6 flex justify-end">
             <AppButton
               type="button"
@@ -156,7 +161,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
       {step === 2 && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
           {mode === "create" && file && (
-            <div className="bg-[#151515] p-4 rounded-xl border border-white/5 flex justify-between items-center mb-6">
+            <div data-testid="track-form-file-preview" className="bg-[#151515] p-4 rounded-xl border border-white/5 flex justify-between items-center mb-6">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center shrink-0">
                   <span className="text-orange-500 text-xs font-bold uppercase tracking-wider">
@@ -184,6 +189,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
               Title <span className="text-red-500">*</span>
             </label>
             <AppInput
+              data-testid="track-form-title-input"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
@@ -197,6 +203,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
               <label className={labelClasses}>Genre</label>
               <div className="relative">
                 <select
+                  data-testid="track-form-genre-select"
                   value={genre}
                   onChange={(event) => setGenre(event.target.value)}
                   className={`${inputClasses} appearance-none cursor-pointer pr-10`}
@@ -222,6 +229,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
             <div>
               <label className={labelClasses}>Release Date</label>
               <AppInput
+                data-testid="track-form-date-input"
                 type="date"
                 value={releaseDate}
                 onChange={(event) => setReleaseDate(event.target.value)}
@@ -271,6 +279,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
           <div>
             <label className={labelClasses}>Tags</label>
             <AppInput
+              data-testid="track-form-tags-input"
               value={tags}
               onChange={(event) => setTags(event.target.value)}
               className={inputClasses}
@@ -281,6 +290,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
           <div>
             <label className={labelClasses}>Description</label>
             <textarea
+              data-testid="track-form-description-input"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
@@ -296,6 +306,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
                 {(["Public", "Private"] as const).map((option) => (
                   <AppButton
                     key={option}
+                    data-testid={`track-form-visibility-${option.toLowerCase()}`}
                     type="button"
                     onClick={() => setVisibility(option)}
                     className={`rounded-md px-6 py-2 text-sm font-bold transition-all ${
@@ -316,6 +327,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
                 {(["Processing", "Finished"] as const).map((option) => (
                   <AppButton
                     key={option}
+                    data-testid={`track-form-status-${option.toLowerCase()}`}
                     type="button"
                     onClick={() => setStatus(option)}
                     className={`rounded-md px-4 py-2 text-sm font-bold transition-all ${
@@ -348,6 +360,7 @@ const TrackForm: React.FC<TrackFormProps> = ({
 
           <div className="pt-4 border-t border-white/5 flex gap-4">
             <AppButton
+              data-testid="track-form-submit-button"
               type="submit"
               disabled={isSubmitting}
               className="flex-1 lg:flex-none rounded-full bg-orange-500 px-8 py-3.5 text-sm font-bold tracking-wide text-white hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-orange-500 transition-all shadow-[0_4px_14px_0_rgba(249,115,22,0.39)] hover:shadow-[0_6px_20px_rgba(249,115,22,0.23)] hover:-translate-y-0.5"

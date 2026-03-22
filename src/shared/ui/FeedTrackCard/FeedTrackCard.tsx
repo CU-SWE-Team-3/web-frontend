@@ -1,7 +1,9 @@
 'use client';
 
-import { type FC, type ReactNode } from 'react';
+import { type FC, type ReactNode, Suspense, lazy } from 'react';
 import s from './FeedTrackCard.module.scss';
+
+const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
 export interface FeedTrackCardProps {
   title: string;
@@ -14,6 +16,7 @@ export interface FeedTrackCardProps {
   reposts?: number;
   comments?: number;
   liked?: boolean;
+  audioUrl?: string;
   waveformSlot?: ReactNode;
   actionsSlot?: ReactNode;
   onPlay?: () => void;
@@ -28,7 +31,7 @@ function fmt(n: number): string {
 
 export const FeedTrackCard: FC<FeedTrackCardProps> = ({
   title, artist, coverUrl, timeAgo, plays, likes, reposts, comments,
-  liked, waveformSlot, actionsSlot, onPlay, className,
+  liked, audioUrl, waveformSlot, actionsSlot, onPlay, className,
 }) => (
   <div className={[s.card, className].filter(Boolean).join(' ')}>
     <div className={s.coverWrap}>
@@ -51,7 +54,13 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
         {timeAgo && <span className={s.time}>{timeAgo}</span>}
       </div>
 
-      <div className={s.waveform}>{waveformSlot}</div>
+      <div className={s.waveform}>
+        {waveformSlot || (audioUrl ? (
+          <Suspense fallback={<div style={{ height: 80, background: '#222' }} />}>
+            <WaveformPlayer audioUrl={audioUrl} />
+          </Suspense>
+        ) : null)}
+      </div>
 
       <div className={s.footer}>
         <div className={s.stats}>

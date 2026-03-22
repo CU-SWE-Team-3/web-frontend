@@ -33,7 +33,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
   };
 
   return (
-    <article className="rounded-xl border border-white/5 bg-[#181818] shadow-lg hover:shadow-2xl hover:bg-[#202020] transition-all duration-300 overflow-hidden group/card relative">
+    <article data-testid={`track-card-${track.id}`} className="rounded-xl border border-white/5 bg-[#181818] shadow-lg hover:shadow-2xl hover:bg-[#202020] transition-all duration-300 overflow-hidden group/card relative">
       <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/0 group-hover/card:from-orange-500/5 transition-all duration-700 pointer-events-none" />
       <div className="p-5 flex flex-col md:flex-row gap-5 relative z-10">
         {/* Play Button & Art */}
@@ -55,6 +55,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Link
+                data-testid="track-card-title-link"
                 href={`/tracks/${track.id}`}
                 className="text-xl font-bold text-white hover:text-orange-500 transition-colors truncate block"
                 title={track.title}
@@ -69,11 +70,13 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
 
             <div className="flex shrink-0 items-center gap-2">
               <span
+                data-testid="track-card-status"
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold border ${statusClassMap[track.status]}`}
               >
                 {track.status}
               </span>
               <span
+                data-testid="track-card-visibility"
                 className={`rounded-full px-2.5 py-1 text-xs font-semibold border ${visibilityClassMap[track.visibility]}`}
               >
                 {track.visibility}
@@ -112,6 +115,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
             <div className="flex gap-2">
               {track.visibility === "Private" && track.secretToken && (
                 <AppButton
+                  data-testid="track-card-copy-link-btn"
                   type="button"
                   onClick={handleCopySecretLink}
                   className="flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition-colors border border-white/5 group relative"
@@ -128,6 +132,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
                 </AppButton>
               )}
               <AppButton
+                data-testid="track-card-edit-btn"
                 type="button"
                 onClick={() => onEdit(track)}
                 className="flex items-center gap-1.5 rounded-md bg-white/5 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition-colors"
@@ -136,6 +141,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
                 Edit
               </AppButton>
               <AppButton
+                data-testid="track-card-delete-btn"
                 type="button"
                 onClick={() => onDelete(track.id)}
                 className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import TrackCard from "@/features/tracks/ui/TrackCard";
 import TrackForm from "@/features/tracks/ui/TrackForm";
-import { AppButton } from "@/shared/ui";
+import { AppButton, NavBar } from "@/shared/ui";
 import {
   useDeleteTrack,
   useTracks,
@@ -14,8 +15,10 @@ import type {
   UpdateTrackInput,
   UploadTrackInput,
 } from "@/features/tracks/model/track";
+import { ROUTES } from "@/shared/constants/routes";
 
 const MyTracksPage: React.FC = () => {
+  const router = useRouter();
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
   const tracksQuery = useTracks();
   const deleteTrackMutation = useDeleteTrack();
@@ -46,7 +49,9 @@ const MyTracksPage: React.FC = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 md:p-8">
+    <div className="min-h-screen bg-[#111111] text-white flex flex-col">
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
+      <div className="max-w-6xl mx-auto p-6 md:p-8 w-full">
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight">
@@ -108,6 +113,7 @@ const MyTracksPage: React.FC = () => {
           />
         ))}
       </section>
+      </div>
     </div>
   );
 };

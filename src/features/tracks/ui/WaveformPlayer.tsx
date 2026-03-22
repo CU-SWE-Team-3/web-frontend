@@ -106,9 +106,10 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   };
 
   return (
-    <div className="w-full">
+    <div data-testid="waveform-player" className="w-full">
       <div className="flex items-center gap-6">
         <AppButton
+          data-testid="waveform-play-button"
           type="button"
           onClick={togglePlay}
           className="h-14 w-14 shrink-0 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-105 transition-all focus:outline-none shadow-[0_0_15px_rgba(249,115,22,0.3)] pointer-events-auto cursor-pointer"
@@ -123,8 +124,8 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         <div className="flex-1 min-w-0 pointer-events-auto">
           <div ref={containerRef} className="w-full" />
           <div className="mt-2 flex justify-between text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-            <span>{formatTime(currentTime)}</span>
-            <span>{isReady ? formatTime(duration) : "0:00"}</span>
+            <span data-testid="waveform-current-time">{formatTime(currentTime)}</span>
+            <span data-testid="waveform-duration">{isReady ? formatTime(duration) : "0:00"}</span>
           </div>
         </div>
       </div>

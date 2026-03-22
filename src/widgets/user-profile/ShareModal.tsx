@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC, useState } from 'react';
+import { type FC, useState, useCallback } from 'react';
 import s from './ShareModal.module.scss';
 
 interface ShareModalProps {
@@ -17,7 +17,50 @@ export const ShareModal: FC<ShareModalProps> = ({
   profileUrl,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('share');
-  const fullUrl = `https://biobeats.com/${profileUrl}?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing`;
+  const originalUrl = `https://biobeats.com/${profileUrl}?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing`;
+  const [displayUrl, setDisplayUrl] = useState(originalUrl);
+  const [isShortening, setIsShortening] = useState(false);
+  const [isShortened, setIsShortened] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShortenToggle = useCallback(async (checked: boolean) => {
+    if (checked) {
+      setIsShortening(true);
+      try {
+        const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(originalUrl)}`);
+        if (response.ok) {
+          const shortUrl = await response.text();
+          setDisplayUrl(shortUrl.trim());
+          setIsShortened(true);
+        }
+      } catch {
+        // If shortening fails, keep original
+      } finally {
+        setIsShortening(false);
+      }
+    } else {
+      setDisplayUrl(originalUrl);
+      setIsShortened(false);
+    }
+  }, [originalUrl]);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(displayUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = displayUrl;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [displayUrl]);
 
   if (!open) return null;
 
@@ -74,15 +117,31 @@ export const ShareModal: FC<ShareModalProps> = ({
             <div className={s.urlRow}>
               <input
                 className={s.urlInput}
-                value={fullUrl}
+                value={isShortening ? 'Shortening...' : displayUrl}
                 readOnly
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
+              <button
+                className={s.copyBtn}
+                onClick={handleCopy}
+                type="button"
+              >
+                {copied ? '✓ Copied!' : 'Copy'}
+              </button>
             </div>
 
             <div className={s.shortenRow}>
-              <input type="checkbox" className={s.checkbox} id="shorten-link" />
-              <label htmlFor="shorten-link" className={s.shortenLabel}>Shorten link</label>
+              <input
+                type="checkbox"
+                className={s.checkbox}
+                id="shorten-link"
+                checked={isShortened}
+                disabled={isShortening}
+                onChange={(e) => handleShortenToggle(e.target.checked)}
+              />
+              <label htmlFor="shorten-link" className={s.shortenLabel}>
+                {isShortening ? 'Shortening...' : 'Shorten link'}
+              </label>
             </div>
           </div>
         )}

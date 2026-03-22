@@ -1,61 +1,130 @@
-import { type FC, type ReactNode } from 'react';
+'use client';
+
+import { type FC, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
-import { SoundCloudLogo } from '../Brand';
 
 export interface NavBarProps {
-  isLoggedIn?: boolean;
-  avatarSlot?: ReactNode;
-  bellSlot?: ReactNode;
   onUpload?: () => void;
-  onSignIn?: () => void;
-  onCreateAccount?: () => void;
+  className?: string;
   searchValue?: string;
   onSearchChange?: (v: string) => void;
-  className?: string;
 }
 
 export const NavBar: FC<NavBarProps> = ({
-  isLoggedIn = false,
-  avatarSlot,
-  bellSlot,
   onUpload,
-  onSignIn,
-  onCreateAccount,
+  className,
   searchValue,
   onSearchChange,
-  className,
-}) => (
-  <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
-    {/* Logo */}
-    <Link href={ROUTES.FEED}>
-      <div className={s.logo}>
-        <SoundCloudLogo size={36} color="var(--sc-primary)" />
-        <span className={s.logoText}>SOUNDCLOUD</span>
-      </div>
-    </Link>
+}) => {
+  const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    {/* Search */}
-    <div className={s.searchWrap}>
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
+
+  const handleLogout = async () => {
+    setDropdownOpen(false);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      await fetch(`${apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch { /* ignore */ }
+    useAuthStore.getState().setUser(null as any);
+    router.push(ROUTES.LOGIN);
+  };
+
+  return (
+  <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
+    {/* Left: Logo + Nav Links */}
+    <div className={s.leftSection}>
+      <Link href={ROUTES.FEED} className={s.logoLink}>
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="var(--sc-primary)">
+          <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
+        </svg>
+      </Link>
+      <Link href={ROUTES.HOME} className={s.navLink}>Home</Link>
+      <Link href={ROUTES.FEED} className={s.navLink}>Feed</Link>
+      <span className={s.navLink}>Library</span>
+    </div>
+
+    {/* Center: Search */}
+    <div className={s.centerSection}>
       <SearchBar value={searchValue} onChange={onSearchChange} />
     </div>
 
-    {/* Right actions */}
-    <div className={s.actions}>
-      {isLoggedIn ? (
+    {/* Right: Actions */}
+    <div className={s.rightSection}>
+      {isAuthenticated ? (
         <>
-          <button className={s.uploadBtn} onClick={onUpload}>Upload</button>
-          {bellSlot}
-          {avatarSlot}
+          <span className={s.tryProLink}>Try Artist Pro</span>
+          <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
+          <button className={s.navTextLink} onClick={onUpload}>Upload</button>
+          <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED}>
+            <div className={s.avatarSmall}>
+              {user?.avatarUrl && <img src={user.avatarUrl} alt="avatar" className={s.avatarImg} />}
+            </div>
+          </Link>
+
+          {/* Dropdown trigger */}
+          <div ref={dropdownRef} className={s.dropdownWrapper}>
+            <button className={s.iconBtn} onClick={() => setDropdownOpen(!dropdownOpen)}>
+              <ChevronDownIcon size={16} />
+            </button>
+
+            {dropdownOpen && (
+              <div className={s.dropdown}>
+                <Link
+                  href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  Profile
+                </Link>
+                <Link
+                  href={ROUTES.SETTINGS}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  Settings
+                </Link>
+                <div className={s.dropdownDivider} />
+                <button className={s.dropdownItem} onClick={handleLogout}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button className={s.iconBtn}><NotificationIcon size={18} /></button>
+          <button className={s.iconBtn}><MessageIcon size={18} /></button>
+          <button className={s.iconBtn}><MoreIcon size={18} /></button>
         </>
       ) : (
         <>
           <Link href={ROUTES.LOGIN} className={s.ghostBtn}>Sign in</Link>
           <Link href={ROUTES.REGISTER} className={s.primaryBtn}>Create account</Link>
+          <button className={s.iconBtn}><MoreIcon size={18} /></button>
         </>
       )}
     </div>
   </nav>
-);
+  );
+};

@@ -66,8 +66,9 @@ const LoginForm = () => {
         { withCredentials: true }
       )
       const user = response.data?.data?.user
+      const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user) {
-        login(user)
+        login(user, token)
         router.push(ROUTES.FEED)
       }
     } catch (err: any) {

@@ -2,7 +2,9 @@
 
 import { type FC, type ReactNode } from 'react';
 import Link from 'next/link';
-import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
+import { useRouter } from 'next/navigation';
+import { NavBar } from '@/shared/ui';
+import { ROUTES } from '@/shared/constants/routes';
 
 const FOOTER_LINKS = [
   'Legal', 'Privacy', 'Cookie Policy', 'Cookie Manager',
@@ -25,6 +27,7 @@ export const SocialPageLayout: FC<SocialPageLayoutProps> = ({
   activeTab,
   children,
 }) => {
+  const router = useRouter();
   const tabs = [
     { key: 'likes', label: 'Likes', href: `/profile/${username}/likes` },
     { key: 'following', label: 'Following', href: `/profile/${username}/following` },
@@ -33,53 +36,8 @@ export const SocialPageLayout: FC<SocialPageLayoutProps> = ({
 
   return (
     <div style={{ background: 'var(--sc-bg-base)', minHeight: '100vh', color: 'var(--sc-text-primary)', fontFamily: 'var(--sc-font-family)' }}>
-      {/* ===== TOP NAV ===== */}
-      <header style={{
-        background: 'var(--sc-bg-base)',
-        height: 46,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 20px',
-        borderBottom: '1px solid var(--sc-border)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
-          <Link href="/" style={{ color: 'var(--sc-text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="white">
-              <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
-            </svg>
-          </Link>
-          <Link href="/" style={{ color: 'var(--sc-text-secondary)', fontSize: 14, textDecoration: 'none' }}>Home</Link>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 14, cursor: 'pointer' }}>Feed</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 14, cursor: 'pointer' }}>Library</span>
-        </div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
-          <input
-            type="text"
-            placeholder="Search"
-            style={{
-              width: '100%', maxWidth: 460, height: 30,
-              background: 'var(--sc-bg-elevated)', border: 'none',
-              borderRadius: 'var(--sc-radius-md)', padding: '0 12px',
-              color: 'var(--sc-text-primary)', fontSize: 13,
-              fontFamily: 'var(--sc-font-family)', outline: 'none',
-            }}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-          <span style={{ color: 'var(--sc-primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Try Artist Pro</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 13, cursor: 'pointer' }}>For Artists</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 13, cursor: 'pointer' }}>Upload</span>
-          <Link href={`/profile/${username}`}>
-            <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--sc-gray-500)', overflow: 'hidden' }}>
-              {avatarUrl && <img src={avatarUrl} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-            </div>
-          </Link>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><ChevronDownIcon size={16} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><NotificationIcon size={18} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><MessageIcon size={18} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><MoreIcon size={18} /></button>
-        </div>
-      </header>
+      {/* ===== TOP NAV (shared) ===== */}
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
       {/* ===== AVATAR + TITLE ===== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '40px 30px 24px', maxWidth: 1240, margin: '0 auto' }}>
