@@ -72,7 +72,7 @@ const RegisterForm = () => {
     setErrors({})
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      await axios.post(
+      const response = await axios.post(
         `${apiUrl}/auth/register`,
         {
           email,
@@ -82,6 +82,14 @@ const RegisterForm = () => {
         },
         { withCredentials: true }
       )
+      // If the backend returns user + token (auto-login after register)
+      const user = response.data?.data?.user
+      const token = response.data?.data?.accessToken || response.data?.accessToken
+      if (user && token) {
+        login(user, token)
+        router.push(ROUTES.FEED)
+        return
+      }
       setSuccess(true)
     } catch {
       setErrors({ general: 'Registration failed. This email may already be in use.' })

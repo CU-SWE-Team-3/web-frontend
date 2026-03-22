@@ -29,14 +29,14 @@ export function useUploadTrack(
     UseMutationOptions<
       Track,
       Error,
-      { payload: UploadTrackInput; onProgress?: (progress: number) => void }
+      { payload: UploadTrackInput; onProgress?: (progress: number) => void; audioFile?: File }
     >,
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ payload, onProgress }) =>
-      tracksRepository.uploadTrack(payload, onProgress),
+    mutationFn: ({ payload, onProgress, audioFile }) =>
+      tracksRepository.uploadTrack(payload, onProgress, audioFile),
     ...options,
     onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: TRACKS_QUERY_KEY });
@@ -73,5 +73,13 @@ export function useDeleteTrack(
       queryClient.invalidateQueries({ queryKey: TRACKS_QUERY_KEY });
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
+  });
+}
+
+export function useUserTracks(username: string) {
+  return useQuery({
+    queryKey: [...TRACKS_QUERY_KEY, "user", username],
+    queryFn: () => tracksRepository.getTracksByArtist(username),
+    enabled: Boolean(username),
   });
 }

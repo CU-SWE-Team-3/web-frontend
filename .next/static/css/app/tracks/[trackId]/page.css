@@ -1507,81 +1507,131 @@
 /*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/NavBar/NavBar.module.scss ***!
   \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
 .NavBar_navbar__tPZGV {
+  background: var(--sc-bg-base);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--sc-border);
+  font-family: var(--sc-font-family);
   position: sticky;
   top: 0;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  gap: var(--sc-space-4);
-  background: var(--sc-bg-dark);
-  border-bottom: 1px solid var(--sc-bg-dark-hover);
-  padding: 0 var(--sc-space-6);
-  z-index: var(--sc-z-sticky);
-  font-family: var(--sc-font-family);
+  z-index: var(--sc-z-sticky, 50);
 }
 
-.NavBar_logo__gkv5I {
+/* ─── Left section ─── */
+.NavBar_leftSection__jXJFw {
   display: flex;
   align-items: center;
-  gap: var(--sc-space-2);
+  gap: 18px;
   flex-shrink: 0;
-  color: var(--sc-primary);
-  font-size: var(--sc-font-size-xl);
-  font-weight: var(--sc-font-weight-bold);
+}
+
+.NavBar_logoLink__0TUDF {
+  display: flex;
+  align-items: center;
   text-decoration: none;
+  gap: 8px;
+}
+
+.NavBar_navLink__oSDxg {
+  color: var(--sc-text-secondary);
+  font-size: 14px;
   cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--sc-font-family);
+  padding: 0;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.NavBar_navLink__oSDxg:hover {
+  color: var(--sc-text-primary);
 }
 
-.NavBar_logoIcon__cDg3Y {
-  font-size: 24px;
-}
-
-.NavBar_logoText__JmHJF {
-  font-size: var(--sc-font-size-lg);
-  font-weight: var(--sc-font-weight-bold);
-  letter-spacing: -0.5px;
-}
-
-.NavBar_searchWrap__AYcoV {
+/* ─── Center section ─── */
+.NavBar_centerSection__USyZ6 {
   flex: 1;
-  max-width: 460px;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  max-width: 500px;
   margin: 0 auto;
 }
 
-.NavBar_actions__d_6NX {
+/* ─── Right section ─── */
+.NavBar_rightSection__40aE6 {
   display: flex;
   align-items: center;
-  gap: var(--sc-space-3);
+  gap: 14px;
   flex-shrink: 0;
 }
 
-.NavBar_uploadBtn__9uKF0 {
-  padding: 4px 14px;
-  font-family: var(--sc-font-family);
-  font-size: var(--sc-font-size-sm);
-  font-weight: var(--sc-font-weight-semibold);
-  color: var(--sc-white);
-  background: transparent;
-  border: 1px solid var(--sc-gray-500);
-  border-radius: var(--sc-radius-md);
+.NavBar_tryProLink__f7LOe {
+  color: var(--sc-primary);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color var(--sc-transition-fast);
-}
-.NavBar_uploadBtn__9uKF0:hover {
-  border-color: var(--sc-white);
 }
 
+.NavBar_navTextLink__PF6ML {
+  color: var(--sc-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--sc-font-family);
+  padding: 0;
+  text-decoration: none;
+}
+.NavBar_navTextLink__PF6ML:hover {
+  color: var(--sc-text-primary);
+}
+
+.NavBar_avatarSmall__yMDs7 {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--sc-gray-500);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.NavBar_avatarImg___wMCl {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.NavBar_iconBtn__LxOJ1 {
+  color: var(--sc-text-secondary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 120ms ease;
+}
+.NavBar_iconBtn__LxOJ1:hover {
+  color: var(--sc-text-primary);
+}
+
+/* ─── Auth buttons (logged out) ─── */
 .NavBar_ghostBtn__UOSqA {
   padding: 4px 14px;
   font-family: var(--sc-font-family);
-  font-size: var(--sc-font-size-sm);
-  font-weight: var(--sc-font-weight-semibold);
-  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm, 13px);
+  font-weight: 600;
+  color: var(--sc-white, #fff);
   background: none;
   border: none;
   cursor: pointer;
-  transition: color var(--sc-transition-fast);
+  text-decoration: none;
+  transition: color 120ms ease;
 }
 .NavBar_ghostBtn__UOSqA:hover {
   color: var(--sc-primary);
@@ -1590,17 +1640,73 @@
 .NavBar_primaryBtn__v7zQH {
   padding: 4px 14px;
   font-family: var(--sc-font-family);
-  font-size: var(--sc-font-size-sm);
-  font-weight: var(--sc-font-weight-semibold);
-  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm, 13px);
+  font-weight: 600;
+  color: var(--sc-white, #fff);
   background: var(--sc-primary);
   border: none;
   border-radius: var(--sc-radius-md);
   cursor: pointer;
-  transition: background var(--sc-transition-fast);
+  text-decoration: none;
+  transition: background 120ms ease;
 }
 .NavBar_primaryBtn__v7zQH:hover {
   background: var(--sc-primary-hover);
+}
+
+/* ─── Dropdown ─── */
+.NavBar_dropdownWrapper__NKoqi {
+  position: relative;
+}
+
+.NavBar_dropdown__HR_hT {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 200px;
+  background: var(--sc-bg-surface, #222);
+  border: 1px solid var(--sc-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--sc-radius-md, 8px);
+  padding: 6px 0;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: NavBar_dropdownFadeIn__xLtxl 150ms ease;
+}
+
+@keyframes NavBar_dropdownFadeIn__xLtxl {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.NavBar_dropdownItem__8rtJg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-family: var(--sc-font-family);
+  color: var(--sc-text-secondary, #999);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 120ms;
+}
+.NavBar_dropdownItem__8rtJg:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sc-text-primary, #fff);
+}
+
+.NavBar_dropdownDivider__jaNPK {
+  height: 1px;
+  background: var(--sc-border, rgba(255, 255, 255, 0.08));
+  margin: 4px 0;
 }
 /*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/SidebarNav/SidebarNav.module.scss ***!

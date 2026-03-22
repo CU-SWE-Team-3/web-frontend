@@ -8,9 +8,12 @@ export function middleware(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some(p => pathname.startsWith(p))
   const isLoggedIn = request.cookies.has('accessToken') || request.cookies.has('refreshToken')
 
-  if (!isPublic && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  // If the server doesn't see a cookie, we CANNOT redirect here anymore!
+  // This is because the new Auth persistence uses localStorage, which the server cannot read.
+  // We must let the request go through to the client so AuthHydrator can read localStorage and restore the session.
+  // if (!isPublic && !isLoggedIn) {
+  //   return NextResponse.redirect(new URL('/login', request.url))
+  // }
   return NextResponse.next()
 }
 

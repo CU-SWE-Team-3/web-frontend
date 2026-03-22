@@ -4,7 +4,9 @@ export interface User {
   email: string
   username: string
   displayName: string
+  permalink?: string
   avatarUrl?: string
+  coverUrl?: string
   role: 'artist' | 'listener'
   isVerified: boolean
   createdAt: string

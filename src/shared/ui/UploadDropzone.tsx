@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { UploadCloud, X } from "lucide-react";
-import { AppButton, AppInput } from "@/shared/ui";
+import { AppButton } from "@/shared/ui";
 
 interface UploadDropzoneProps {
   file: File | null;
@@ -16,6 +16,7 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
   onFileSelect,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -39,22 +40,28 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     setIsDragOver(false);
   }, []);
 
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
-    <div className="space-y-3">
+    <div data-testid="upload-dropzone" className="space-y-3">
       <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-1">
         Audio File
       </label>
 
       {!file ? (
         <div
+          data-testid="upload-dropzone-area"
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 ${
+          className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 cursor-pointer ${
             isDragOver
               ? "border-orange-500 bg-orange-500/10 scale-[1.02]"
               : "border-white/10 bg-[#1a1a1a] hover:bg-[#202020] hover:border-white/20"
           }`}
+          onClick={handleBrowseClick}
         >
           <div
             className={`mb-4 rounded-full p-4 ${isDragOver ? "bg-orange-500 text-white" : "bg-white/5 text-neutral-400"} transition-colors duration-300`}
@@ -66,7 +73,7 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
           </p>
           <p className="text-sm text-neutral-500 font-medium">
             or{" "}
-            <span className="text-orange-500 hover:text-orange-400 cursor-pointer">
+            <span className="text-orange-500 hover:text-orange-400 cursor-pointer underline">
               browse your files
             </span>
           </p>
@@ -74,10 +81,12 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
             Supports MP3, WAV
           </p>
 
-          <AppInput
+          <input
+            ref={fileInputRef}
+            data-testid="upload-dropzone-input"
             type="file"
             accept=".mp3,.wav,audio/mpeg,audio/wav"
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            className="hidden"
             onChange={(event) => {
               const selected = event.target.files?.[0] ?? null;
               onFileSelect(selected);
@@ -113,6 +122,7 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
             </div>
           </div>
           <AppButton
+            data-testid="upload-dropzone-remove"
             type="button"
             className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
             onClick={() => onFileSelect(null)}
@@ -124,7 +134,7 @@ const UploadDropzone: React.FC<UploadDropzoneProps> = ({
       )}
 
       {error ? (
-        <p className="text-xs font-bold text-red-500 flex items-center gap-1.5 bg-red-500/10 px-3 py-2 rounded border border-red-500/20">
+        <p data-testid="upload-dropzone-error" className="text-xs font-bold text-red-500 flex items-center gap-1.5 bg-red-500/10 px-3 py-2 rounded border border-red-500/20">
           <AlertCircleIcon size={14} /> {error}
         </p>
       ) : null}

@@ -1,4 +1,4 @@
-﻿.overlay {
+.overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -114,11 +114,13 @@
 }
 
 .urlRow {
+  display: flex;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
 .urlInput {
-  width: 100%;
+  flex: 1;
   height: 40px;
   padding: 0 12px;
   background: var(--sc-bg-elevated);
@@ -128,9 +130,29 @@
   font-size: 13px;
   font-family: var(--sc-font-family);
   outline: none;
+  min-width: 0;
 
   &:focus {
     border-color: var(--sc-primary);
+  }
+}
+
+.copyBtn {
+  height: 40px;
+  padding: 0 16px;
+  background: var(--sc-primary, #ff5500);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--sc-transition-fast);
+
+  &:hover {
+    opacity: 0.9;
   }
 }
 

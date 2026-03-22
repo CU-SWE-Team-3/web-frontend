@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "data": {
+    "_id": "69bdadaec903bb4ff06efc21",
+    "displayName": "Basel Bahaa",
+    "bio": "",
+    "country": "",
+    "city": "",
+    "genres": [],
+    "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocJnC48POwnQGT1cMfv91TQnob7dQSiL7ETdHd9at5qJiJDMuw=s96-c",
+    "coverUrl": "default-cover.png",
+    "role": "Listener",
+    "isPrivate": false,
+    "followerCount": 1,
+    "followingCount": 0,
+    "socialLinks": [],
+    "createdAt": "2026-03-20T20:27:26.054Z",
+    "permalink": "basel-bahaa"
+  }
+}

@@ -10,7 +10,8 @@ interface FollowUserCardProps {
   user: FollowNode;
 }
 
-const formatFollowers = (count: number) => {
+const formatFollowers = (count: number | undefined | null) => {
+  if (count == null) return '0';
   if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
   if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
   return count.toString();
@@ -27,19 +28,20 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
     e.stopPropagation();
     
     setIsFollowing((prev) => !prev);
+    const targetId = user.id || (user as any)._id;
 
     if (isFollowing) {
-      unfollowMutation.mutate(user.id);
+      unfollowMutation.mutate(targetId);
     } else {
-      followMutation.mutate(user.id);
+      followMutation.mutate({ targetId, targetUser: user });
     }
   };
 
   return (
-    <Link href={ROUTES.PROFILE(user.username)} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={ROUTES.PROFILE(user.username || (user as any).permalink)} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div
         className="flex flex-col items-center gap-3 w-full group cursor-pointer"
-        data-testid={`follow-card-${user.id}`}
+        data-testid={`follow-card-${user.id || (user as any)._id}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

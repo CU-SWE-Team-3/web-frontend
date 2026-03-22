@@ -53,7 +53,54 @@ export const tracksRepository = {
   async uploadTrack(
     payload: UploadTrackInput,
     onProgress?: (progress: number) => void,
+    audioFile?: File,
   ): Promise<Track> {
+    // ── Try real API first ──
+    if (audioFile) {
+      try {
+        const formData = new FormData();
+        formData.append("audioFile", audioFile);
+        formData.append("title", payload.title);
+        formData.append("genre", payload.genre || "");
+        formData.append("tags", (payload.tags || []).join(","));
+        formData.append("description", payload.description || "");
+        formData.append("visibility", payload.visibility || "Public");
+        if (payload.artworkUrl) formData.append("artworkUrl", payload.artworkUrl);
+
+        const response = await apiClient.post("/tracks/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            if (onProgress && progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              onProgress(percent);
+            }
+          },
+        });
+
+        const track = response.data?.data || response.data;
+        return {
+          id: track._id || track.id || String(Date.now()),
+          title: track.title || payload.title,
+          artist: track.artist?.displayName || track.artist || CURRENT_ARTIST,
+          genre: track.genre || payload.genre,
+          tags: track.tags || payload.tags,
+          description: track.description || payload.description,
+          releaseDate: track.releaseDate || payload.releaseDate || "",
+          visibility: track.visibility || payload.visibility,
+          status: track.status || "Processing",
+          audioFileName: track.audioFileName || payload.fileName,
+          artworkUrl: track.artworkUrl || payload.artworkUrl || "",
+          waveform: track.waveform || makeWaveform(),
+          duration: track.duration || "0:00",
+          createdAt: track.createdAt || new Date().toISOString(),
+        };
+      } catch (err) {
+        console.warn("Real API upload failed, falling back to mock:", err);
+      }
+    }
+
+    // ── Mock fallback ──
     if (onProgress) {
       for (let progress = 0; progress <= 100; progress += 20) {
         onProgress(progress);
@@ -88,6 +135,7 @@ export const tracksRepository = {
     };
 
     tracks = [newTrack, ...tracks];
+    console.log("Track saved (mock):", newTrack);
 
     if (newTrack.status !== "Finished") {
       setTimeout(() => {
@@ -103,6 +151,11 @@ export const tracksRepository = {
   async getTracks(): Promise<Track[]> {
     await wait(WAIT);
     return [...tracks];
+  },
+
+  async getTracksByArtist(username: string): Promise<Track[]> {
+    await wait(WAIT);
+    return tracks.filter((track) => track.artist === username || track.artist === CURRENT_ARTIST);
   },
 
   async getTrackById(id: string): Promise<Track> {

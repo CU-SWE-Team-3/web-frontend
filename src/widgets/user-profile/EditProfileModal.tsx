@@ -1,7 +1,8 @@
 'use client';
 
-import { type FC, useState, useRef } from 'react';
+import { type FC, useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { CloseIcon } from '@/shared/ui/icons';
 import s from './EditProfileModal.module.scss';
 
@@ -41,14 +42,31 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
   const [genresStr, setGenresStr] = useState((profile.genres || []).join(', '));
   const [socialLinks, setSocialLinks] = useState(profile.socialLinks || []);
   const [isPrivate, setIsPrivate] = useState(!!profile.isPrivate);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    profile.avatarUrl || null
-  );
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const avatarFileRef = useRef<HTMLInputElement>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  // Sync state when modal opens or profile data changes after re-fetch
+  useEffect(() => {
+    console.log('[EditProfileModal useEffect] open:', open, 'profile:', JSON.stringify(profile, null, 2));
+    if (open) {
+      setDisplayName(profile.displayName);
+      setFirstName(profile.firstName);
+      setLastName(profile.lastName);
+      setCity(profile.city);
+      setCountry(profile.country);
+      setBio(profile.bio || '');
+      setGenresStr((profile.genres || []).join(', '));
+      setSocialLinks(profile.socialLinks || []);
+      setIsPrivate(!!profile.isPrivate);
+      setAvatarPreview(profile.avatarUrl || null);
+      setAvatarFile(null);
+      setError(null);
+    }
+  }, [open, profile.avatarUrl, profile.displayName, profile.bio, profile.city, profile.country, profile.firstName, profile.lastName, JSON.stringify(profile.genres), JSON.stringify(profile.socialLinks), profile.isPrivate]);
 
   if (!open) return null;
 
@@ -65,37 +83,93 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({
       setSaving(true);
       setError(null);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const parsedGenres = genresStr.split(',').map(g => g.trim()).filter(Boolean);
+
+      // Build the displayName: if firstName/lastName were edited, combine them
+      // The API only stores displayName (no separate first/last), so we merge them
+      let finalDisplayName = displayName;
+      if (firstName || lastName) {
+        const combined = [firstName, lastName].filter(Boolean).join(' ');
+        if (combined && combined !== displayName) {
+          finalDisplayName = combined;
+        }
+      }
+
+      const payload = {
+        displayName: finalDisplayName,
+        bio,
+        country,
+        city,
+        genres: parsedGenres,
+      };
+      console.log('[EditProfileModal handleSave] Sending PATCH /profile/update with payload:', JSON.stringify(payload, null, 2));
 
       // 1. Update profile fields
-      await axios.patch(
+      const updateRes = await axios.patch(
         `${apiUrl}/profile/update`,
-        {
-          displayName,
-          bio,
-          country,
-          city,
-          genres: genresStr.split(',').map(s => s.trim()).filter(Boolean),
-          socialLinks,
-          isPrivate
-        },
+        payload,
         { withCredentials: true }
       );
+      console.log('[EditProfileModal handleSave] /profile/update response:', updateRes.status, JSON.stringify(updateRes.data, null, 2));
 
       // 2. Upload avatar if changed
+      let newAvatarUrl: string | undefined;
       if (avatarFile) {
         const formData = new FormData();
         formData.append('avatar', avatarFile);
-        await axios.patch(`${apiUrl}/profile/upload-images`, formData, {
+        const uploadRes = await axios.patch(`${apiUrl}/profile/upload-images`, formData, {
           withCredentials: true,
           headers: { 'Content-Type': 'multipart/form-data' },
         });
+        newAvatarUrl = uploadRes.data?.data?.avatarUrl;
+        console.log('[EditProfileModal handleSave] Avatar uploaded, newAvatarUrl:', newAvatarUrl);
       }
 
+      // 3. Update privacy if changed
+      if (isPrivate !== !!profile.isPrivate) {
+        try {
+          await axios.patch(`${apiUrl}/profile/privacy`, { isPrivate }, { withCredentials: true });
+        } catch (privErr) {
+          console.warn('[EditProfileModal handleSave] Privacy update failed:', privErr);
+        }
+      }
+
+      // 4. Update social links if changed
+      const validLinks = socialLinks.filter(l => l.platform && l.url);
+      if (validLinks.length > 0) {
+        try {
+          await axios.patch(`${apiUrl}/profile/social-links`, { socialLinks: validLinks }, { withCredentials: true });
+        } catch (linksErr) {
+          console.warn('[EditProfileModal handleSave] Social links update failed:', linksErr);
+        }
+      }
+
+      // 5. Update auth store with ALL saved fields so the profile page reflects changes immediately
+      const { user, setUser } = useAuthStore.getState();
+      if (user) {
+        const updatedUser = {
+          ...user,
+          displayName: finalDisplayName,
+          bio,
+          country,
+          city,
+          genres: parsedGenres,
+          avatarUrl: newAvatarUrl
+            ? `${newAvatarUrl}?t=${Date.now()}`
+            : avatarFile && avatarPreview
+              ? avatarPreview
+              : user.avatarUrl,
+        };
+        console.log('[EditProfileModal handleSave] Updating auth store with:', JSON.stringify(updatedUser, null, 2));
+        setUser(updatedUser as any);
+      }
+
+      // 6. Re-fetch profile page data and close modal
       onSaved?.();
       onClose();
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || 'Failed to save profile';
+      console.error('[EditProfileModal handleSave] ERROR:', err.response?.status, err.response?.data);
+      const message = err.response?.data?.message || err.response?.data?.error || 'Failed to save profile';
       setError(message);
     } finally {
       setSaving(false);

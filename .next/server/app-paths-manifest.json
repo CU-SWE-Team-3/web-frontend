@@ -1,6 +1,8 @@
 {
-  "/(main)/feed/page": "app/(main)/feed/page.js",
+  "/tracks/[trackId]/page": "app/tracks/[trackId]/page.js",
+  "/page": "app/page.js",
+  "/(main)/profile/[username]/page": "app/(main)/profile/[username]/page.js",
   "/my-tracks/page": "app/my-tracks/page.js",
-  "/upload/page": "app/upload/page.js",
-  "/tracks/[trackId]/page": "app/tracks/[trackId]/page.js"
+  "/(main)/feed/page": "app/(main)/feed/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js"
 }

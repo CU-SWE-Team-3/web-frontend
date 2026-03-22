@@ -1,1 +1,20 @@
-{}
+{
+  "features\\auth\\model\\useAuthStore.ts -> axios": {
+    "id": "features\\auth\\model\\useAuthStore.ts -> axios",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_axios_index_js.js"
+    ]
+  },
+  "shared\\ui\\FeedTrackCard\\FeedTrackCard.tsx -> @/features/tracks/ui/WaveformPlayer": {
+    "id": "shared\\ui\\FeedTrackCard\\FeedTrackCard.tsx -> @/features/tracks/ui/WaveformPlayer",
+    "files": [
+      "static/chunks/_app-pages-browser_src_features_tracks_ui_WaveformPlayer_tsx.js"
+    ]
+  },
+  "shared\\ui\\ProfileTrackCard\\ProfileTrackCard.tsx -> @/features/tracks/ui/WaveformPlayer": {
+    "id": "shared\\ui\\ProfileTrackCard\\ProfileTrackCard.tsx -> @/features/tracks/ui/WaveformPlayer",
+    "files": [
+      "static/chunks/_app-pages-browser_src_features_tracks_ui_WaveformPlayer_tsx.js"
+    ]
+  }
+}

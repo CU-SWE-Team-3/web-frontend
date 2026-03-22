@@ -6,12 +6,15 @@ import { useFollowing } from "../model/useFollowing";
 import { useFollowers } from "../model/useFollowers";
 import { FollowListGrid } from "./FollowListGrid";
 import { LikedTracksList } from "@/features/track-engagement";
+import { useAuthStore } from "@/features/auth/model/useAuthStore";
 
 export const ProfileFeature = () => {
   const [activeTab, setActiveTab] = useState("likes");
+  const { user } = useAuthStore();
+  const userId = (user as any)?._id || user?.id || "";
 
-  const { data: following, isLoading: isLoadingFollowing } = useFollowing();
-  const { data: followers, isLoading: isLoadingFollowers } = useFollowers();
+  const { data: following, isLoading: isLoadingFollowing } = useFollowing(userId);
+  const { data: followers, isLoading: isLoadingFollowers } = useFollowers(userId);
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);

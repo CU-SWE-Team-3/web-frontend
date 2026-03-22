@@ -1,11 +1,17 @@
 'use client';
 
 import { useFollowing } from '@/features/social-graph';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { FollowListGrid } from '@/features/social-graph/ui/FollowListGrid';
 import { SocialPageLayout } from '@/widgets/user-profile/SocialPageLayout';
 
 export default function FollowingPage({ params }: { params: { username: string } }) {
-  const { data: following, isLoading } = useFollowing(params.username);
+  const { user } = useAuthStore();
+  const isMeKeyword = params.username === 'me';
+  const isOwnProfile = isMeKeyword || (user && (user.id === params.username || user.permalink === params.username || (user as any)._id === params.username));
+  const resolvedId = isOwnProfile ? ((user as any)?._id || user?.id || params.username) : params.username;
+  
+  const { data: following, isLoading } = useFollowing(resolvedId !== 'me' ? resolvedId : '');
 
   return (
     <SocialPageLayout

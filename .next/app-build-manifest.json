@@ -1,10 +1,10 @@
 {
   "pages": {
-    "/(main)/feed/page": [
+    "/upload/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/(main)/feed/page.css",
-      "static/chunks/app/(main)/feed/page.js"
+      "static/css/app/upload/page.css",
+      "static/chunks/app/upload/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -12,11 +12,11 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/upload/page": [
+    "/tracks/[trackId]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/upload/page.css",
-      "static/chunks/app/upload/page.js"
+      "static/css/app/tracks/[trackId]/page.css",
+      "static/chunks/app/tracks/[trackId]/page.js"
     ],
     "/my-tracks/page": [
       "static/chunks/webpack.js",
@@ -24,11 +24,44 @@
       "static/css/app/my-tracks/page.css",
       "static/chunks/app/my-tracks/page.js"
     ],
-    "/tracks/[trackId]/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/tracks/[trackId]/page.css",
-      "static/chunks/app/tracks/[trackId]/page.js"
+      "static/chunks/app/page.js"
+    ],
+    "/(auth)/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/(auth)/login/page.css",
+      "static/chunks/app/(auth)/login/page.js"
+    ],
+    "/(auth)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(auth)/layout.js"
+    ],
+    "/(main)/feed/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/(main)/feed/page.css",
+      "static/chunks/app/(main)/feed/page.js"
+    ],
+    "/google/callback/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/google/callback/page.js"
+    ],
+    "/(main)/profile/[username]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/(main)/profile/[username]/page.css",
+      "static/chunks/app/(main)/profile/[username]/page.js"
+    ],
+    "/(auth)/register/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/(auth)/register/page.css",
+      "static/chunks/app/(auth)/register/page.js"
     ]
   }
 }
