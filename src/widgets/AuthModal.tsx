@@ -10,7 +10,7 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div data-testid="auth-modal" className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="auth-modal-content w-[450px] p-8 relative rounded-sm shadow-2xl bg-white text-black">
         {/* Close Button (The X in the corner) */}
         <button

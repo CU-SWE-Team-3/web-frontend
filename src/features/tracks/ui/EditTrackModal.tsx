@@ -76,10 +76,10 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
   ];
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", overflowY: "auto", padding: "40px 20px" }}
+    <div data-testid="edit-track-modal" style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", overflowY: "auto", padding: "40px 20px" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
 
-      <div style={{ width: "100%", maxWidth: 700, background: "#1a1a1a", borderRadius: 8, color: "#fff", fontFamily: "'Inter', sans-serif", position: "relative" }}
+      <div data-testid="edit-track-modal-panel" style={{ width: "100%", maxWidth: 700, background: "#1a1a1a", borderRadius: 8, color: "#fff", fontFamily: "'Inter', sans-serif", position: "relative" }}
         onClick={(e) => e.stopPropagation()}>
 
         {/* Replace file link */}

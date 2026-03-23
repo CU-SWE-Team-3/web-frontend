@@ -31,6 +31,7 @@ export const AvatarUpload: FC<AvatarUploadProps> = ({
 
   return (
     <div
+      data-testid="avatar-upload"
       className={[s.wrapper, className].filter(Boolean).join(' ')}
       onClick={() => inputRef.current?.click()}
       role="button"

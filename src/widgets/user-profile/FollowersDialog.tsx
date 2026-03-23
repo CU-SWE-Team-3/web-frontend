@@ -69,6 +69,7 @@ export const FollowersDialog: FC<FollowersDialogProps> = ({
       title="Followers"
       size="sm"
     >
+      <div data-testid="followers-dialog-content">
       {loading ? (
         <div className={s.loading}>Loading…</div>
       ) : followers.length === 0 ? (
@@ -98,6 +99,7 @@ export const FollowersDialog: FC<FollowersDialogProps> = ({
           ))}
         </div>
       )}
+      </div>
     </AppModal>
   );
 };

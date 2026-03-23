@@ -3,7 +3,7 @@ import './SocialLogins.scss';
 
 const SocialLogins = () => {
   return (
-    <div className="flex flex-col gap-2 w-full max-w-sm mx-auto p-4">
+    <div data-testid="social-logins" className="flex flex-col gap-2 w-full max-w-sm mx-auto p-4">
       {/* Google Login Button */}
       <button className="social-btn google flex items-center justify-center py-2 px-4 rounded-sm text-white font-medium">
         <span className="mr-2">Continue with Google</span>

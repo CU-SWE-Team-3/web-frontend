@@ -77,7 +77,7 @@ export const EditProfileForm: FC<EditProfileFormProps> = ({
 
   return (
     <AppModal open={open} onOpenChange={onOpenChange} title="Edit Profile" size="lg">
-      <form className={s.form} onSubmit={handleSubmit}>
+      <form data-testid="edit-profile-form" className={s.form} onSubmit={handleSubmit}>
         <div className={s.uploads}>
           <AvatarUpload
             currentSrc={currentAvatarUrl}

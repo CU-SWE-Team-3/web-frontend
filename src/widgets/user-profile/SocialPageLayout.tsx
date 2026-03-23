@@ -35,7 +35,7 @@ export const SocialPageLayout: FC<SocialPageLayoutProps> = ({
   ] as const;
 
   return (
-    <div style={{ background: 'var(--sc-bg-base)', minHeight: '100vh', color: 'var(--sc-text-primary)', fontFamily: 'var(--sc-font-family)' }}>
+    <div data-testid="social-page-layout" style={{ background: 'var(--sc-bg-base)', minHeight: '100vh', color: 'var(--sc-text-primary)', fontFamily: 'var(--sc-font-family)' }}>
       {/* ===== TOP NAV (shared) ===== */}
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 

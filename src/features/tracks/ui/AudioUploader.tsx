@@ -12,7 +12,7 @@ const AudioUploader: React.FC<AudioUploaderProps> = ({
   onFileSelect,
 }) => {
   return (
-    <div className="space-y-2">
+    <div data-testid="audio-uploader" className="space-y-2">
       <label className="block text-sm font-medium text-slate-700">
         Audio File
       </label>

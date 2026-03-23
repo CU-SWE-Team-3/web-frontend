@@ -15,7 +15,7 @@ export const RoleSelector: FC<RoleSelectorProps> = ({
   onChange,
   className,
 }) => (
-  <div className={[s.wrapper, className].filter(Boolean).join(' ')}>
+  <div data-testid="role-selector" className={[s.wrapper, className].filter(Boolean).join(' ')}>
     <button
       type="button"
       className={[s.option, role === 'artist' ? s.active : '']

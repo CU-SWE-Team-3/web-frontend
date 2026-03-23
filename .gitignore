@@ -1,10 +1,10 @@
-# Dependencies
-node_modules/
+# dependencies
+/node_modules
 
 # Next.js build output
-.next/
-out/
-build/
+/.next/
+/out/
+/build
 
 # Environment variables
 .env
@@ -20,9 +20,3 @@ yarn-error.log*
 
 # OS metadata
 .DS_Store
-
-# Local project files
-*.tsbuildinfo
-.vercel
-dist/
-coverage/

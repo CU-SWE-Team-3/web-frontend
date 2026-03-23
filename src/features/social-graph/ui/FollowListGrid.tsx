@@ -25,14 +25,14 @@ export const FollowListGrid = ({ users, isLoading }: FollowListGridProps) => {
 
   if (users.length === 0) {
     return (
-      <div className="py-10 text-center text-[#999] text-[15px]">
+      <div data-testid="follow-list-empty" className="py-10 text-center text-[#999] text-[15px]">
         Nothing to show here.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-8 gap-x-6">
+    <div data-testid="follow-list-grid" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-8 gap-x-6">
       {users.map((user) => (
         <FollowUserCard key={user.id} user={user} />
       ))}

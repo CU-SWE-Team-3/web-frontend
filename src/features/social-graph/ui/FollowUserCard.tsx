@@ -45,7 +45,7 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="w-full aspect-square max-w-[200px]">
+        <div data-testid="follow-card-avatar" className="w-full aspect-square max-w-[200px]">
           <UserAvatar
             src={user.avatarUrl || undefined}
             name={user.displayName}
@@ -55,12 +55,13 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
 
         <div className="flex flex-col items-center text-center w-full px-2 relative min-h-[60px]">
           <span
+            data-testid="follow-card-name"
             className="text-white text-[15px] font-medium w-full truncate"
             title={user.displayName}
           >
             {user.displayName}
           </span>
-          <div className="flex items-center gap-1.5 text-[13px] text-[#999] mt-1 transition-opacity duration-200">
+          <div data-testid="follow-card-followers-count" className="flex items-center gap-1.5 text-[13px] text-[#999] mt-1 transition-opacity duration-200">
             <UserIcon size={13} color="currentColor" />
             <span>{formatFollowers(user.followerCount)} followers</span>
           </div>
@@ -71,6 +72,7 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
               ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-4"}`}
           >
             <AppButton
+              data-testid="follow-card-btn"
               variant={isFollowing ? "secondary" : "outline"}
               size="sm"
               onClick={toggleFollow}

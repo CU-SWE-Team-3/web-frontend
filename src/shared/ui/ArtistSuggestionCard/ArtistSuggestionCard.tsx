@@ -21,7 +21,7 @@ export const ArtistSuggestionCard: FC<ArtistSuggestionCardProps> = ({
   username, name, avatarSlot, followers, tracks, verified, followSlot, className, onClick,
 }) => {
   const card = (
-    <div className={[s.card, className].filter(Boolean).join(' ')} onClick={onClick}>
+    <div data-testid="artist-suggestion-card" className={[s.card, className].filter(Boolean).join(' ')} onClick={onClick}>
       {avatarSlot}
       <div className={s.info}>
         <span className={s.name}>

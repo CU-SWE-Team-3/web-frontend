@@ -39,7 +39,7 @@ export const GenreTagInput: FC<GenreTagInputProps> = ({
   };
 
   return (
-    <div className={[s.wrapper, className].filter(Boolean).join(' ')}>
+    <div data-testid="genre-tag-input" className={[s.wrapper, className].filter(Boolean).join(' ')}>
       <span className={s.label}>Favorite Genres</span>
       <div className={s.tags}>
         {genres.map((genre) => (
