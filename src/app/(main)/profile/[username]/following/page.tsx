@@ -19,17 +19,15 @@ export default function FollowingPage({ params }: { params: { username: string }
       displayName={params.username}
       activeTab="following"
     >
-      <div data-testid="following-page">
-        {isLoading ? (
-          <FollowListGrid users={[]} isLoading />
-        ) : !following || following.length === 0 ? (
-          <div data-testid="following-empty" style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, padding: '60px 0' }}>
-            {params.username} isn&apos;t following anyone.
-          </div>
-        ) : (
-          <FollowListGrid users={following} />
-        )}
-      </div>
+      {isLoading ? (
+        <FollowListGrid users={[]} isLoading />
+      ) : !following || following.length === 0 ? (
+        <div style={{ textAlign: 'center', fontSize: 20, fontWeight: 700, padding: '60px 0' }}>
+          {params.username} isn&apos;t following anyone.
+        </div>
+      ) : (
+        <FollowListGrid users={following} />
+      )}
     </SocialPageLayout>
   );
 }

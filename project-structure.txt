@@ -1,0 +1,1 @@
+﻿Get-ChildItem -Recurse -Include "*.tsx","*.ts" | Where-Object { $_.FullName -notmatch "node_modules|\.next|\.git" } | ForEach-Object { "===== $($_.FullName) ====="; Get-Content $_.FullName } | Out-File -FilePath "full-code-dump.txt" -Encoding utf8
