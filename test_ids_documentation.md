@@ -63,6 +63,22 @@ This document outlines all the `data-testid` attributes implemented in the BioBe
 | **SkeletonLoader** | `skeleton-loader` | Loading placeholder |
 | **SoundCloudLogo** | `brand-logo` | Main application logo |
 
+### Social Graph Components
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Followers/Following** | `followers-page` | Followers page root wrapper |
+| | `followers-empty` | Empty state text on Followers page |
+| | `following-page` | Following page root wrapper |
+| | `following-empty` | Empty state text on Following page |
+| **FollowListGrid** | `follow-list-grid` | Main user list grid wrapper |
+| | `follow-list-empty` | Grid empty placeholder |
+| | `follow-skeleton` | Loading skeleton item |
+| **FollowUserCard** | `follow-card-{id}` | Individual root user card |
+| | `follow-card-avatar` | User Avatar inside card |
+| | `follow-card-name` | User displayName text |
+| | `follow-card-followers-count` | Follower stat text |
+| | `follow-card-btn` | Hover toggle follow button |
+
 ---
 
 ## Page-Specific Components
@@ -86,6 +102,17 @@ This document outlines all the `data-testid` attributes implemented in the BioBe
 - `register-success`: Post-registration success message
 - `register-back-to-signin-btn`: CTA after registration
 
+#### Auth Action Pages (Verify, Reset, Update)
+- `verify-email-page`, `confirm-email-page`, `reset-password-page`: Root wrappers
+- `verify-email-loading`, `confirm-email-loading`: API loading states
+- `verify-email-success`, `confirm-email-success`, `reset-password-success`: Success states
+- `verify-email-error`, `confirm-email-error`, `reset-password-error`: API or token errors
+- `verify-email-signin-btn`, `confirm-email-signin-btn`, `reset-password-signin-btn`: Login redirect buttons
+- `reset-password-form`: Reset form wrapper
+- `reset-password-new-input`, `reset-password-confirm-input`: Password inputs
+- `reset-password-submit-btn`: Reset submission button
+
+
 ### Upload Feature
 #### UploadPage
 - `upload-page`: Root container
@@ -103,6 +130,32 @@ This document outlines all the `data-testid` attributes implemented in the BioBe
 - `metadata-genre-input`: Searchable genre selection
 - `metadata-save-button`: Final upload submission
 - `metadata-privacy-toggle-{opt}`: Visibility radios (public, private)
+
+---
+
+### User Profile & Miscellaneous Modals
+| Component | Test ID | Description |
+|-----------|---------|-------------|
+| **ProfileFeature** | `profile-feature` | Root feature container |
+| **LikedTracksList** | `liked-tracks-skeleton` | Loading placeholder |
+| | `liked-tracks-empty` | Empty state text |
+| | `liked-tracks-list` | Container for populated liked tracks |
+| **AvatarUpload** | `avatar-upload` | Avatar image upload area |
+| **CoverUpload** | `cover-upload` | Cover image upload area |
+| **EditProfileForm** | `edit-profile-form` | Form element for profile edits |
+| **GenreTagInput** | `genre-tag-input` | Tag builder for genres |
+| **RoleSelector** | `role-selector` | Listener/Artist toggle |
+| **SocialLinks** | `social-links` | Root wrapper for links |
+| **FollowersDialog** | `followers-dialog-content`| Inner content wrapper |
+| **FollowingDialog** | `following-dialog-content`| Inner content wrapper |
+| **SocialPageLayout** | `social-page-layout` | Entire layout background wrapper |
+| **AudioUploader** | `audio-uploader` | Audio file input wrapper |
+| **EditTrackModal** | `edit-track-modal` | Background dialog overlay |
+| | `edit-track-modal-panel` | Interactive track modal panel |
+| **ArtistSuggestionCard** | `artist-suggestion-card`| Root user suggestion card |
+| **AuthModal** | `auth-modal` | Root modal overlay |
+| **EmailForm** | `auth-email-form` | Email `<form>` container |
+| **SocialLogins** | `social-logins` | Third-party oAuth icons container |
 
 ---
 

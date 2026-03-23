@@ -28,6 +28,7 @@ export const CoverUpload: FC<CoverUploadProps> = ({
 
   return (
     <div
+      data-testid="cover-upload"
       className={[s.wrapper, className].filter(Boolean).join(' ')}
       onClick={() => inputRef.current?.click()}
       role="button"

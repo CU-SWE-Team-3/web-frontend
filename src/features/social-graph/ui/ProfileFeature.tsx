@@ -27,7 +27,7 @@ export const ProfileFeature = () => {
   ];
 
   return (
-    <div className="w-full text-white pt-[30px]">
+    <div data-testid="profile-feature" className="w-full text-white pt-[30px]">
       {/* Header Profile Section */}
       <div className="flex items-center gap-[20px] mb-[40px]">
         {/* Placeholder gradient bubble representing XC Z */}

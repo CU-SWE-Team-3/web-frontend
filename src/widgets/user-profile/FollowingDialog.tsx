@@ -68,6 +68,7 @@ export const FollowingDialog: FC<FollowingDialogProps> = ({
       title="Following"
       size="sm"
     >
+      <div data-testid="following-dialog-content">
       {loading ? (
         <div className={s.loading}>Loading…</div>
       ) : following.length === 0 ? (
@@ -97,6 +98,7 @@ export const FollowingDialog: FC<FollowingDialogProps> = ({
           ))}
         </div>
       )}
+      </div>
     </AppModal>
   );
 };

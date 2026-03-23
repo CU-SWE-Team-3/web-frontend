@@ -44,7 +44,7 @@ export const TrackCard = ({ track }: TrackCardProps) => {
   );
 
   return (
-    <div className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
+    <div data-testid={`track-card-${track.id}`} className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
       {/* Artwork */}
       <div className="w-[160px] h-[160px] flex-shrink-0 bg-[#222]">
         {track.artworkUrl ? (

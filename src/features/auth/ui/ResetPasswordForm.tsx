@@ -33,7 +33,7 @@ const ResetPasswordForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  // PATCH /auth/reset-password  body: { token, newPassword }
+  // POST /auth/reset-password  body: { token, newPassword }
   // confirmPassword is frontend validation only — not included in the request
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +46,7 @@ const ResetPasswordForm = () => {
     setErrors({})
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      await axios.patch(
+      await axios.post(
         `${apiUrl}/auth/reset-password`,
         { token, newPassword },   // <-- no confirmPassword in body per the spec
         { withCredentials: true }

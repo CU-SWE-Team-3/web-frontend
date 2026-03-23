@@ -10,7 +10,7 @@ const EmailForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm mx-auto px-4">
+    <form data-testid="auth-email-form" onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm mx-auto px-4">
       <div className="flex flex-col">
         <input 
           type="email" 

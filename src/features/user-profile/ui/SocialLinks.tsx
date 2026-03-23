@@ -43,7 +43,7 @@ export const SocialLinks: FC<SocialLinksProps> = ({
   if (links.length === 0) return null;
 
   return (
-    <div className={[s.container, className].filter(Boolean).join(' ')}>
+    <div data-testid="social-links" className={[s.container, className].filter(Boolean).join(' ')}>
       {links.map(({ platform, url }) => {
         const Icon = ICON_MAP[platform];
         return (
