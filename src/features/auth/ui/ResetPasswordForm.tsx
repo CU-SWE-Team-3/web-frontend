@@ -105,3 +105,6 @@ const ResetPasswordForm = () => {
 }
 
 export default ResetPasswordForm
+
+// Ensures token decoding is included
+
