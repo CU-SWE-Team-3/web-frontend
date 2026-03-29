@@ -15,7 +15,8 @@ import { ROUTES } from '@/shared/constants/routes'
 const ResetPasswordForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get('token') ?? ''
+  const rawToken = searchParams.get('token') ?? ''
+  const token = decodeURIComponent(rawToken)
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
