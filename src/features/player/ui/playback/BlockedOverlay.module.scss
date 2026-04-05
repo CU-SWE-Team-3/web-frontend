@@ -1,0 +1,68 @@
+/* BlockedOverlay */
+
+.overlay {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border-radius: var(--sc-radius-md);
+  overflow: hidden;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px);
+  transform: scale(1.1);
+  opacity: 0.3;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.8);
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: var(--sc-space-4);
+  padding: var(--sc-space-6);
+  font-family: var(--sc-font-family);
+}
+
+.iconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-bg-dark-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-sm);
+  text-align: center;
+}
+
+.cta {
+  padding: 8px 24px;
+  background: var(--sc-primary);
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover { background: var(--sc-primary-hover); }
+  &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
+}

@@ -1,0 +1,18 @@
+/* WaveformDisplay */
+
+.root {
+  width: 100%;
+  cursor: pointer;
+  border-radius: var(--sc-radius-md);
+  overflow: hidden;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--sc-shadow-focus);
+  }
+}
+
+.canvas {
+  width: 100%;
+  display: block;
+}

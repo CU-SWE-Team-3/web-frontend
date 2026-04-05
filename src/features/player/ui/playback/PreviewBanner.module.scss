@@ -1,0 +1,56 @@
+/* PreviewBanner */
+
+.banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--sc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 0 0 var(--sc-radius-md) var(--sc-radius-md);
+  font-family: var(--sc-font-family);
+  z-index: 10;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  min-width: 0;
+}
+
+.message {
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  white-space: nowrap;
+}
+
+.timer {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--sc-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cta {
+  padding: 6px 16px;
+  background: var(--sc-white);
+  color: var(--sc-primary);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 150ms ease;
+
+  &:hover { background: rgba(255, 255, 255, 0.9); }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
+}
