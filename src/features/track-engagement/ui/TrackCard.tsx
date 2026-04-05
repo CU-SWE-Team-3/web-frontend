@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { 
-  PlayIcon, LikeIcon, RepostIcon, ShareIcon, 
+  PlayIcon, RepostIcon, ShareIcon, 
   LinkIcon, MoreIcon, CommentIcon 
 } from "@/shared/ui/icons";
+import { LikeButton } from "@/shared/ui";
+import Link from "next/link";
 import { TrackNode } from "../model/types";
 import { useLikeTrack } from "../model/useLikeTrack";
 import { useUnlikeTrack } from "../model/useUnlikeTrack";
+import { LikeIcon } from "@/shared/ui/icons";
 
 interface TrackCardProps {
   track: TrackNode;
@@ -37,16 +40,15 @@ export const TrackCard = ({ track }: TrackCardProps) => {
     }
   };
 
-  // Generate random heights for the fake waveform, seeded simply by rendering index
-  // We memoize it so it doesn't flicker on re-renders (like when pressing 'Like')
+  // Generate random heights for the fake waveform
   const [waveformBars] = useState(() => 
-    Array.from({ length: 150 }).map(() => Math.floor(Math.random() * 80) + 10) // 10% to 90%
+    Array.from({ length: 150 }).map(() => Math.floor(Math.random() * 80) + 10)
   );
 
   return (
     <div data-testid={`track-card-${track.id}`} className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
       {/* Artwork */}
-      <div className="w-[160px] h-[160px] flex-shrink-0 bg-[#222]">
+      <Link href={`/track/${track.id}/likes`} className="w-[160px] h-[160px] flex-shrink-0 bg-[#222] transition-opacity hover:opacity-80">
         {track.artworkUrl ? (
           <img 
             src={track.artworkUrl} 
@@ -56,14 +58,12 @@ export const TrackCard = ({ track }: TrackCardProps) => {
         ) : (
           <div className="w-full h-full bg-gradient-to-tr from-[#333] to-[#111]" />
         )}
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="flex flex-col flex-1 pl-2">
-        {/* Top Header Section */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            {/* Big Play Button */}
             <button className="w-[40px] h-[40px] rounded-full bg-[#f50] hover:bg-[#ff5500] text-white flex items-center justify-center flex-shrink-0 shadow-lg transition-colors">
               <PlayIcon size={20} fill="currentColor" className="ml-1" />
             </button>
@@ -77,7 +77,6 @@ export const TrackCard = ({ track }: TrackCardProps) => {
           <span className="text-[#999] text-[12px]">{track.createdAt}</span>
         </div>
 
-        {/* Waveform Visualization Placeholder */}
         <div className="h-[60px] w-full mt-4 flex items-end gap-[1px] relative pt-2">
           {waveformBars.map((h, i) => (
             <div 
@@ -86,31 +85,23 @@ export const TrackCard = ({ track }: TrackCardProps) => {
               style={{ height: `${h}%` }}
             />
           ))}
-          {/* Duration Badge overlaying the bottom right of the waveform */}
           <div className="absolute bottom-0 right-0 bg-[#111]/80 px-1 py-[1px] text-[10px] text-white">
             {track.durationFormatted}
           </div>
         </div>
 
-        {/* Action Buttons & Stats */}
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-2">
-            <button 
-              onClick={toggleLike}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-[13px] rounded bg-[#111] border transition-colors ${
-                isLiked 
-                  ? "border-[#f50] text-[#f50]" 
-                  : "border-[#333] text-[#ccc] hover:border-[#666]"
-              }`}
-            >
-              <LikeIcon size={14} fill={isLiked ? "currentColor" : "none"} />
-              {formatCount(likeCount)}
-            </button>
+            <LikeButton
+              isLiked={isLiked}
+              likeCount={likeCount}
+              onToggle={toggleLike}
+            />
             
-            <button className="flex items-center gap-1.5 px-2.5 py-1 text-[13px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+            <Link href={`/track/${track.id}/reposts`} className="flex items-center gap-1.5 px-2.5 py-1 text-[13px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
               <RepostIcon size={14} />
               {formatCount(track.repostCount)}
-            </button>
+            </Link>
 
             <button className="flex items-center justify-center w-[30px] h-[26px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
               <ShareIcon size={14} />
@@ -126,6 +117,10 @@ export const TrackCard = ({ track }: TrackCardProps) => {
           </div>
 
           <div className="flex items-center gap-4 text-[#999] text-[12px]">
+            <Link href={`/track/${track.id}/likes`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+              <LikeIcon size={12} fill="currentColor" />
+              {formatCount(likeCount)}
+            </Link>
             <div className="flex items-center gap-1.5">
               <PlayIcon size={12} fill="currentColor" />
               {formatCount(track.playCount)}
@@ -140,3 +135,4 @@ export const TrackCard = ({ track }: TrackCardProps) => {
     </div>
   );
 };
+

@@ -35,8 +35,10 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken')
-        window.location.href = '/login'
+        // localStorage.removeItem('accessToken')
+        // DEV BYPASS: Temporarily disable kicking users out on 401 errors
+        console.warn('API returned 401 Unauthorized but skipped redirect for Dev Bypass');
+        // window.location.href = '/login'
       }
     }
     return Promise.reject(error)

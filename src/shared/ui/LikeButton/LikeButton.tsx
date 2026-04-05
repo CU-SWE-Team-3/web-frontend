@@ -1,11 +1,20 @@
 'use client';
 
-import { type FC, type MouseEventHandler } from 'react';
+import { type FC } from 'react';
+import { LikeIcon } from '@/shared/ui/icons';
+
+// ─── LikeButton ───────────────────────────────────────────────────────────────
+// Presentational component only — no API calls or side effects here.
+// Wire it up with useLikeTrack / useUnlikeTrack in the parent component.
 
 export interface LikeButtonProps {
-  liked: boolean;
-  count?: number;
-  onClick?: MouseEventHandler<HTMLButtonElement>;
+  /** Whether the current user has already liked this track */
+  isLiked: boolean;
+  /** Raw like count to display (formatted automatically as K / M) */
+  likeCount?: number;
+  /** Called when the user clicks the button */
+  onToggle?: () => void;
+  /** Extra Tailwind classes forwarded to the root <button> */
   className?: string;
 }
 
@@ -16,34 +25,46 @@ function fmt(n: number): string {
 }
 
 export const LikeButton: FC<LikeButtonProps> = ({
-  liked, count, onClick, className,
+  isLiked,
+  likeCount,
+  onToggle,
+  className = '',
 }) => (
   <button
     data-testid="like-button"
-    className={className}
-    onClick={onClick}
-    aria-label={liked ? 'Unlike' : 'Like'}
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 4,
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontFamily: 'var(--sc-font-family)',
-      fontSize: 'var(--sc-font-size-sm)',
-      color: liked ? 'var(--sc-primary)' : 'var(--sc-gray-500)',
-      padding: '4px 6px',
-      borderRadius: 'var(--sc-radius-sm)',
-      transition: 'color var(--sc-transition-fast), transform 100ms ease',
-    }}
+    type="button"
+    onClick={onToggle}
+    aria-label={isLiked ? 'Unlike this track' : 'Like this track'}
+    aria-pressed={isLiked}
     onMouseDown={(e) => {
+      // Subtle scale-pulse feedback on press
       const el = e.currentTarget;
-      el.style.transform = 'scale(1.2)';
-      setTimeout(() => { el.style.transform = 'scale(1)'; }, 150);
+      el.style.transform = 'scale(1.18)';
+      setTimeout(() => {
+        el.style.transform = 'scale(1)';
+      }, 150);
     }}
+    className={[
+      // Base layout
+      'flex items-center gap-1.5 px-2.5 py-1',
+      'text-[13px] rounded border',
+      // Smooth transitions (color + transform)
+      'transition-colors duration-[120ms]',
+      // Liked vs. un-liked visual state
+      isLiked
+        ? 'border-[#f50] text-[#f50] bg-[#111]'
+        : 'border-[#333] text-[#ccc] bg-[#111] hover:border-[#666]',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ')}
   >
-    <span style={{ fontSize: 16 }}>{liked ? '♥' : '♡'}</span>
-    {count !== undefined && <span>{fmt(count)}</span>}
+    {/* Heart icon — filled when liked, outlined when not */}
+    <LikeIcon
+      size={14}
+      fill={isLiked ? 'currentColor' : 'none'}
+      className="transition-transform duration-[120ms]"
+    />
+    {likeCount !== undefined && <span>{fmt(likeCount)}</span>}
   </button>
 );
