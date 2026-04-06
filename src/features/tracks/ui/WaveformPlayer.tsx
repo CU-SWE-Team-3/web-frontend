@@ -4,15 +4,26 @@ import React, { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { AppButton } from "@/shared/ui";
 import { Pause, Play } from "lucide-react";
+import { usePlayerStore } from "@/features/player/model/playerStore";
+
+interface TrackMeta {
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl?: string;
+  hlsUrl?: string;
+}
 
 interface WaveformPlayerProps {
-  audioUrl?: string; // Add audioUrl for real audio if available
+  audioUrl?: string;
   waveform?: number[];
+  trackMeta?: TrackMeta;
 }
 
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   audioUrl,
   waveform,
+  trackMeta,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
@@ -96,6 +107,18 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   const togglePlay = () => {
     if (wavesurferRef.current) {
       wavesurferRef.current.playPause();
+    }
+    // Also push to global player bar if track metadata is available
+    if (trackMeta && !isPlaying) {
+      usePlayerStore.getState().play({
+        id: trackMeta.id,
+        title: trackMeta.title,
+        artist: trackMeta.artist,
+        artworkUrl: trackMeta.artworkUrl || '/placeholder.png',
+        hlsUrl: trackMeta.hlsUrl || audioUrl,
+      });
+    } else if (isPlaying) {
+      usePlayerStore.getState().pause();
     }
   };
 

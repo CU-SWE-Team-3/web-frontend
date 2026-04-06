@@ -1,6 +1,9 @@
+'use client';
+
 import React, { FC, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import type { Track } from '@/features/tracks/model/track';
+import { usePlayerStore } from '@/features/player/model/playerStore';
 
 const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
@@ -25,6 +28,18 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   userAvatarUrl,
   isOwner,
 }) => {
+  const play = usePlayerStore((s) => s.play);
+
+  const handlePlay = () => {
+    play({
+      id: track.id,
+      title: track.title,
+      artist: userFullName || username,
+      artworkUrl: track.artworkUrl || '/placeholder.png',
+      hlsUrl: track.streamUrl || track.hlsUrl,
+    });
+  };
+
   return (
     <div data-testid="track-card" className="mb-8 font-inter">
       {/* Track Header */}
@@ -40,7 +55,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2">
-              <button data-testid="track-card-play-button" className="w-9 h-9 bg-[#f50] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#d44000] focus:outline-none transition-colors">
+              <button data-testid="track-card-play-button" onClick={handlePlay} className="w-9 h-9 bg-[#f50] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#d44000] focus:outline-none transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -77,7 +92,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
           {/* Waveform */}
           <div data-testid="track-card-waveform" className="flex-1 min-h-[60px] relative mt-1">
              <Suspense fallback={<div className="h-full w-full bg-[#111]" />}>
-               <WaveformPlayer waveform={track.waveform} />
+               <WaveformPlayer waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: userFullName || username, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} />
              </Suspense>
           </div>
         </div>
