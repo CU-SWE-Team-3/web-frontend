@@ -146,6 +146,97 @@
   flex-shrink: 0;
 }
 
+/* ---- Likes Section ---- */
+.likesBlock {
+  padding: 16px 0;
+}
+
+.likesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.likesTitle {
+  font-size: 12px;
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-text-primary);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+}
+
+.likesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.likesItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:hover .likesTrackTitle {
+    color: var(--sc-text-primary);
+  }
+}
+
+.likesArtwork {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #222;
+}
+
+.likesArtworkImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.likesArtworkPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #333 0%, #111 100%);
+}
+
+.likesInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.likesArtist {
+  font-size: 12px;
+  color: var(--sc-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.likesTrackTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sc-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s;
+}
+
 /* ---- ON TOUR ---- */
 .tourBlock {
   padding: 20px 0;

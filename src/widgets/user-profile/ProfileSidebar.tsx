@@ -45,6 +45,13 @@ interface FollowingUser {
   trackCount?: number;
 }
 
+export interface LikedTrackItem {
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+}
+
 interface ProfileSidebarProps {
   followers: number;
   following: number;
@@ -54,6 +61,7 @@ interface ProfileSidebarProps {
   bio?: string;
   socialLinks?: SocialLink[];
   followingUsers?: FollowingUser[];
+  likedTracks?: LikedTrackItem[];
 }
 
 export const ProfileSidebar: FC<ProfileSidebarProps> = ({
@@ -65,7 +73,9 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
   bio,
   socialLinks,
   followingUsers,
-}) => (
+  likedTracks,
+}) => {
+  return (
   <aside className={s.sidebar}>
     {/* Stats */}
     <ProfileStats followers={followers} following={following} tracks={tracks} username={username} />
@@ -100,6 +110,41 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
           );
         })}
       </div>
+    )}
+
+    {/* Likes Section */}
+    {likedTracks && likedTracks.length > 0 && (
+      <>
+        <hr className={s.divider} />
+        <div className={s.likesBlock}>
+          <div className={s.likesHeader}>
+            <span className={s.likesTitle}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#f50" style={{ marginRight: 6, verticalAlign: 'middle' }}>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              {likedTracks.length} LIKES
+            </span>
+            <Link href={ROUTES.LIKES(username || '')} className={s.viewAllLink}>View all</Link>
+          </div>
+          <div data-testid="profile-liked-tracks-list" className={s.likesList}>
+            {likedTracks.slice(0, 3).map((track) => (
+              <Link href={`/tracks/${track.id}`} key={track.id} className={s.likesItem}>
+                <div className={s.likesArtwork}>
+                  {track.artworkUrl ? (
+                    <img src={track.artworkUrl} alt={track.title} className={s.likesArtworkImg} />
+                  ) : (
+                    <div className={s.likesArtworkPlaceholder} />
+                  )}
+                </div>
+                <div className={s.likesInfo}>
+                  <span className={s.likesArtist}>{track.artist}</span>
+                  <span className={s.likesTrackTitle}>{track.title}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </>
     )}
 
     <hr className={s.divider} />
@@ -167,4 +212,5 @@ export const ProfileSidebar: FC<ProfileSidebarProps> = ({
       Language: <span className={s.langLink}>English (US)</span>
     </div>
   </aside>
-);
+  );
+};

@@ -6,6 +6,11 @@
   justify-content: space-between;
   padding: 0 30px;
   height: 46px;
+
+  @media (max-width: 768px) {
+    padding: 0 15px;
+    gap: 16px;
+  }
 }
 
 .tabs {
@@ -13,6 +18,15 @@
   gap: 24px;
   height: 100%;
   align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  @media (max-width: 768px) {
+    gap: 16px;
+  }
 }
 
 .tab {
@@ -29,6 +43,7 @@
   padding: 0;
   cursor: pointer;
   transition: color var(--sc-transition-fast);
+  white-space: nowrap;
 
   &:hover {
     color: var(--sc-text-primary);
