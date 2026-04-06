@@ -80,9 +80,9 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     ws.on("finish", () => {
       setIsPlaying(false);
       setCurrentTime(0);
-      // Also pause the global player bar
+      // Trigger the global player's next track logic (handles repeat/shuffle)
       if (usePlayerStore.getState().playbackSource === 'inline') {
-        usePlayerStore.getState().pause();
+        usePlayerStore.getState().nextTrack();
       }
     });
 
@@ -129,8 +129,20 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         }
       }
     };
+
+    // Listen for play/pause from the global PlayerBar
+    const handleBarPlayPause = () => {
+      if (wavesurferRef.current) {
+        wavesurferRef.current.playPause();
+      }
+    };
+
     window.addEventListener('playerbar-seek', handleBarSeek);
-    return () => window.removeEventListener('playerbar-seek', handleBarSeek);
+    window.addEventListener('playerbar-playpause', handleBarPlayPause);
+    return () => {
+      window.removeEventListener('playerbar-seek', handleBarSeek);
+      window.removeEventListener('playerbar-playpause', handleBarPlayPause);
+    };
   }, []);
 
   const togglePlay = () => {

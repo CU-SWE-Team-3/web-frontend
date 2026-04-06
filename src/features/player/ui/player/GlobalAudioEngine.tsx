@@ -88,6 +88,17 @@ export const GlobalAudioEngine = () => {
     if (currentTrack) {
       useHistoryStore.getState().addToHistory(currentTrack, audioRef.current?.currentTime);
     }
+    // Handle repeat for inline sources
+    if (playbackSource === 'inline') {
+      if (repeatMode === 'one') {
+        // Restart the same track in the WaveformPlayer
+        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
+        window.dispatchEvent(new CustomEvent('playerbar-playpause'));
+        seek(0);
+        play();
+        return;
+      }
+    }
     nextTrack();
   };
 
@@ -107,6 +118,10 @@ export const GlobalAudioEngine = () => {
       pause();
     } else {
       play();
+    }
+    // When source is inline, tell the WaveformPlayer to play/pause
+    if (playbackSource === 'inline') {
+      window.dispatchEvent(new CustomEvent('playerbar-playpause'));
     }
   };
 
