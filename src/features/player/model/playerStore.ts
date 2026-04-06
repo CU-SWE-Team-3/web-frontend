@@ -25,6 +25,7 @@ interface PlayerState {
   isShuffle: boolean;
   repeatMode: 'none' | 'all' | 'one';
   isQueueOpen: boolean;
+  playbackSource: 'global' | 'inline';
 }
 
 interface PlayerActions {
@@ -60,10 +61,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   isShuffle: false,
   repeatMode: 'none',
   isQueueOpen: false,
+  playbackSource: 'global',
 
   play: (track?: Track) => {
     if (track) {
-      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0 });
+      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: 'global' });
     } else {
       set({ isPlaying: true });
     }

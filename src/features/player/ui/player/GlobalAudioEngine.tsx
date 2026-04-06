@@ -19,6 +19,7 @@ export const GlobalAudioEngine = () => {
     isShuffle,
     repeatMode,
     isQueueOpen,
+    playbackSource,
     play,
     pause,
     seek,
@@ -45,8 +46,14 @@ export const GlobalAudioEngine = () => {
   useEffect(() => {
     if (!audioRef.current) return;
     
+    // Only control the hidden <audio> when source is 'global'
+    // When 'inline', WaveformPlayer handles the actual audio
+    if (playbackSource === 'inline') {
+      audioRef.current.pause();
+      return;
+    }
+
     if (isPlaying) {
-      // Browsers might block autoplay, wrap in try/catch safely
       audioRef.current.play().catch(e => {
         console.warn("Autoplay prevented:", e);
         pause();
@@ -55,7 +62,7 @@ export const GlobalAudioEngine = () => {
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentTrack]);
+  }, [isPlaying, currentTrack, playbackSource]);
 
   // 2. Audio Event Handlers
   const handleTimeUpdate = () => {
@@ -85,8 +92,12 @@ export const GlobalAudioEngine = () => {
   };
 
   const handleSeek = (time: number) => {
-    if (audioRef.current) {
+    if (playbackSource === 'global' && audioRef.current) {
       audioRef.current.currentTime = time;
+    }
+    // Dispatch a custom event so the active WaveformPlayer can sync
+    if (playbackSource === 'inline') {
+      window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time } }));
     }
     seek(time);
   };

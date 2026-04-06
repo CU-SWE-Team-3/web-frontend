@@ -58,11 +58,21 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
     ws.on("ready", () => {
       setIsReady(true);
-      setDuration(ws.getDuration());
+      const dur = ws.getDuration();
+      setDuration(dur);
+      // If this waveform is active, push duration to the global player bar
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().setDuration(dur);
+      }
     });
 
     ws.on("audioprocess", () => {
-      setCurrentTime(ws.getCurrentTime());
+      const time = ws.getCurrentTime();
+      setCurrentTime(time);
+      // Sync to global player bar if this waveform is the active source
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().setCurrentTime(time);
+      }
     });
 
     ws.on("play", () => setIsPlaying(true));
@@ -70,6 +80,10 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     ws.on("finish", () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      // Also pause the global player bar
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().pause();
+      }
     });
 
     if (audioUrl) {
@@ -104,18 +118,39 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     };
   }, [audioUrl, waveform]);
 
+  // Listen for seek events from the global PlayerBar
+  useEffect(() => {
+    const handleBarSeek = (e: Event) => {
+      const time = (e as CustomEvent).detail?.time;
+      if (wavesurferRef.current && typeof time === 'number') {
+        const dur = wavesurferRef.current.getDuration();
+        if (dur > 0) {
+          wavesurferRef.current.seekTo(time / dur);
+        }
+      }
+    };
+    window.addEventListener('playerbar-seek', handleBarSeek);
+    return () => window.removeEventListener('playerbar-seek', handleBarSeek);
+  }, []);
+
   const togglePlay = () => {
     if (wavesurferRef.current) {
       wavesurferRef.current.playPause();
     }
     // Also push to global player bar if track metadata is available
     if (trackMeta && !isPlaying) {
-      usePlayerStore.getState().play({
+      const store = usePlayerStore.getState();
+      store.play({
         id: trackMeta.id,
         title: trackMeta.title,
         artist: trackMeta.artist,
         artworkUrl: trackMeta.artworkUrl || '/placeholder.png',
         hlsUrl: trackMeta.hlsUrl || audioUrl,
+      });
+      // Mark as inline so GlobalAudioEngine doesn't double-play
+      usePlayerStore.setState({ 
+        playbackSource: 'inline',
+        duration: wavesurferRef.current?.getDuration() || 0,
       });
     } else if (isPlaying) {
       usePlayerStore.getState().pause();
