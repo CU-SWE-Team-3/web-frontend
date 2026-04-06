@@ -1,0 +1,61 @@
+/* VolumeControl */
+
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}
+
+.muteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-gray-500);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+
+  &:hover { color: var(--sc-white); }
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--sc-shadow-focus);
+  }
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 80px;
+  height: 4px;
+  background: var(--sc-bg-dark-hover);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--sc-radius-full);
+    background: var(--sc-white);
+    cursor: pointer;
+    transition: transform 150ms ease;
+
+    &:hover { transform: scale(1.25); }
+  }
+
+  &::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--sc-radius-full);
+    background: var(--sc-white);
+    border: 0;
+    cursor: pointer;
+  }
+
+  &:focus-visible {
+    box-shadow: var(--sc-shadow-focus);
+  }
+}

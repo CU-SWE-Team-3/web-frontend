@@ -1,0 +1,65 @@
+.root {
+  position: relative;
+  width: 100%;
+
+  &:hover .track { height: 6px; }
+  &:hover .thumb { opacity: 1; }
+}
+
+.track {
+  position: relative;
+  height: 4px;
+  background: var(--sc-bg-dark-hover);
+  border-radius: 2px;
+  cursor: pointer;
+  overflow: visible;
+  transition: height 150ms ease;
+}
+
+.buffered {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--sc-bg-dark-elevated);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+.played {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--sc-primary);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: var(--sc-white);
+  border-radius: var(--sc-radius-full);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 150ms ease;
+}
+
+.tooltip {
+  position: absolute;
+  top: -26px;
+  padding: 2px 6px;
+  background: var(--sc-bg-dark-elevated);
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-xs);
+  border-radius: var(--sc-radius-md);
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--sc-font-family);
+  transform: translateX(-50%);
+  border: 1px solid var(--sc-bg-dark-hover);
+}

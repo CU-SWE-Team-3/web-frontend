@@ -20,3 +20,16 @@ yarn-error.log*
 
 # OS metadata
 .DS_Store
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
+
+# Dev scratch / log files at project root
+*.log
+*.txt
+*.ps1
+json_dump.json
+how\ e1ae31c\ --sta
+
+# Vitest-era test folder (superseded by src/features/player/tests)
+src/__tests__/
