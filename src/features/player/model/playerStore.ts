@@ -8,6 +8,7 @@ export interface Track {
   artist: string;
   artworkUrl: string;
   duration?: number;
+  hlsUrl?: string;
   restrictedRegions?: string[];
   tier?: 'free' | 'pro';
 }
@@ -21,6 +22,9 @@ interface PlayerState {
   duration: number;
   buffered: number;
   queue: Track[];
+  isShuffle: boolean;
+  repeatMode: 'none' | 'all' | 'one';
+  isQueueOpen: boolean;
 }
 
 interface PlayerActions {
@@ -35,6 +39,11 @@ interface PlayerActions {
   setDuration: (duration: number) => void;
   setBuffered: (buffered: number) => void;
   setQueue: (tracks: Track[]) => void;
+  clearQueue: () => void;
+  removeFromQueue: (trackId: string) => void;
+  toggleShuffle: () => void;
+  cycleRepeatMode: () => void;
+  toggleQueueSidebar: () => void;
 }
 
 export type PlayerStore = PlayerState & PlayerActions;
@@ -48,6 +57,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   duration: 0,
   buffered: 0,
   queue: [],
+  isShuffle: false,
+  repeatMode: 'none',
+  isQueueOpen: false,
 
   play: (track?: Track) => {
     if (track) {
@@ -68,15 +80,46 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   toggleMute: () => set((s) => ({ isMuted: !s.isMuted })),
 
   nextTrack: () => {
-    const { queue, currentTrack } = get();
-    if (!queue.length) return;
-    const idx = queue.findIndex((t) => t.id === currentTrack?.id);
-    const next = queue[(idx + 1) % queue.length];
+    const { queue, currentTrack, isShuffle, repeatMode } = get();
+    
+    if (repeatMode === 'one' && currentTrack) {
+      // Replay the same track
+      set({ currentTime: 0, isPlaying: true });
+      return;
+    }
+
+    if (!queue.length) {
+      if (repeatMode === 'all' && currentTrack) {
+         set({ currentTime: 0 });
+      }
+      return;
+    }
+
+    let next: Track;
+    if (isShuffle) {
+       const unplayed = queue.filter(t => t.id !== currentTrack?.id);
+       next = unplayed.length > 0 ? unplayed[Math.floor(Math.random() * unplayed.length)] : queue[0];
+    } else {
+       const idx = queue.findIndex((t) => t.id === currentTrack?.id);
+       if (idx >= queue.length - 1) {
+         if (repeatMode === 'all') next = queue[0];
+         else { set({ isPlaying: false, currentTime: 0 }); return; }
+       } else {
+         next = queue[idx + 1];
+       }
+    }
     set({ currentTrack: next, isPlaying: true, currentTime: 0, duration: next.duration ?? 0 });
   },
 
   prevTrack: () => {
-    const { queue, currentTrack } = get();
+    const { queue, currentTrack, currentTime } = get();
+    
+    // If we've played for more than 3 seconds, just restart the current track like typical players
+    if (currentTime > 3 && currentTrack) {
+      set({ currentTime: 0 });
+      return;
+    }
+
     if (!queue.length) return;
     const idx = queue.findIndex((t) => t.id === currentTrack?.id);
     const prev = queue[idx <= 0 ? queue.length - 1 : idx - 1];
@@ -87,5 +130,16 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   setDuration: (duration: number) => set({ duration }),
   setBuffered: (buffered: number) =>
     set({ buffered: Math.max(0, Math.min(1, buffered)) }),
+  
   setQueue: (tracks: Track[]) => set({ queue: tracks }),
+  clearQueue: () => set({ queue: [] }),
+  removeFromQueue: (trackId: string) => set(s => ({ queue: s.queue.filter(t => t.id !== trackId) })),
+  
+  toggleShuffle: () => set(s => ({ isShuffle: !s.isShuffle })),
+  cycleRepeatMode: () => set(s => {
+    const modes: ('none' | 'all' | 'one')[] = ['none', 'all', 'one'];
+    const nextIdx = (modes.indexOf(s.repeatMode) + 1) % modes.length;
+    return { repeatMode: modes[nextIdx] };
+  }),
+  toggleQueueSidebar: () => set(s => ({ isQueueOpen: !s.isQueueOpen })),
 }));

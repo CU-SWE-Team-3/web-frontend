@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Providers } from './providers'
 import './globals.scss'
 
+import { GlobalAudioEngine } from '@/features/player/ui/player/GlobalAudioEngine'
+
 export const metadata: Metadata = {
   title: 'BioBeats',
   description: 'SoundCloud Clone',
@@ -13,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[#111] text-white antialiased">
         <Providers>
           {children}
+          <GlobalAudioEngine />
         </Providers>
       </body>
     </html>

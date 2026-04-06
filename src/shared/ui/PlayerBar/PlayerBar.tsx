@@ -4,6 +4,7 @@ import { type FC } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward,
   Heart, ListPlus, Maximize2,
+  Shuffle, Repeat, Repeat1, ListMusic
 } from 'lucide-react';
 import { SeekBar } from '@/features/player/ui/player/SeekBar';
 import { VolumeControl } from '@/features/player/ui/player/VolumeControl';
@@ -24,6 +25,9 @@ export interface PlayerBarProps {
   volume?: number;
   isMuted?: boolean;
   isLiked?: boolean;
+  isShuffle?: boolean;
+  repeatMode?: 'none' | 'all' | 'one';
+  isQueueOpen?: boolean;
   onPlayPause?: () => void;
   onPrev?: () => void;
   onNext?: () => void;
@@ -33,6 +37,9 @@ export interface PlayerBarProps {
   onLike?: () => void;
   onAddToPlaylist?: () => void;
   onExpand?: () => void;
+  onToggleShuffle?: () => void;
+  onCycleRepeat?: () => void;
+  onToggleQueue?: () => void;
 }
 
 export const PlayerBar: FC<PlayerBarProps> = ({
@@ -44,6 +51,9 @@ export const PlayerBar: FC<PlayerBarProps> = ({
   volume      = 0.8,
   isMuted     = false,
   isLiked     = false,
+  isShuffle   = false,
+  repeatMode  = 'none',
+  isQueueOpen = false,
   onPlayPause,
   onPrev,
   onNext,
@@ -53,6 +63,9 @@ export const PlayerBar: FC<PlayerBarProps> = ({
   onLike,
   onAddToPlaylist,
   onExpand,
+  onToggleShuffle,
+  onCycleRepeat,
+  onToggleQueue,
 }) => {
   if (!track) return null;
 
@@ -86,6 +99,10 @@ export const PlayerBar: FC<PlayerBarProps> = ({
       {/* ── CENTER: transport controls + seek bar ── */}
       <div className={s.center}>
         <div className={s.controls}>
+          <button id="sc-btn-shuffle" onClick={onToggleShuffle} className={`${s.ctrlBtn} ${isShuffle ? s.active : ''}`} aria-label="Toggle shuffle">
+            <Shuffle size={16} fill="currentColor" color={isShuffle ? '#f97316' : 'currentColor'} />
+          </button>
+
           <button id="sc-btn-prev" onClick={onPrev} className={s.ctrlBtn} aria-label="Previous track">
             <SkipBack size={16} fill="currentColor" />
           </button>
@@ -104,6 +121,14 @@ export const PlayerBar: FC<PlayerBarProps> = ({
 
           <button id="sc-btn-next" onClick={onNext} className={s.ctrlBtn} aria-label="Next track">
             <SkipForward size={16} fill="currentColor" />
+          </button>
+
+          <button id="sc-btn-repeat" onClick={onCycleRepeat} className={`${s.ctrlBtn} ${repeatMode !== 'none' ? s.active : ''}`} aria-label="Cycle repeat mode">
+            {repeatMode === 'one' ? (
+              <Repeat1 size={16} color="#f97316" />
+            ) : (
+              <Repeat size={16} color={repeatMode === 'all' ? '#f97316' : 'currentColor'} />
+            )}
           </button>
         </div>
 
@@ -134,6 +159,10 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           onVolumeChange={onVolumeChange ?? (() => {})}
           onToggleMute={onToggleMute ?? (() => {})}
         />
+
+        <button id="sc-btn-queue" onClick={onToggleQueue} className={`${s.iconBtn} ${isQueueOpen ? s.active : ''}`} aria-label="Toggle queue sidebar">
+          <ListMusic size={16} color={isQueueOpen ? '#f97316' : 'currentColor'} />
+        </button>
 
         <button id="sc-btn-expand" onClick={onExpand} className={s.iconBtn} aria-label="Expand player">
           <Maximize2 size={16} />

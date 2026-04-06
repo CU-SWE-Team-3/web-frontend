@@ -17,6 +17,8 @@ export interface Track {
   waveform: number[];
   duration: string;
   createdAt: string;
+  hlsUrl?: string;
+  streamUrl?: string;
 }
 
 export interface UploadTrackInput {
