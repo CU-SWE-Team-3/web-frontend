@@ -19,15 +19,15 @@
 
 /* ---- Left Section ---- */
 .left {
-  width: 180px;
+  flex: 1;
   display: flex;
   align-items: center;
   gap: var(--sc-space-3);
   min-width: 0;
-  flex-shrink: 0;
 
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
     width: 25%;
+    flex: none;
   }
 }
 
@@ -107,13 +107,17 @@
 
 /* ---- Center Section ---- */
 .center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  margin: 0 var(--sc-space-2);
+  display: none; // Hidden on mobile
+
+  @media (min-width: 640px) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 0 var(--sc-space-2);
+  }
 
   @media (min-width: 768px) {
     margin: 0 var(--sc-space-4);
@@ -136,15 +140,11 @@
   cursor: pointer;
   color: var(--sc-gray-500);
   padding: 4px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--sc-radius-md);
   transition: color 150ms ease;
-
-  @media (min-width: 768px) {
-    display: flex;
-  }
 
   &:hover { color: var(--sc-white); }
   &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
@@ -198,17 +198,49 @@
 
 .seekWrap { flex: 1; }
 
+.miniProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--sc-primary);
+  z-index: 10;
+  pointer-events: none;
+
+  @media (min-width: 640px) {
+    display: none;
+  }
+}
+
+.mobilePlayContainer {
+  display: flex;
+  align-items: center;
+  margin-left: var(--sc-space-3);
+
+  @media (min-width: 640px) {
+    display: none;
+  }
+}
+
 /* ---- Right Section ---- */
 .right {
-  width: 25%;
   display: none;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sc-space-2);
-  flex-shrink: 0;
 
-  @media (min-width: 768px) {
+  @media (min-width: 640px) {
+    width: 25%;
     display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sc-space-2);
+    flex-shrink: 0;
+  }
+}
+
+.volWrap {
+  display: none;
+  @media (min-width: 1024px) {
+    display: flex;
+    align-items: center;
   }
 }
 

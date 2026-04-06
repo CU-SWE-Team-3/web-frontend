@@ -71,6 +71,8 @@ export const PlayerBar: FC<PlayerBarProps> = ({
 
   return (
     <div id="sc-player-bar" className={s.bar} data-testid="player-bar">
+      {/* ── MOBILE: mini progress bar ── */}
+      <div className={s.miniProgress} style={{ width: `${(duration ? (currentTime / duration) : 0) * 100}%` }} />
 
       {/* ── LEFT: thumbnail + track info + like ── */}
       <div className={s.left}>
@@ -93,6 +95,20 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           aria-label={isLiked ? 'Unlike' : 'Like'}
         >
           <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+
+      {/* ── MOBILE: Play/Pause Button ── */}
+      <div className={s.mobilePlayContainer}>
+        <button
+          onClick={onPlayPause}
+          className={s.playPauseBtn}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying
+            ? <Pause size={16} fill="white" />
+            : <Play  size={16} fill="white" style={{ marginLeft: 2 }} />
+          }
         </button>
       </div>
 
@@ -153,12 +169,14 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           <ListPlus size={16} />
         </button>
 
-        <VolumeControl
-          volume={volume}
-          isMuted={isMuted}
-          onVolumeChange={onVolumeChange ?? (() => {})}
-          onToggleMute={onToggleMute ?? (() => {})}
-        />
+        <div className={s.volWrap}>
+          <VolumeControl
+            volume={volume}
+            isMuted={isMuted}
+            onVolumeChange={onVolumeChange ?? (() => {})}
+            onToggleMute={onToggleMute ?? (() => {})}
+          />
+        </div>
 
         <button id="sc-btn-queue" onClick={onToggleQueue} className={`${s.iconBtn} ${isQueueOpen ? s.active : ''}`} aria-label="Toggle queue sidebar">
           <ListMusic size={16} color={isQueueOpen ? '#f97316' : 'currentColor'} />

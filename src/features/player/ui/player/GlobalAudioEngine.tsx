@@ -95,6 +95,12 @@ export const GlobalAudioEngine = () => {
     }
 
     if (isPlaying) {
+      if (currentTrack?.restrictedRegions && currentTrack.restrictedRegions.length > 0) {
+        alert("Not available in your region or tier");
+        pause();
+        return;
+      }
+
       audioRef.current.play().catch(e => {
         console.warn("Autoplay prevented:", e);
         pause();
@@ -108,7 +114,18 @@ export const GlobalAudioEngine = () => {
   // 2. Audio Event Handlers
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
+      const time = audioRef.current.currentTime;
+      if (currentTrack?.tier === 'pro' && time >= 30) {
+        if (!audioRef.current.paused) {
+          audioRef.current.pause();
+          alert("This is a premium track. Previewing 30 seconds.");
+          pause();
+        }
+        audioRef.current.currentTime = 30;
+        setCurrentTime(30);
+      } else {
+        setCurrentTime(time);
+      }
     }
   };
 
@@ -133,6 +150,9 @@ export const GlobalAudioEngine = () => {
   };
 
   const handleSeek = (time: number) => {
+    if (currentTrack?.tier === 'pro' && time > 30) {
+      time = 30; // clamp
+    }
     if (playbackSource === 'global' && audioRef.current) {
       audioRef.current.currentTime = time;
     }
@@ -142,6 +162,16 @@ export const GlobalAudioEngine = () => {
     }
     seek(time);
   };
+  
+  useEffect(() => {
+    const onGlobalSeek = (e: any) => {
+      if (e.detail?.time !== undefined && audioRef.current) {
+        audioRef.current.currentTime = e.detail.time;
+      }
+    };
+    window.addEventListener('playerbar-seek', onGlobalSeek);
+    return () => window.removeEventListener('playerbar-seek', onGlobalSeek);
+  }, []);
 
   const handlePlayPause = () => {
     if (isPlaying) {
