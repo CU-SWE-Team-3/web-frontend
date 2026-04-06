@@ -40,6 +40,7 @@ interface PlayerActions {
   setDuration: (duration: number) => void;
   setBuffered: (buffered: number) => void;
   setQueue: (tracks: Track[]) => void;
+  addToQueue: (track: Track) => void;
   clearQueue: () => void;
   removeFromQueue: (trackId: string) => void;
   toggleShuffle: () => void;
@@ -65,6 +66,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   play: (track?: Track) => {
     if (track) {
+      // Stop all other inline waveform players before starting a new track
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('playerbar-stop-all', { detail: { activeTrackId: track.id } }));
+      }
       set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: 'global' });
     } else {
       set({ isPlaying: true });
@@ -138,6 +143,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     set({ buffered: Math.max(0, Math.min(1, buffered)) }),
   
   setQueue: (tracks: Track[]) => set({ queue: tracks }),
+  addToQueue: (track: Track) => set(s => {
+    // Don't add duplicates
+    if (s.queue.some(t => t.id === track.id)) return s;
+    return { queue: [...s.queue, track] };
+  }),
   clearQueue: () => set({ queue: [] }),
   removeFromQueue: (trackId: string) => set(s => ({ queue: s.queue.filter(t => t.id !== trackId) })),
   
