@@ -184,10 +184,9 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         artist: trackMeta.artist,
         artworkUrl: trackMeta.artworkUrl || '/placeholder.png',
         hlsUrl: trackMeta.hlsUrl || audioUrl,
-      });
-      // Mark as inline so GlobalAudioEngine doesn't double-play
+      }, 'inline');
+      
       usePlayerStore.setState({ 
-        playbackSource: 'inline',
         duration: wavesurferRef.current?.getDuration() || 0,
       });
     } else if (isPlaying) {

@@ -32,6 +32,14 @@ export const PlayerQueueSidebar: FC = () => {
 
   return (
     <div className={s.sidebar} data-testid="queue-sidebar">
+      {/* Invisible overlay to close context menu automatically */}
+      {contextMenuTrackId && (
+        <div 
+          className="fixed inset-0 z-[90]" 
+          onClick={() => setContextMenuTrackId(null)} 
+        />
+      )}
+      
       <div className={s.header}>
         <h3 className={s.title}>Next up</h3>
         <div className={s.headerActions}>
@@ -75,12 +83,12 @@ export const PlayerQueueSidebar: FC = () => {
             {/* Context Menu */}
             {contextMenuTrackId === currentTrack.id && (
               <div className={s.contextMenu}>
-                <button className={s.contextMenuItem}><Heart size={14} /> Like</button>
-                <button className={s.contextMenuItem}><Share2 size={14} /> Share</button>
-                <button className={s.contextMenuItem}><ListPlus size={14} /> Add to Next up</button>
-                <button className={s.contextMenuItem}><ListMusic size={14} /> Add to Playlist</button>
-                <button className={s.contextMenuItem}><Download size={14} /> Download file</button>
-                <button className={s.contextMenuItem}><Radio size={14} /> Station</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Heart size={14} /> Like</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Share2 size={14} /> Share</button>
+                <button className={s.contextMenuItem} onClick={() => { addToQueue(currentTrack); setContextMenuTrackId(null); }}><ListPlus size={14} /> Add to Next up</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><ListMusic size={14} /> Add to Playlist</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Download size={14} /> Download file</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Radio size={14} /> Station</button>
               </div>
             )}
           </div>
@@ -122,12 +130,12 @@ export const PlayerQueueSidebar: FC = () => {
             {/* Context Menu */}
             {contextMenuTrackId === track.id && (
               <div className={s.contextMenu}>
-                <button className={s.contextMenuItem}><Heart size={14} /> Like</button>
-                <button className={s.contextMenuItem}><Share2 size={14} /> Share</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Heart size={14} /> Like</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Share2 size={14} /> Share</button>
                 <button className={s.contextMenuItem} onClick={() => { addToQueue(track); setContextMenuTrackId(null); }}><ListPlus size={14} /> Add to Next up</button>
-                <button className={s.contextMenuItem}><ListMusic size={14} /> Add to Playlist</button>
-                <button className={s.contextMenuItem}><Download size={14} /> Download file</button>
-                <button className={s.contextMenuItem}><Radio size={14} /> Station</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><ListMusic size={14} /> Add to Playlist</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Download size={14} /> Download file</button>
+                <button className={s.contextMenuItem} onClick={() => setContextMenuTrackId(null)}><Radio size={14} /> Station</button>
               </div>
             )}
           </div>
