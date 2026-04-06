@@ -29,7 +29,7 @@ interface PlayerState {
 }
 
 interface PlayerActions {
-  play: (track?: Track) => void;
+  play: (track?: Track, source?: 'global' | 'inline') => void;
   pause: () => void;
   seek: (time: number) => void;
   setVolume: (level: number) => void;
@@ -64,13 +64,12 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   isQueueOpen: false,
   playbackSource: 'global',
 
-  play: (track?: Track) => {
+  play: (track?: Track, source: 'global' | 'inline' = 'global') => {
     if (track) {
-      // Stop all other inline waveform players before starting a new track
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('playerbar-stop-all', { detail: { activeTrackId: track.id } }));
       }
-      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: 'global' });
+      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: source });
     } else {
       set({ isPlaying: true });
     }

@@ -93,15 +93,11 @@
   cursor: pointer;
   color: var(--sc-gray-500);
   padding: 4px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--sc-radius-md);
   transition: color 150ms ease;
-
-  @media (min-width: 768px) {
-    display: flex;
-  }
 
   &:hover { color: var(--sc-primary); }
   &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }

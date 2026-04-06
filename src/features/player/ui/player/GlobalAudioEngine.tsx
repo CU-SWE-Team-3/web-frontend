@@ -7,6 +7,9 @@ import { PlayerQueueSidebar } from './PlayerQueueSidebar';
 import { DEMO_TRACKS } from '../../model/mockTracks';
 
 import { useHistoryStore } from '../../model/historyStore';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 
 export const GlobalAudioEngine = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -41,12 +44,39 @@ export const GlobalAudioEngine = () => {
 
   const [hasStarted, setHasStarted] = useState(false);
 
+  const { data: likedTracks } = useLikedTracks();
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+  const isLiked = currentTrack ? likedTracks?.some(t => t.id === currentTrack.id) : false;
+
+  const handleLike = () => {
+    if (!currentTrack) return;
+    if (isLiked) {
+      unlikeMutation.mutate(currentTrack.id);
+    } else {
+      likeMutation.mutate(currentTrack.id);
+    }
+  };
+
   // Preload demo tracks into the queue on mount
   useEffect(() => {
     if (queue.length === 0) {
       setQueue(DEMO_TRACKS);
     }
   }, []);
+
+  // Handle global repeat restarting
+  useEffect(() => {
+    const handleRestart = () => {
+      if (playbackSource === 'global' && audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+        setCurrentTime(0);
+      }
+    };
+    window.addEventListener('playerbar-restart', handleRestart);
+    return () => window.removeEventListener('playerbar-restart', handleRestart);
+  }, [playbackSource, setCurrentTime]);
 
   // 1. Sync Audio Element with Zustand State
   useEffect(() => {
@@ -117,7 +147,7 @@ export const GlobalAudioEngine = () => {
     if (isPlaying) {
       pause();
     } else {
-      play();
+      play(undefined, playbackSource); 
     }
     // When source is inline, tell the WaveformPlayer to play/pause
     if (playbackSource === 'inline') {
@@ -153,7 +183,7 @@ export const GlobalAudioEngine = () => {
             buffered={audioRef.current?.buffered.length ? audioRef.current.buffered.end(0) / (audioRef.current.duration || 1) : 0}
             volume={volume}
             isMuted={isMuted}
-            isLiked={false} // Will hook up to real API later
+            isLiked={!!isLiked}
             isShuffle={isShuffle}
             repeatMode={repeatMode}
             isQueueOpen={isQueueOpen}
@@ -166,6 +196,7 @@ export const GlobalAudioEngine = () => {
             onToggleShuffle={toggleShuffle}
             onCycleRepeat={cycleRepeatMode}
             onToggleQueue={toggleQueueSidebar}
+            onLike={handleLike}
           />
           <PlayerQueueSidebar />
         </div>
@@ -173,3 +204,4 @@ export const GlobalAudioEngine = () => {
     </>
   );
 };
+
