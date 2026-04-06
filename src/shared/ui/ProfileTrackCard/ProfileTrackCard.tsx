@@ -1,9 +1,11 @@
 'use client';
 
-import React, { FC, lazy, Suspense } from 'react';
+import React, { FC, lazy, Suspense, useState } from 'react';
 import Link from 'next/link';
 import type { Track } from '@/features/tracks/model/track';
 import { usePlayerStore } from '@/features/player/model/playerStore';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 
 const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
@@ -29,6 +31,19 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   isOwner,
 }) => {
   const play = usePlayerStore((s) => s.play);
+  const [isLiked, setIsLiked] = useState(false);
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+
+  const handleLike = () => {
+    if (isLiked) {
+      setIsLiked(false);
+      unlikeMutation.mutate(track.id);
+    } else {
+      setIsLiked(true);
+      likeMutation.mutate(track.id);
+    }
+  };
 
   const handlePlay = () => {
     play({
@@ -101,11 +116,11 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       {/* Action Bar */}
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center gap-2">
-          <button data-testid="track-card-like-button" className="px-2 py-1 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[11px] text-[#ccc] flex items-center gap-1.5 transition-colors">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <button data-testid="track-card-like-button" onClick={handleLike} className={`px-2 py-1 bg-[#151515] border rounded text-[11px] flex items-center gap-1.5 transition-colors ${isLiked ? 'border-[#f50] text-[#f50]' : 'border-[#333] hover:border-[#555] text-[#ccc]'}`}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
-            Like
+            {isLiked ? 'Liked' : 'Like'}
           </button>
           <button data-testid="track-card-repost-button" className="px-2 py-1 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[11px] text-[#ccc] flex items-center gap-1.5 transition-colors">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/></svg>

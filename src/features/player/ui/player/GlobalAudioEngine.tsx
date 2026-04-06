@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePlayerStore } from '../../model/playerStore';
 import { PlayerBar } from '@/shared/ui/PlayerBar/PlayerBar';
 import { PlayerQueueSidebar } from './PlayerQueueSidebar';
+import { DEMO_TRACKS } from '../../model/mockTracks';
 
 import { useHistoryStore } from '../../model/historyStore';
 
@@ -16,10 +17,12 @@ export const GlobalAudioEngine = () => {
     volume,
     isMuted,
     currentTime,
+    duration,
     isShuffle,
     repeatMode,
     isQueueOpen,
     playbackSource,
+    queue,
     play,
     pause,
     seek,
@@ -30,12 +33,20 @@ export const GlobalAudioEngine = () => {
     setCurrentTime,
     setDuration,
     setBuffered,
+    setQueue,
     toggleShuffle,
     cycleRepeatMode,
     toggleQueueSidebar,
   } = usePlayerStore();
 
   const [hasStarted, setHasStarted] = useState(false);
+
+  // Preload demo tracks into the queue on mount
+  useEffect(() => {
+    if (queue.length === 0) {
+      setQueue(DEMO_TRACKS);
+    }
+  }, []);
 
   // 1. Sync Audio Element with Zustand State
   useEffect(() => {
@@ -88,17 +99,6 @@ export const GlobalAudioEngine = () => {
     if (currentTrack) {
       useHistoryStore.getState().addToHistory(currentTrack, audioRef.current?.currentTime);
     }
-    // Handle repeat for inline sources
-    if (playbackSource === 'inline') {
-      if (repeatMode === 'one') {
-        // Restart the same track in the WaveformPlayer
-        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
-        window.dispatchEvent(new CustomEvent('playerbar-playpause'));
-        seek(0);
-        play();
-        return;
-      }
-    }
     nextTrack();
   };
 
@@ -149,7 +149,7 @@ export const GlobalAudioEngine = () => {
             }}
             isPlaying={isPlaying}
             currentTime={currentTime}
-            duration={audioRef.current?.duration || currentTrack.duration || 0}
+            duration={duration || audioRef.current?.duration || 0}
             buffered={audioRef.current?.buffered.length ? audioRef.current.buffered.end(0) / (audioRef.current.duration || 1) : 0}
             volume={volume}
             isMuted={isMuted}
