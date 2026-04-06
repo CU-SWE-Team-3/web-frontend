@@ -87,10 +87,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     if (repeatMode === 'one' && currentTrack) {
       // Replay the same track
       set({ currentTime: 0, isPlaying: true });
-      // Tell inline WaveformPlayer to restart
+      // Tell inline WaveformPlayer to restart from beginning
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
-        window.dispatchEvent(new CustomEvent('playerbar-playpause'));
+        window.dispatchEvent(new CustomEvent('playerbar-restart'));
       }
       return;
     }

@@ -137,11 +137,24 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     };
 
+    // Listen for restart (repeat-one) — stop, seek to 0, then play
+    const handleBarRestart = () => {
+      if (wavesurferRef.current) {
+        wavesurferRef.current.stop();
+        wavesurferRef.current.seekTo(0);
+        setTimeout(() => {
+          wavesurferRef.current?.play();
+        }, 50);
+      }
+    };
+
     window.addEventListener('playerbar-seek', handleBarSeek);
     window.addEventListener('playerbar-playpause', handleBarPlayPause);
+    window.addEventListener('playerbar-restart', handleBarRestart);
     return () => {
       window.removeEventListener('playerbar-seek', handleBarSeek);
       window.removeEventListener('playerbar-playpause', handleBarPlayPause);
+      window.removeEventListener('playerbar-restart', handleBarRestart);
     };
   }, []);
 
