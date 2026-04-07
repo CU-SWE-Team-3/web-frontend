@@ -106,6 +106,21 @@ export const GlobalAudioEngine = () => {
         pause();
       });
       setHasStarted(true);
+
+      // Add to local history store immediately
+      if (currentTrack) {
+        useHistoryStore.getState().addToHistory(currentTrack, 0);
+        
+        // Firing progress to backend so recently-played is updated globally
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (apiUrl) {
+           fetch(`${apiUrl}/history/progress`, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ trackId: currentTrack.id, progressSeconds: 0 })
+           }).catch(err => console.error('Failed to post history progress:', err));
+        }
+      }
     } else {
       audioRef.current.pause();
     }
@@ -143,9 +158,6 @@ export const GlobalAudioEngine = () => {
   };
 
   const handleEnded = () => {
-    if (currentTrack) {
-      useHistoryStore.getState().addToHistory(currentTrack, audioRef.current?.currentTime);
-    }
     nextTrack();
   };
 
@@ -227,6 +239,8 @@ export const GlobalAudioEngine = () => {
             onCycleRepeat={cycleRepeatMode}
             onToggleQueue={toggleQueueSidebar}
             onLike={handleLike}
+            onAddToPlaylist={() => alert("Add to playlist coming soon.")}
+            onExpand={() => alert("Expand player coming soon.")}
           />
           <PlayerQueueSidebar />
         </div>

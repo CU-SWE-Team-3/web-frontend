@@ -16,8 +16,13 @@ const formatCount = (count: number) => {
   if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
   return count.toString();
 };
+import { usePlayerStore } from '@/features/player/model/playerStore';
 
 export const TrackCard = ({ track }: TrackCardProps) => {
+  const play = usePlayerStore((s) => s.play);
+  const queue = usePlayerStore((s) => s.queue);
+  const setQueue = usePlayerStore((s) => s.setQueue);
+
   // We manage optimistic UI state locally for immediate response
   const [isLiked, setIsLiked] = useState(track.isLiked);
   const [likeCount, setLikeCount] = useState(track.likeCount);
@@ -35,6 +40,24 @@ export const TrackCard = ({ track }: TrackCardProps) => {
       setLikeCount((c) => c + 1);
       likeMutation.mutate(track.id);
     }
+  };
+
+  const handlePlay = () => {
+    // Map TrackNode to Track
+    const playerTrack = {
+      id: track.id,
+      title: track.title,
+      artist: track.artist,
+      artworkUrl: track.artworkUrl || '',
+      hlsUrl: (track as any).hlsUrl || '', // Fallback since TrackNode misses hlsUrl right now
+      duration: 0,
+    };
+    
+    // Add to queue if not present, then play
+    if (!queue.some(t => t.id === playerTrack.id)) {
+      setQueue([...queue, playerTrack]);
+    }
+    play(playerTrack);
   };
 
   // Generate random heights for the fake waveform, seeded simply by rendering index
@@ -64,7 +87,10 @@ export const TrackCard = ({ track }: TrackCardProps) => {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             {/* Big Play Button */}
-            <button className="w-[40px] h-[40px] rounded-full bg-[#f50] hover:bg-[#ff5500] text-white flex items-center justify-center flex-shrink-0 shadow-lg transition-colors">
+            <button 
+              onClick={handlePlay}
+              className="w-[40px] h-[40px] rounded-full bg-[#f50] hover:bg-[#ff5500] text-white flex items-center justify-center flex-shrink-0 shadow-lg transition-colors"
+            >
               <PlayIcon size={20} fill="currentColor" className="ml-1" />
             </button>
             <div className="flex flex-col">

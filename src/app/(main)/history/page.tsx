@@ -7,6 +7,7 @@ import { NavBar } from '@/shared/ui/NavBar/NavBar';
 import { ROUTES } from '@/shared/constants/routes';
 import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
+import { useRecentlyPlayed, HistoryRecord } from '@/features/player/model/useRecentlyPlayed';
 import type { Track } from '@/features/player/model/playerStore';
 import s from './History.module.scss';
 
@@ -18,11 +19,34 @@ const LIBRARY_TABS = [
 
 export default function HistoryPage() {
   const router = useRouter();
-  const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
-  const listeningHistory = useHistoryStore((st) => st.listeningHistory);
+  const recentlyPlayedLocal = useHistoryStore((st) => st.recentlyPlayed);
+  let listeningHistory = useHistoryStore((st) => st.listeningHistory);
   const clearRecent = useHistoryStore((st) => st.clearRecent);
   const deleteHistoryItem = useHistoryStore((st) => st.deleteHistoryItem);
   const play = usePlayerStore((st) => st.play);
+
+  // Fetch from the latest API endpoint
+  const { data: serverHistory } = useRecentlyPlayed();
+
+  // Merge server history if present (this is a simple hybrid approach to ensure data appears instantly without destroying session store)
+  if (serverHistory && serverHistory.length > 0) {
+    const merged = [...listeningHistory];
+    serverHistory.forEach((record: HistoryRecord) => {
+      if (!merged.some(m => m.track.id === record.track.id)) {
+        merged.push({
+          id: record.id,
+          track: record.track,
+          playedAt: record.lastPlayedAt,
+          durationPlayed: record.progressSeconds
+        });
+      }
+    });
+    // Sort combined by playedAt descending
+    listeningHistory = merged.sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime());
+  }
+
+  // Generate a distinct 'recentlyPlayed' list derived from the merged history
+  const recentlyPlayed = listeningHistory.slice(0, 10).map(entry => entry.track);
 
   const [filter, setFilter] = useState('');
 
