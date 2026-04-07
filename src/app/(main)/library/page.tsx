@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { NavBar } from '@/shared/ui/NavBar/NavBar';
@@ -30,7 +30,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key'];
 type ViewMode = 'grid' | 'list';
 
-export default function LibraryPage() {
+function LibraryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab') as TabKey | null;
@@ -602,4 +602,12 @@ function getTimeAgo(dateStr: string): string {
   if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
   const years = Math.floor(months / 12);
   return `${years} year${years > 1 ? 's' : ''} ago`;
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={<div>Loading library...</div>}>
+      <LibraryContent />
+    </Suspense>
+  );
 }
