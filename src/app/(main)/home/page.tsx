@@ -234,7 +234,7 @@ export default function HomePage() {
           </div>
 
           {/* Likes List Sidebar */}
-          <div>
+          <div className="mb-8">
             <div className="flex items-end justify-between border-b border-[#333] pb-2 mb-4">
               <h3 className="text-[12px] font-bold text-[#ccc] uppercase tracking-wider">
                 {likedTracksList?.length ? `${likedTracksList.length} ` : ''}LIKES
@@ -243,26 +243,68 @@ export default function HomePage() {
                 View all
               </Link>
             </div>
-            
             <div className="flex flex-col">
               {likedTracksList?.slice(0, 3).map((track: any) => (
-                <div key={track.id} className="flex items-center gap-3 py-2 cursor-pointer group" onClick={() => handlePlayTrack(track)}>
-                  <div className="w-12 h-12 bg-[#333] rounded-sm overflow-hidden shrink-0 relative">
-                    <img src={track.artworkUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop'} alt={track.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex justify-center items-center transition-opacity">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
-                    </div>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[12px] text-[#999] truncate">{track.artist}</span>
-                    <span className="text-[13px] text-white font-medium truncate group-hover:text-[#ccc]">{track.title}</span>
-                    <div className="flex gap-2 text-[11px] text-[#555] mt-1">
-                      <span>▶ {fmt(track.playCount || 0)}</span>
-                      <span>♥ {fmt(track.likeCount || 0)}</span>
-                    </div>
-                  </div>
-                </div>
+                <SidebarTrackRow key={track.id || track._id} track={track} onPlay={() => handlePlayTrack(track)} />
               ))}
+            </div>
+          </div>
+
+          {/* Listening History Sidebar */}
+          <div className="mb-8">
+            <div className="flex items-end justify-between border-b border-[#333] pb-2 mb-4">
+              <h3 className="text-[12px] font-bold text-[#ccc] uppercase tracking-wider">
+                LISTENING HISTORY
+              </h3>
+              <Link href={ROUTES.HISTORY} className="text-[12px] text-[#999] hover:text-[#ccc]">
+                View all
+              </Link>
+            </div>
+            <div className="flex flex-col">
+              {listeningHistory?.slice(0, 3).map((entry: any) => (
+                <SidebarTrackRow key={entry.id || entry.track.id} track={entry.track} onPlay={() => handlePlayTrack(entry.track)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Go Mobile Sidebar */}
+          <div className="mb-8">
+            <h3 className="text-[12px] font-bold text-[#ccc] uppercase tracking-wider mb-4 border-b border-[#333] pb-2">
+              GO MOBILE
+            </h3>
+            <div className="flex gap-2">
+              <Link href="#" className="block w-[130px]">
+                <img 
+                  src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
+                  alt="Download on the App Store" 
+                  className="w-full h-auto"
+                />
+              </Link>
+              <Link href="#" className="block w-[130px]">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
+                  alt="Get it on Google Play" 
+                  className="w-full h-auto"
+                />
+              </Link>
+            </div>
+          </div>
+
+          {/* Footer Sidebar */}
+          <div className="text-[11px] text-[#999] pt-2 border-t border-[#333]">
+            <div className="flex flex-wrap gap-x-2 gap-y-1 mb-4 leading-tight">
+              <Link href="#" className="hover:text-[#ccc]">Legal</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Privacy</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Cookie Policy</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Cookie Manager</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Imprint</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Artist Resources</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Newsroom</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Charts</Link><span>-</span>
+              <Link href="#" className="hover:text-[#ccc]">Transparency Reports</Link>
+            </div>
+            <div className="font-medium text-[#ccc]">
+              Language: <span className="text-[#3882d9] cursor-pointer hover:underline font-normal">English (US)</span>
             </div>
           </div>
 
@@ -287,3 +329,56 @@ export default function HomePage() {
     </div>
   );
 }
+
+function SidebarTrackRow({ track, onPlay }: { track: any, onPlay: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div 
+      className="flex items-center gap-3 py-2 relative group" 
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div 
+        className="w-[45px] h-[45px] bg-[#333] rounded-sm overflow-hidden shrink-0 relative cursor-pointer"
+        onClick={onPlay}
+      >
+        <img 
+          src={track.artworkUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&h=100&fit=crop'} 
+          alt={track.title} 
+          className="w-full h-full object-cover" 
+        />
+        {hovered && (
+          <div className="absolute inset-0 bg-black/40 flex justify-center items-center">
+            <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center pl-0.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="black"><polygon points="6,4 20,12 6,20"/></svg>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col min-w-0 flex-1 pr-16 box-border">
+        <span className="text-[12px] text-[#999] truncate">{track.artist?.displayName || track.artist}</span>
+        <span className="text-[13px] text-white font-medium truncate group-hover:text-[#ccc]">{track.title}</span>
+        <div className="flex gap-2 text-[11px] text-[#777] mt-1 items-center">
+          <span className="flex items-center gap-1">▶ {fmt(track.playCount || 0)}</span>
+          <span className="flex items-center gap-1">♥ {fmt(track.likeCount || 0)}</span>
+          <span className="flex items-center gap-1">↺ {fmt(track.repostCount || 0)}</span>
+          <span className="flex items-center gap-1">💬 {fmt(track.commentCount || 0)}</span>
+        </div>
+      </div>
+
+      {hovered && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff5500" stroke="#ff5500" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+          <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors">
+            <svg width="16" height="4" viewBox="0 0 16 4" fill="#ccc"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/></svg>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
