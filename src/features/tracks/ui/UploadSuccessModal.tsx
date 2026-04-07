@@ -9,6 +9,7 @@ interface UploadSuccessModalProps {
   onClose: () => void;
   trackTitle: string;
   username: string;
+  trackId?: string;
 }
 
 // ─── Icon Components ──────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ export default function UploadSuccessModal({
   onClose,
   trackTitle,
   username,
+  trackId,
 }: UploadSuccessModalProps) {
   const router = useRouter();
 
@@ -98,7 +100,9 @@ export default function UploadSuccessModal({
 
   const handleViewTrack = () => {
     onClose();
-    router.push(ROUTES.PROFILE(username));
+    const target = trackId ? ROUTES.TRACK(trackId) : ROUTES.PROFILE(username);
+    console.log('[UploadSuccessModal] "View Track" navigating to:', target, '| trackId:', trackId);
+    router.push(target);
   };
 
   return (

@@ -1,4 +1,4 @@
-# dependencies
+# Dependencies
 /node_modules
 
 # Next.js build output
@@ -29,7 +29,10 @@ tsconfig.tsbuildinfo
 *.txt
 *.ps1
 json_dump.json
-how\ e1ae31c\ --sta
+how\ *
 
 # Vitest-era test folder (superseded by src/features/player/tests)
 src/__tests__/
+
+# Test output
+test_output.txt
