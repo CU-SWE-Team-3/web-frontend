@@ -1,0 +1,1597 @@
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/AppButton/AppButton.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.AppButton_button__hFMYn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-semibold);
+  border: 1px solid transparent;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: background var(--sc-transition-fast), border-color var(--sc-transition-fast), box-shadow var(--sc-transition-fast), opacity var(--sc-transition-fast);
+  line-height: var(--sc-line-height-tight);
+  white-space: nowrap;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.AppButton_button__hFMYn:focus-visible {
+  outline: none;
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.AppButton_sm__p_CBN {
+  font-size: var(--sc-font-size-sm);
+  padding: 4px 12px;
+  height: 28px;
+}
+
+.AppButton_md__Lnhr4 {
+  font-size: var(--sc-font-size-md);
+  padding: 6px 16px;
+  height: 36px;
+}
+
+.AppButton_lg__bFU8d {
+  font-size: var(--sc-font-size-lg);
+  padding: 8px 24px;
+  height: 44px;
+}
+
+.AppButton_primary__o_ar3 {
+  background: var(--sc-primary);
+  color: var(--sc-white);
+}
+.AppButton_primary__o_ar3:hover:not(:disabled) {
+  background: var(--sc-primary-hover);
+}
+.AppButton_primary__o_ar3:active:not(:disabled) {
+  background: var(--sc-primary-active);
+}
+
+.AppButton_secondary__7_6mR {
+  background: var(--sc-gray-900);
+  color: var(--sc-white);
+}
+.AppButton_secondary__7_6mR:hover:not(:disabled) {
+  background: var(--sc-black);
+}
+.AppButton_secondary__7_6mR:active:not(:disabled) {
+  background: #000;
+}
+
+.AppButton_outline__sMW4W {
+  background: transparent;
+  color: var(--sc-gray-900);
+  border-color: var(--sc-gray-300);
+}
+.AppButton_outline__sMW4W:hover:not(:disabled) {
+  border-color: var(--sc-gray-900);
+}
+.AppButton_outline__sMW4W:active:not(:disabled) {
+  background: var(--sc-gray-100);
+}
+
+.AppButton_ghost__HqMrc {
+  background: transparent;
+  color: var(--sc-gray-700);
+}
+.AppButton_ghost__HqMrc:hover:not(:disabled) {
+  background: var(--sc-gray-100);
+}
+.AppButton_ghost__HqMrc:active:not(:disabled) {
+  background: var(--sc-gray-200);
+}
+
+.AppButton_danger__D5ZYy {
+  background: var(--sc-danger);
+  color: var(--sc-white);
+}
+.AppButton_danger__D5ZYy:hover:not(:disabled) {
+  background: var(--sc-danger-hover);
+}
+.AppButton_danger__D5ZYy:active:not(:disabled) {
+  background: #900;
+}
+
+.AppButton_disabled__24vY_ {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.AppButton_loading__xICrn {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.AppButton_spinner__omCym {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--sc-radius-full);
+  animation: AppButton_spin__TCL9i 0.6s linear infinite;
+  color: var(--sc-white);
+}
+
+.AppButton_outline__sMW4W .AppButton_spinner__omCym,
+.AppButton_ghost__HqMrc .AppButton_spinner__omCym {
+  color: var(--sc-gray-700);
+}
+
+@keyframes AppButton_spin__TCL9i {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/AppInput/AppInput.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.AppInput_wrapper__DUdsO {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-1);
+  font-family: var(--sc-font-family);
+}
+
+.AppInput_label__cKT8q {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-gray-900);
+}
+
+.AppInput_inputWrap__cTW4O {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.AppInput_input__J7cE9 {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--sc-space-3);
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+  color: var(--sc-gray-900);
+  background: var(--sc-white);
+  border: 1px solid var(--sc-gray-300);
+  border-radius: var(--sc-radius-md);
+  transition: border-color var(--sc-transition-fast), box-shadow var(--sc-transition-fast);
+  outline: none;
+}
+.AppInput_input__J7cE9::-moz-placeholder {
+  color: var(--sc-gray-400);
+}
+.AppInput_input__J7cE9::placeholder {
+  color: var(--sc-gray-400);
+}
+.AppInput_input__J7cE9:focus {
+  border-color: var(--sc-primary);
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.AppInput_hasLeft__SW_Kw {
+  padding-left: 36px;
+}
+
+.AppInput_hasRight__QlDPo {
+  padding-right: 36px;
+}
+
+.AppInput_icon__pUqUd {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--sc-gray-500);
+  pointer-events: none;
+}
+
+.AppInput_iconLeft__E1NAH {
+  left: var(--sc-space-3);
+}
+
+.AppInput_iconRight__tSQA5 {
+  right: var(--sc-space-3);
+}
+
+.AppInput_error__h1AG4 .AppInput_input__J7cE9 {
+  border-color: var(--sc-danger);
+}
+.AppInput_error__h1AG4 .AppInput_input__J7cE9:focus {
+  box-shadow: var(--sc-shadow-error);
+}
+
+.AppInput_errorMsg__bIwNt {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-danger);
+}
+
+.AppInput_hint__SIIPh {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+}
+
+.AppInput_disabled__eESYB .AppInput_input__J7cE9 {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--sc-gray-100);
+}
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/UserAvatar/UserAvatar.module.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.UserAvatar_avatar__nllgd {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-full);
+  overflow: hidden;
+  flex-shrink: 0;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.UserAvatar_xs__O4rnk {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.UserAvatar_sm__u9N03 {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.UserAvatar_md__d_Vhe {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.UserAvatar_lg__fQ4Go {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+}
+
+.UserAvatar_xl__ejVrK {
+  width: 96px;
+  height: 96px;
+  font-size: 32px;
+}
+
+.UserAvatar_image__MvksS {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.UserAvatar_fallback__3_fyh {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-bold);
+  text-transform: uppercase;
+  line-height: 1;
+}
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/TrackCard/TrackCard.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.TrackCard_card__4RXOy {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  height: 72px;
+  padding: 0 var(--sc-space-3);
+  border-radius: var(--sc-radius-md);
+  transition: background var(--sc-transition-fast);
+  width: 100%;
+}
+.TrackCard_card__4RXOy:hover {
+  background: var(--sc-bg-dark-hover);
+}
+
+/* ---- Play Button ---- */
+.TrackCard_playBtn__mbotN {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--sc-transition-fast);
+}
+.TrackCard_playBtn__mbotN:hover {
+  background: var(--sc-primary-hover);
+}
+
+.TrackCard_playTriangle__QaPuo {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 7px 0 7px 12px;
+  border-color: transparent transparent transparent var(--sc-white);
+  margin-left: 2px;
+}
+
+.TrackCard_pauseIcon__GXPsZ {
+  display: flex;
+  gap: 3px;
+}
+
+.TrackCard_pauseBar__cDFAp {
+  width: 3px;
+  height: 14px;
+  background: var(--sc-white);
+  border-radius: 1px;
+}
+
+/* ---- Cover Art ---- */
+.TrackCard_artWrap__mo_Tq {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-sm);
+  overflow: hidden;
+}
+
+.TrackCard_artImg__e8VTY {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+/* ---- Meta ---- */
+.TrackCard_meta__LWeDL {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.TrackCard_title__lyIBD {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.TrackCard_artist__Al6r8 {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Waveform ---- */
+.TrackCard_waveform__SCOfP {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 32px;
+  min-width: 0;
+}
+
+.TrackCard_bar__UuH7E {
+  flex: 1;
+  border-radius: 1px;
+  transition: background var(--sc-transition-fast);
+}
+
+/* ---- Stats ---- */
+.TrackCard_stats__ULhAT {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  flex-shrink: 0;
+}
+
+.TrackCard_stat__i2kmh {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+}
+
+.TrackCard_likeBtn__N3_zm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--sc-radius-sm);
+  transition: color var(--sc-transition-fast);
+}
+.TrackCard_likeBtn__N3_zm:hover {
+  color: var(--sc-primary);
+}
+
+.TrackCard_liked__alclD {
+  color: var(--sc-primary);
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/AppModal/AppModal.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.AppModal_overlay___EWfT {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sc-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sc-bg-overlay);
+  backdrop-filter: blur(4px);
+  padding: var(--sc-space-4);
+}
+
+.AppModal_panel___IExp {
+  position: relative;
+  width: 100%;
+  background: var(--sc-bg-dark-surface);
+  border: 1px solid var(--sc-bg-dark-hover);
+  border-radius: var(--sc-radius-lg);
+  padding: var(--sc-space-6);
+  box-shadow: var(--sc-shadow-lg);
+  animation: AppModal_modalIn__nbfHu 200ms ease;
+}
+
+@keyframes AppModal_modalIn__nbfHu {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.AppModal_header__eOYZh {
+  margin-bottom: var(--sc-space-4);
+}
+
+.AppModal_title__YMb_1 {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xl);
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-white);
+  margin: 0;
+}
+
+.AppModal_description__Z83ti {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-400);
+  margin: var(--sc-space-1) 0 0;
+}
+
+.AppModal_closeBtn__xQC2E {
+  position: absolute;
+  top: var(--sc-space-4);
+  right: var(--sc-space-4);
+  background: none;
+  border: none;
+  color: var(--sc-gray-400);
+  font-size: 18px;
+  cursor: pointer;
+}
+.AppModal_closeBtn__xQC2E:hover {
+  color: var(--sc-white);
+}
+
+.AppModal_body__qG9dg {
+  color: var(--sc-gray-300);
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/SkeletonLoader/SkeletonLoader.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.SkeletonLoader_skeleton__v1uSh {
+  position: relative;
+  overflow: hidden;
+  background: var(--sc-gray-200);
+}
+.SkeletonLoader_skeleton__v1uSh::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+  animation: SkeletonLoader_shimmer__fmwxj 1.5s ease infinite;
+}
+
+.SkeletonLoader_rounded__9a1n1 {
+  border-radius: var(--sc-radius-md);
+}
+
+.SkeletonLoader_circle__F8uBh {
+  border-radius: var(--sc-radius-full);
+}
+
+.SkeletonLoader_lines__bWOkD {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-2);
+}
+
+@keyframes SkeletonLoader_shimmer__fmwxj {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/TabBar/TabBar.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.TabBar_tabs__4esQk {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-6);
+  border-bottom: 1px solid var(--sc-bg-dark-hover);
+}
+
+.TabBar_tab__sZXpg {
+  position: relative;
+  padding: var(--sc-space-3) 0;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-gray-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--sc-transition-fast);
+  white-space: nowrap;
+}
+.TabBar_tab__sZXpg:hover {
+  color: var(--sc-white);
+}
+.TabBar_tab__sZXpg::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background var(--sc-transition-fast);
+}
+
+.TabBar_active__uAyVY {
+  color: var(--sc-white);
+}
+.TabBar_active__uAyVY::after {
+  background: var(--sc-primary);
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/FollowButton/FollowButton.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+.FollowButton_followBtn__Coeb4 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-2);
+  padding: 6px 16px;
+  min-width: 80px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+  white-space: nowrap;
+  border: none;
+  /* Default: not following — orange filled */
+  background: var(--sc-primary);
+  color: var(--sc-white);
+}
+.FollowButton_followBtn__Coeb4:hover {
+  background: var(--sc-primary-hover);
+}
+
+.FollowButton_following__sgtFQ {
+  /* Following state — grey outlined */
+  background: transparent;
+  border: 1px solid var(--sc-gray-500);
+  color: var(--sc-gray-400);
+}
+.FollowButton_following__sgtFQ:hover {
+  /* Red Unfollow on hover */
+  border-color: var(--sc-danger);
+  color: var(--sc-danger);
+  background: rgba(207, 0, 0, 0.1);
+}
+
+.FollowButton_disabled__CEK14 {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/GenreTag/GenreTag.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+.GenreTag_tag__Lmsp6 {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-medium);
+  border-radius: var(--sc-radius-sm);
+  cursor: pointer;
+  transition: color var(--sc-transition-fast), border-color var(--sc-transition-fast);
+  white-space: nowrap;
+}
+
+/* Orange outlined — for genres */
+.GenreTag_outlined__uHl0q {
+  color: var(--sc-primary);
+  background: transparent;
+  border: 1px solid var(--sc-primary);
+}
+.GenreTag_outlined__uHl0q:hover {
+  background: rgba(255, 85, 0, 0.1);
+}
+
+/* Grey filled — for tags */
+.GenreTag_filled___InOh {
+  color: var(--sc-gray-300);
+  background: var(--sc-bg-dark-elevated);
+  border: 1px solid var(--sc-bg-dark-hover);
+}
+.GenreTag_filled___InOh:hover {
+  color: var(--sc-white);
+  border-color: var(--sc-gray-500);
+}
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/StatCounter/StatCounter.module.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.StatCounter_counter__m6B5Z {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.StatCounter_label__fv46j {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-400);
+  text-transform: capitalize;
+}
+
+.StatCounter_value___MzNV {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-2xl);
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-white);
+  line-height: var(--sc-line-height-tight);
+}
+
+.StatCounter_row__wJ5TU {
+  display: flex;
+  gap: var(--sc-space-8);
+}
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/ActionBar/ActionBar.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ActionBar_bar__f4B8T {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}
+
+.ActionBar_actionBtn__yiez_ {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: var(--sc-gray-400);
+  background: none;
+  border: 1px solid var(--sc-bg-dark-hover);
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: color var(--sc-transition-fast), border-color var(--sc-transition-fast);
+}
+.ActionBar_actionBtn__yiez_:hover {
+  color: var(--sc-white);
+  border-color: var(--sc-gray-500);
+}
+
+.ActionBar_withLabel__w24U0 {
+  width: auto;
+  padding: 0 var(--sc-space-3);
+  gap: var(--sc-space-1);
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+}
+
+.ActionBar_active__Vdbk_ {
+  color: var(--sc-primary);
+  border-color: var(--sc-primary);
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/ArtistSuggestionCard/ArtistSuggestionCard.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.ArtistSuggestionCard_card__5ODlV {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  padding: var(--sc-space-3) 0;
+}
+
+.ArtistSuggestionCard_info__8BHzF {
+  flex: 1;
+  min-width: 0;
+}
+
+.ArtistSuggestionCard_name__praV2 {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-1);
+}
+
+.ArtistSuggestionCard_meta__FBVix {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/AnnouncementBanner/AnnouncementBanner.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.AnnouncementBanner_banner__VHkrq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-3);
+  padding: var(--sc-space-3) var(--sc-space-6);
+  background: var(--sc-bg-dark-surface);
+  border-bottom: 1px solid var(--sc-bg-dark-hover);
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-white);
+  position: relative;
+}
+
+.AnnouncementBanner_icon__m27Op {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.AnnouncementBanner_link__WN0f0 {
+  color: var(--sc-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+.AnnouncementBanner_link__WN0f0:hover {
+  text-decoration: underline;
+}
+
+.AnnouncementBanner_dismiss__39Z_d {
+  position: absolute;
+  right: var(--sc-space-6);
+  background: none;
+  border: none;
+  color: var(--sc-gray-500);
+  font-size: 18px;
+  cursor: pointer;
+  padding: var(--sc-space-1);
+  transition: color var(--sc-transition-fast);
+}
+.AnnouncementBanner_dismiss__39Z_d:hover {
+  color: var(--sc-white);
+}
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/SidebarTrackItem/SidebarTrackItem.module.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.SidebarTrackItem_item__rC3xj {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  padding: var(--sc-space-2) 0;
+}
+
+.SidebarTrackItem_cover__jcahr {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-sm);
+  overflow: hidden;
+}
+
+.SidebarTrackItem_coverImg__LE_23 {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+.SidebarTrackItem_info__H2bGv {
+  flex: 1;
+  min-width: 0;
+}
+
+.SidebarTrackItem_top__URALR {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.SidebarTrackItem_title___n4Su {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.SidebarTrackItem_stats__H5gH_ {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  flex-shrink: 0;
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/PlaylistCard/PlaylistCard.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.PlaylistCard_card__sJ3bH {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-2);
+  cursor: pointer;
+}
+
+.PlaylistCard_cover__J4BfI {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--sc-radius-md);
+  overflow: hidden;
+}
+
+.PlaylistCard_coverImg__F124C {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+.PlaylistCard_playOverlay__uXsfH {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity var(--sc-transition-fast);
+}
+.PlaylistCard_cover__J4BfI:hover .PlaylistCard_playOverlay__uXsfH {
+  opacity: 1;
+}
+
+.PlaylistCard_playIcon__yxnRl {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.PlaylistCard_playTriangle__M7_wJ {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 0 8px 14px;
+  border-color: transparent transparent transparent var(--sc-white);
+  margin-left: 3px;
+}
+
+.PlaylistCard_title__DlHgV {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/DropZone/DropZone.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.DropZone_zone__nlub0 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-4);
+  padding: var(--sc-space-16) var(--sc-space-8);
+  border: 2px dashed var(--sc-gray-500);
+  border-radius: var(--sc-radius-lg);
+  background: transparent;
+  transition: border-color var(--sc-transition-fast), background var(--sc-transition-fast);
+  cursor: pointer;
+}
+.DropZone_zone__nlub0:hover {
+  border-color: var(--sc-white);
+  background: var(--sc-bg-dark-surface);
+}
+
+.DropZone_dragOver__qfXMm {
+  border-color: var(--sc-primary);
+  background: rgba(255, 85, 0, 0.05);
+}
+
+.DropZone_icon__SUDOk {
+  font-size: 48px;
+  color: var(--sc-gray-400);
+}
+
+.DropZone_label__4U4OZ {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  text-align: center;
+}
+/*!***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/SocialButton/SocialButton.module.scss ***!
+  \***********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.SocialButton_btn__cRWRt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-3);
+  width: 100%;
+  padding: 10px 16px;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-semibold);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: opacity var(--sc-transition-fast);
+  color: var(--sc-white);
+}
+.SocialButton_btn__cRWRt:hover {
+  opacity: 0.9;
+}
+
+.SocialButton_facebook__b6TuY {
+  background: var(--sc-facebook);
+}
+
+.SocialButton_google__xqGcd {
+  background: var(--sc-google);
+}
+
+.SocialButton_apple__gm5Bf {
+  background: var(--sc-apple);
+  border: 1px solid var(--sc-gray-700);
+}
+
+.SocialButton_icon__6Mli1 {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/EmptyState/EmptyState.module.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.EmptyState_empty__Lw690 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sc-space-4);
+  padding: var(--sc-space-16) var(--sc-space-8);
+  text-align: center;
+}
+
+.EmptyState_icon__Bi4T0 {
+  font-size: 48px;
+  color: var(--sc-gray-500);
+}
+
+.EmptyState_title__fDZVw {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-white);
+}
+
+.EmptyState_description__pDY7O {
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-500);
+  max-width: 400px;
+}
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/features/player/ui/player/SeekBar.module.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.SeekBar_root__HhBVL {
+  position: relative;
+  width: 100%;
+}
+.SeekBar_root__HhBVL:hover .SeekBar_track__BPH0e {
+  height: 6px;
+}
+.SeekBar_root__HhBVL:hover .SeekBar_thumb__KeqkJ {
+  opacity: 1;
+}
+
+.SeekBar_track__BPH0e {
+  position: relative;
+  height: 4px;
+  background: var(--sc-bg-dark-hover);
+  border-radius: 2px;
+  cursor: pointer;
+  overflow: visible;
+  transition: height 150ms ease;
+}
+
+.SeekBar_buffered__QXbuz {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--sc-bg-dark-elevated);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+.SeekBar_played__Mb_m0 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--sc-primary);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+.SeekBar_thumb__KeqkJ {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: var(--sc-white);
+  border-radius: var(--sc-radius-full);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 150ms ease;
+}
+
+.SeekBar_tooltip__wnihg {
+  position: absolute;
+  top: -26px;
+  padding: 2px 6px;
+  background: var(--sc-bg-dark-elevated);
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-xs);
+  border-radius: var(--sc-radius-md);
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--sc-font-family);
+  transform: translateX(-50%);
+  border: 1px solid var(--sc-bg-dark-hover);
+}
+/*!***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/features/player/ui/player/VolumeControl.module.scss ***!
+  \***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/* VolumeControl */
+.VolumeControl_wrap__1MFvk {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+}
+
+.VolumeControl_muteBtn__5jhkq {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-gray-500);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+}
+.VolumeControl_muteBtn__5jhkq:hover {
+  color: var(--sc-white);
+}
+.VolumeControl_muteBtn__5jhkq:focus-visible {
+  outline: none;
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.VolumeControl_slider___9ai5 {
+  -webkit-appearance: none;
+  width: 80px;
+  height: 4px;
+  background: var(--sc-bg-dark-hover);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.VolumeControl_slider___9ai5::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-white);
+  cursor: pointer;
+  -webkit-transition: transform 150ms ease;
+  transition: transform 150ms ease;
+}
+.VolumeControl_slider___9ai5::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+.VolumeControl_slider___9ai5::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-white);
+  border: 0;
+  cursor: pointer;
+}
+.VolumeControl_slider___9ai5:focus-visible {
+  box-shadow: var(--sc-shadow-focus);
+}
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/PlayerBar/PlayerBar.module.scss ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.PlayerBar_bar__VH7Z5 {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  background: var(--sc-bg-dark);
+  border-top: 1px solid var(--sc-bg-dark-hover);
+  z-index: 9999;
+  padding: 0 var(--sc-space-4);
+  font-family: var(--sc-font-family);
+}
+@media (min-width: 768px) {
+  .PlayerBar_bar__VH7Z5 {
+    height: 56px;
+  }
+}
+
+/* ---- Left Section ---- */
+.PlayerBar_left__QMaIP {
+  width: 180px;
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  min-width: 0;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .PlayerBar_left__QMaIP {
+    width: 25%;
+  }
+}
+
+.PlayerBar_coverArt__v9CBX {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sc-radius-sm);
+  overflow: hidden;
+}
+
+.PlayerBar_coverImg__Xj5cx {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+.PlayerBar_trackInfo__Njoqi {
+  min-width: 0;
+  flex: 1;
+  display: none;
+}
+@media (min-width: 640px) {
+  .PlayerBar_trackInfo__Njoqi {
+    display: block;
+  }
+}
+
+.PlayerBar_mobileTitle__hed68 {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .PlayerBar_mobileTitle__hed68 {
+    display: none;
+  }
+}
+
+.PlayerBar_trackTitle__JBSlb {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.PlayerBar_trackArtist__TxHqM {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.PlayerBar_heartBtn__9dIS1 {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-gray-500);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+}
+.PlayerBar_heartBtn__9dIS1:hover {
+  color: var(--sc-primary);
+}
+.PlayerBar_heartBtn__9dIS1:focus-visible {
+  outline: none;
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.PlayerBar_heartLiked__k56nj {
+  color: var(--sc-primary);
+}
+
+/* ---- Center Section ---- */
+.PlayerBar_center__0RVMx {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 0 var(--sc-space-2);
+}
+@media (min-width: 768px) {
+  .PlayerBar_center__0RVMx {
+    margin: 0 var(--sc-space-4);
+  }
+}
+
+.PlayerBar_controls__9LgIo {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+}
+@media (min-width: 768px) {
+  .PlayerBar_controls__9LgIo {
+    gap: var(--sc-space-4);
+  }
+}
+
+.PlayerBar_ctrlBtn__K3Wtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-gray-500);
+  padding: 4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+}
+@media (min-width: 768px) {
+  .PlayerBar_ctrlBtn__K3Wtn {
+    display: flex;
+  }
+}
+.PlayerBar_ctrlBtn__K3Wtn:hover {
+  color: var(--sc-white);
+}
+.PlayerBar_ctrlBtn__K3Wtn:focus-visible {
+  outline: none;
+  box-shadow: var(--sc-shadow-focus);
+}
+
+.PlayerBar_playPauseBtn__Gooo5 {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 150ms ease;
+}
+@media (min-width: 768px) {
+  .PlayerBar_playPauseBtn__Gooo5 {
+    width: 36px;
+    height: 36px;
+  }
+}
+.PlayerBar_playPauseBtn__Gooo5:hover {
+  background: var(--sc-primary-hover);
+}
+.PlayerBar_playPauseBtn__Gooo5:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.4);
+}
+
+.PlayerBar_seekRow__4o2Li {
+  display: none;
+  align-items: center;
+  gap: var(--sc-space-2);
+  width: 100%;
+  max-width: 480px;
+}
+@media (min-width: 768px) {
+  .PlayerBar_seekRow__4o2Li {
+    display: flex;
+  }
+}
+
+.PlayerBar_time__WEnQn {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  min-width: 32px;
+  font-variant-numeric: tabular-nums;
+}
+.PlayerBar_time__WEnQn:first-child {
+  text-align: right;
+}
+
+.PlayerBar_seekWrap__JmZWs {
+  flex: 1;
+}
+
+/* ---- Right Section ---- */
+.PlayerBar_right__A5F1t {
+  width: 25%;
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sc-space-2);
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .PlayerBar_right__A5F1t {
+    display: flex;
+  }
+}
+
+.PlayerBar_iconBtn__nDdyA {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sc-gray-500);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+}
+.PlayerBar_iconBtn__nDdyA:hover {
+  color: var(--sc-white);
+}
+.PlayerBar_iconBtn__nDdyA:focus-visible {
+  outline: none;
+  box-shadow: var(--sc-shadow-focus);
+}
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[9].use[3]!./node_modules/next/dist/build/webpack/loaders/resolve-url-loader/index.js??ruleSet[1].rules[13].oneOf[9].use[4]!./node_modules/next/dist/compiled/sass-loader/cjs.js??ruleSet[1].rules[13].oneOf[9].use[5]!./src/shared/ui/SidebarNav/SidebarNav.module.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+.SidebarNav_sidebar__LSsXb {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--sc-bg-dark);
+  border-right: 1px solid var(--sc-bg-dark-hover);
+  display: flex;
+  flex-direction: column;
+  padding: var(--sc-space-4) 0;
+  font-family: var(--sc-font-family);
+  flex-shrink: 0;
+}
+
+.SidebarNav_section__2vpho {
+  padding: var(--sc-space-2) var(--sc-space-4);
+}
+
+.SidebarNav_sectionTitle__1X6zl {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--sc-space-2) var(--sc-space-4);
+  margin-top: var(--sc-space-4);
+}
+
+.SidebarNav_navItem__UkkSy {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  padding: var(--sc-space-2) var(--sc-space-4);
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-400);
+  text-decoration: none;
+  border-radius: var(--sc-radius-md);
+  cursor: pointer;
+  transition: color var(--sc-transition-fast), background var(--sc-transition-fast);
+}
+.SidebarNav_navItem__UkkSy:hover {
+  color: var(--sc-white);
+  background: var(--sc-bg-dark-hover);
+}
+
+.SidebarNav_navItemActive__SGCjD {
+  color: var(--sc-white);
+  background: var(--sc-bg-dark-surface);
+}
+
+.SidebarNav_navIcon__nFs3D {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+.SidebarNav_divider__kgq_f {
+  height: 1px;
+  background: var(--sc-bg-dark-hover);
+  margin: var(--sc-space-3) var(--sc-space-4);
+}
+
+.SidebarNav_trackList__MlMo0 {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sc-space-2);
+}
+
+.SidebarNav_trackItem__4UWRQ {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-2);
+  padding: var(--sc-space-2);
+  border-radius: var(--sc-radius-sm);
+  cursor: pointer;
+  transition: background var(--sc-transition-fast);
+}
+.SidebarNav_trackItem__4UWRQ:hover {
+  background: var(--sc-bg-dark-hover);
+}
+
+.SidebarNav_trackCover__8OT36 {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.SidebarNav_trackCoverImg__IfSlX {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+}
+
+.SidebarNav_trackMeta__iR01x {
+  min-width: 0;
+  flex: 1;
+}
+
+.SidebarNav_trackTitle__GUnns {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.SidebarNav_trackArtist__fWsFr {
+  font-size: 10px;
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+/*!**********************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[12].use[3]!./node_modules/react-image-crop/dist/ReactCrop.css ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************************************/
+@-webkit-keyframes marching-ants{0%{background-position:0 0,0 100%,0 0,100% 0}to{background-position:20px 0,-20px 100%,0 -20px,100% 20px}}@keyframes marching-ants{0%{background-position:0 0,0 100%,0 0,100% 0}to{background-position:20px 0,-20px 100%,0 -20px,100% 20px}}:root{--rc-drag-handle-size: 12px;--rc-drag-handle-mobile-size: 24px;--rc-drag-handle-bg-colour: rgba(0, 0, 0, .2);--rc-drag-bar-size: 6px;--rc-border-color: rgba(255, 255, 255, .7);--rc-focus-color: #0088ff}.ReactCrop{position:relative;display:inline-block;cursor:crosshair;max-width:100%}.ReactCrop *,.ReactCrop *:before,.ReactCrop *:after{-webkit-box-sizing:border-box;box-sizing:border-box}.ReactCrop--disabled,.ReactCrop--locked{cursor:inherit}.ReactCrop__child-wrapper{overflow:hidden;max-height:inherit}.ReactCrop__child-wrapper>img,.ReactCrop__child-wrapper>video{display:block;max-width:100%;max-height:inherit}.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__child-wrapper>img,.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__child-wrapper>video{-ms-touch-action:none;touch-action:none}.ReactCrop:not(.ReactCrop--disabled) .ReactCrop__crop-selection{-ms-touch-action:none;touch-action:none}.ReactCrop__crop-mask{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;width:calc(100% + .5px);height:calc(100% + .5px)}.ReactCrop__crop-selection{position:absolute;top:0;left:0;-webkit-transform:translateZ(0);transform:translateZ(0);cursor:move}.ReactCrop--disabled .ReactCrop__crop-selection{cursor:inherit}.ReactCrop--circular-crop .ReactCrop__crop-selection{border-radius:50%}.ReactCrop--circular-crop .ReactCrop__crop-selection:after{pointer-events:none;content:"";position:absolute;top:-1px;right:-1px;bottom:-1px;left:-1px;border:1px solid var(--rc-border-color);opacity:.3}.ReactCrop--no-animate .ReactCrop__crop-selection{outline:1px dashed white}.ReactCrop__crop-selection:not(.ReactCrop--no-animate .ReactCrop__crop-selection){-webkit-animation:marching-ants 1s;animation:marching-ants 1s;background-image:-webkit-gradient(linear,left top, right top,color-stop(50%, #fff),color-stop(50%, #444)),-webkit-gradient(linear,left top, right top,color-stop(50%, #fff),color-stop(50%, #444)),-webkit-gradient(linear,left top, left bottom,color-stop(50%, #fff),color-stop(50%, #444)),-webkit-gradient(linear,left top, left bottom,color-stop(50%, #fff),color-stop(50%, #444));background-image:linear-gradient(to right,#fff 50%,#444 50%),linear-gradient(to right,#fff 50%,#444 50%),linear-gradient(to bottom,#fff 50%,#444 50%),linear-gradient(to bottom,#fff 50%,#444 50%);background-size:10px 1px,10px 1px,1px 10px,1px 10px;background-position:0 0,0 100%,0 0,100% 0;background-repeat:repeat-x,repeat-x,repeat-y,repeat-y;color:#fff;-webkit-animation-play-state:running;animation-play-state:running;-webkit-animation-timing-function:linear;animation-timing-function:linear;-webkit-animation-iteration-count:infinite;animation-iteration-count:infinite}.ReactCrop__crop-selection:focus{outline:2px solid var(--rc-focus-color);outline-offset:-1px}.ReactCrop--invisible-crop .ReactCrop__crop-mask,.ReactCrop--invisible-crop .ReactCrop__crop-selection{display:none}.ReactCrop__rule-of-thirds-vt:before,.ReactCrop__rule-of-thirds-vt:after,.ReactCrop__rule-of-thirds-hz:before,.ReactCrop__rule-of-thirds-hz:after{content:"";display:block;position:absolute;background-color:#fff6}.ReactCrop__rule-of-thirds-vt:before,.ReactCrop__rule-of-thirds-vt:after{width:1px;height:100%}.ReactCrop__rule-of-thirds-vt:before{left:33.3333333333%}.ReactCrop__rule-of-thirds-vt:after{left:66.6666666667%}.ReactCrop__rule-of-thirds-hz:before,.ReactCrop__rule-of-thirds-hz:after{width:100%;height:1px}.ReactCrop__rule-of-thirds-hz:before{top:33.3333333333%}.ReactCrop__rule-of-thirds-hz:after{top:66.6666666667%}.ReactCrop__drag-handle{position:absolute;width:var(--rc-drag-handle-size);height:var(--rc-drag-handle-size);background-color:var(--rc-drag-handle-bg-colour);border:1px solid var(--rc-border-color)}.ReactCrop__drag-handle:focus{background:var(--rc-focus-color)}.ReactCrop .ord-nw{top:0;left:0;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);cursor:nw-resize}.ReactCrop .ord-n{top:0;left:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);cursor:n-resize}.ReactCrop .ord-ne{top:0;right:0;-webkit-transform:translate(50%,-50%);transform:translate(50%,-50%);cursor:ne-resize}.ReactCrop .ord-e{top:50%;right:0;-webkit-transform:translate(50%,-50%);transform:translate(50%,-50%);cursor:e-resize}.ReactCrop .ord-se{bottom:0;right:0;-webkit-transform:translate(50%,50%);transform:translate(50%,50%);cursor:se-resize}.ReactCrop .ord-s{bottom:0;left:50%;-webkit-transform:translate(-50%,50%);transform:translate(-50%,50%);cursor:s-resize}.ReactCrop .ord-sw{bottom:0;left:0;-webkit-transform:translate(-50%,50%);transform:translate(-50%,50%);cursor:sw-resize}.ReactCrop .ord-w{top:50%;left:0;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);cursor:w-resize}.ReactCrop__disabled .ReactCrop__drag-handle{cursor:inherit}.ReactCrop__drag-bar{position:absolute}.ReactCrop__drag-bar.ord-n{top:0;left:0;width:100%;height:var(--rc-drag-bar-size);-webkit-transform:translateY(-50%);transform:translateY(-50%)}.ReactCrop__drag-bar.ord-e{right:0;top:0;width:var(--rc-drag-bar-size);height:100%;-webkit-transform:translate(50%);transform:translate(50%)}.ReactCrop__drag-bar.ord-s{bottom:0;left:0;width:100%;height:var(--rc-drag-bar-size);-webkit-transform:translateY(50%);transform:translateY(50%)}.ReactCrop__drag-bar.ord-w{top:0;left:0;width:var(--rc-drag-bar-size);height:100%;-webkit-transform:translate(-50%);transform:translate(-50%)}.ReactCrop--new-crop .ReactCrop__drag-bar,.ReactCrop--new-crop .ReactCrop__drag-handle,.ReactCrop--fixed-aspect .ReactCrop__drag-bar,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-n,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-e,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-s,.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-w{display:none}@media (pointer: coarse){.ReactCrop .ord-n,.ReactCrop .ord-e,.ReactCrop .ord-s,.ReactCrop .ord-w{display:none}.ReactCrop__drag-handle{width:var(--rc-drag-handle-mobile-size);height:var(--rc-drag-handle-mobile-size)}}
+

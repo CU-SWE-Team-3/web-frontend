@@ -1,0 +1,194 @@
+﻿commit 3a6b0d1e784ca2a6d1b017e8ff08841cd9a875fd
+Merge: 0e941fd 1567350
+Author: bastawi <Medo.bastawi@gmail.com>
+Date:   Wed Mar 18 17:13:03 2026 +0200
+
+    merge: resolve .gitignore conflict with main
+
+diff --cc .gitignore
+index 8481049,5ef6a52..e8e3866
+--- a/.gitignore
++++ b/.gitignore
+@@@ -1,5 -1,41 +1,43 @@@
+- node_modules
+- .next
+- *.tsbuildinfo
++ # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
++ 
++ # dependencies
++ /node_modules
++ /.pnp
++ .pnp.*
++ .yarn/*
++ !.yarn/patches
++ !.yarn/plugins
++ !.yarn/releases
++ !.yarn/versions
++ 
++ # testing
++ /coverage
+ +jest_output.txt
+ +jest_output_utf8.txt
++ 
++ # next.js
++ /.next/
++ /out/
++ 
++ # production
++ /build
++ 
++ # misc
++ .DS_Store
++ *.pem
++ 
++ # debug
++ npm-debug.log*
++ yarn-debug.log*
++ yarn-error.log*
++ .pnpm-debug.log*
++ 
++ # env files (can opt-in for committing if needed)
++ .env*
++ 
++ # vercel
++ .vercel
++ 
++ # typescript
++ *.tsbuildinfo
++ next-env.d.ts
+import type { Metadata } from 'next';
+import '@/shared/ui/tokens/globals.scss'; // Ensure global styles and tokens are loaded
+
+export const metadata: Metadata = {
+  title: 'BioBeats',
+  description: 'SoundCloud Clone User Profile',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className="bg-[#111] text-white antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}
+commit 3a6b0d1e784ca2a6d1b017e8ff08841cd9a875fd
+Merge: 0e941fd 1567350
+Author: bastawi <Medo.bastawi@gmail.com>
+Date:   Wed Mar 18 17:13:03 2026 +0200
+
+    merge: resolve .gitignore conflict with main
+
+diff --cc .gitignore
+index 8481049,5ef6a52..e8e3866
+--- a/.gitignore
++++ b/.gitignore
+@@@ -1,5 -1,41 +1,43 @@@
+- node_modules
+- .next
+- *.tsbuildinfo
++ # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
++ 
++ # dependencies
++ /node_modules
++ /.pnp
++ .pnp.*
++ .yarn/*
++ !.yarn/patches
++ !.yarn/plugins
++ !.yarn/releases
++ !.yarn/versions
++ 
++ # testing
++ /coverage
+ +jest_output.txt
+ +jest_output_utf8.txt
++ 
++ # next.js
++ /.next/
++ /out/
++ 
++ # production
++ /build
++ 
++ # misc
++ .DS_Store
++ *.pem
++ 
++ # debug
++ npm-debug.log*
++ yarn-debug.log*
++ yarn-error.log*
++ .pnpm-debug.log*
++ 
++ # env files (can opt-in for committing if needed)
++ .env*
++ 
++ # vercel
++ .vercel
++ 
++ # typescript
++ *.tsbuildinfo
++ next-env.d.ts
+import { type FC, type ReactNode } from 'react';
+import s from './NavBar.module.scss';
+import { SearchBar } from '../SearchBar';
+import { SoundCloudLogo } from '../Brand';
+
+export interface NavBarProps {
+  isLoggedIn?: boolean;
+  avatarSlot?: ReactNode;
+  bellSlot?: ReactNode;
+  onUpload?: () => void;
+  onSignIn?: () => void;
+  onCreateAccount?: () => void;
+  searchValue?: string;
+  onSearchChange?: (v: string) => void;
+  className?: string;
+}
+
+export const NavBar: FC<NavBarProps> = ({
+  isLoggedIn = false,
+  avatarSlot,
+  bellSlot,
+  onUpload,
+  onSignIn,
+  onCreateAccount,
+  searchValue,
+  onSearchChange,
+  className,
+}) => (
+  <nav className={[s.navbar, className].filter(Boolean).join(' ')}>
+    {/* Logo */}
+    <div className={s.logo}>
+      <SoundCloudLogo size={36} color="var(--sc-primary)" />
+      <span className={s.logoText}>SOUNDCLOUD</span>
+    </div>
+
+    {/* Search */}
+    <div className={s.searchWrap}>
+      <SearchBar value={searchValue} onChange={onSearchChange} />
+    </div>
+
+    {/* Right actions */}
+    <div className={s.actions}>
+      {isLoggedIn ? (
+        <>
+          <button className={s.uploadBtn} onClick={onUpload}>Upload</button>
+          {bellSlot}
+          {avatarSlot}
+        </>
+      ) : (
+        <>
+          <button className={s.ghostBtn} onClick={onSignIn}>Sign in</button>
+          <button className={s.primaryBtn} onClick={onCreateAccount}>Create account</button>
+        </>
+      )}
+    </div>
+  </nav>
+);

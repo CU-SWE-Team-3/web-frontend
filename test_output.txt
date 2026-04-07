@@ -1,0 +1,51 @@
+﻿node.exe : [33mThe 
+plugin 
+"vite-tsconfig-paths" is 
+detected. Vite now 
+supports tsconfig paths 
+resolution natively via 
+the [1mresolve.tsconfigPa
+ths[22m option. You can 
+remove the plugin and set 
+[1mresolve.tsconfigPaths:
+ true[22m in your Vite 
+config instead.[39m
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (  
+  [33mThe plugin...g in   
+ stead.[39m:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend[39m
+
+[90mstdout[2m | src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22m[2mUploadSuccessModal[2m > [22m[2mnavigates to track page when View track is clicked
+[22m[39m[UploadSuccessModal] "View Track" navigating to: /tracks/track-789 | trackId: track-789
+
+[90mstdout[2m | src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22m[2mUploadSuccessModal[2m > [22m[2mfalls back to profile when no trackId is provided
+[22m[39m[UploadSuccessModal] "View Track" navigating to: /profile/testuser | trackId: [90mundefined[39m
+
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mdoes not render when open is false[32m 14[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mrenders when open is true[32m 23[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mshows the track title[32m 6[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mcalls onClose when close button is clicked[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mnavigates to track page when View track is clicked[32m 7[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mshows the distribute section[32m 7[2mms[22m[39m
+ [32mΓ£ô[39m src/features/tracks/ui/__tests__/UploadSuccessModal.test.tsx[2m > [22mUploadSuccessModal[2m > [22mfalls back to profile when no trackId is provided[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 21:27:27
+[2m   Duration [22m 2.82s[2m (transform 76ms, setup 193ms, import 199ms, tests 71ms, environment 1.58s)[22m
+

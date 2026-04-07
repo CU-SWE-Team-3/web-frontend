@@ -105,6 +105,7 @@ export const tracksRepository = {
 
         // Step 3: Confirm upload to trigger processing
         await apiClient.patch(`/tracks/${trackId}/confirm`);
+        console.log('[tracksRepository] Upload confirmed for trackId:', trackId, '| userId is derived from JWT on backend');
 
         // Step 4: Update metadata (only send valid fields so we don't trip strict API validation)
         const metadataPayload: any = { title: payload.title };
@@ -238,6 +239,38 @@ export const tracksRepository = {
   },
 
   async getTracksByArtist(username: string): Promise<Track[]> {
+    // ── Try real API first: fetch tracks for this specific user ──
+    try {
+      console.log('[tracksRepository] Fetching tracks for user from API:', `/tracks/user/${username}`);
+      const response = await apiClient.get(`/tracks/user/${username}`);
+      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+      console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', username);
+      if (Array.isArray(apiTracks) && apiTracks.length >= 0) {
+        // Map API response to our Track interface
+        return apiTracks.map((t: any) => ({
+          id: t._id || t.id,
+          title: t.title || 'Untitled',
+          artist: t.artist?.displayName || t.artist?.username || t.artist || username,
+          genre: t.genre || '',
+          tags: t.tags || [],
+          description: t.description || '',
+          releaseDate: t.releaseDate || '',
+          visibility: t.isPublic === false ? 'Private' as const : 'Public' as const,
+          status: (t.status === 'Finished' ? 'Finished' : 'Processing') as 'Finished' | 'Processing',
+          audioFileName: t.audioFileName || t.fileName || '',
+          artworkUrl: t.artworkUrl || '',
+          waveform: t.waveform || makeWaveform(),
+          duration: t.duration || '0:00',
+          createdAt: t.createdAt || '',
+          streamUrl: t.streamUrl || t.hlsUrl || '',
+          hlsUrl: t.hlsUrl || '',
+        }));
+      }
+    } catch (err) {
+      console.warn('[tracksRepository] API fetch for user tracks failed, falling back to mock:', err);
+    }
+
+    // ── Mock fallback ──
     await wait(WAIT);
     return tracks.filter((track) => track.artist === username || track.artist === CURRENT_ARTIST);
   },
