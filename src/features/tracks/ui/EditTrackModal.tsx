@@ -40,8 +40,34 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
   const [visibility, setVisibility] = useState<"Public" | "Private">(
     track.visibility || "Public"
   );
+  const [releaseDate, setReleaseDate] = useState(
+    track.releaseDate ? new Date(track.releaseDate).toISOString().split("T")[0] : ""
+  );
+  const [labelName, setLabelName] = useState(track.labelName || "");
+  const [isrc, setIsrc] = useState(track.isrc || "");
+  const [publisher, setPublisher] = useState(track.publisher || "");
+  const [buyLink, setBuyLink] = useState(track.buyLink || "");
+  const [allowComments, setAllowComments] = useState(track.allowComments ?? true);
   const [artworkUrl, setArtworkUrl] = useState(track.artworkUrl || "");
   const artworkInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setTitle(track.title || "");
+      setPermalink(track.title?.toLowerCase().replace(/\s+/g, "-") || "");
+      setGenre(track.genre || "");
+      setTags((track.tags || []).join(", "));
+      setDescription(track.description || "");
+      setVisibility(track.visibility || "Public");
+      setArtworkUrl(track.artworkUrl || "");
+      setReleaseDate(track.releaseDate ? new Date(track.releaseDate).toISOString().split("T")[0] : "");
+      setLabelName(track.labelName || "");
+      setIsrc(track.isrc || "");
+      setPublisher(track.publisher || "");
+      setBuyLink(track.buyLink || "");
+      setAllowComments(track.allowComments ?? true);
+    }
+  }, [open, track]);
 
   const filteredGenres = GENRE_OPTIONS.filter((g) =>
     g.toLowerCase().includes(genreSearch.toLowerCase())
@@ -63,6 +89,12 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
       description,
       visibility,
       artworkUrl,
+      releaseDate,
+      labelName,
+      isrc,
+      publisher,
+      buyLink,
+      allowComments,
     });
   };
 
@@ -225,10 +257,27 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
         {tab === "metadata" && (
           <div style={{ padding: 24 }}>
             <p style={{ fontSize: 13, color: "#777", marginBottom: 20 }}>Add additional metadata to help listeners discover your track.</p>
-            <div style={{ marginBottom: 20 }}><label style={lbl}>Release date</label><input type="date" style={{ ...inp, colorScheme: "dark" }} /></div>
-            <div style={{ marginBottom: 20 }}><label style={lbl}>Label name</label><input type="text" placeholder="e.g. Sony Music" style={inp} /></div>
-            <div style={{ marginBottom: 20 }}><label style={lbl}>ISRC</label><input type="text" placeholder="e.g. US-S1Z-03-12345" style={inp} /></div>
-            <div style={{ marginBottom: 20 }}><label style={lbl}>Publisher</label><input type="text" placeholder="Publisher name" style={inp} /></div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>Release date</label>
+              <input 
+                type="date" 
+                value={releaseDate}
+                onChange={(e) => setReleaseDate(e.target.value)}
+                style={{ ...inp, colorScheme: "dark" }} 
+              />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>Label name</label>
+              <input type="text" value={labelName} onChange={(e) => setLabelName(e.target.value)} placeholder="e.g. Sony Music" style={inp} />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>ISRC</label>
+              <input type="text" value={isrc} onChange={(e) => setIsrc(e.target.value)} placeholder="e.g. US-S1Z-03-12345" style={inp} />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>Publisher</label>
+              <input type="text" value={publisher} onChange={(e) => setPublisher(e.target.value)} placeholder="Publisher name" style={inp} />
+            </div>
           </div>
         )}
 
@@ -238,7 +287,7 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
             <p style={{ fontSize: 13, color: "#777", marginBottom: 20 }}>Control the visibility of engagements on your track, direct downloads, and more.</p>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                <input type="checkbox" defaultChecked style={{ accentColor: "#f50" }} />
+                <input type="checkbox" checked={allowComments} onChange={(e) => setAllowComments(e.target.checked)} style={{ accentColor: "#f50" }} />
                 <span style={{ fontSize: 13, color: "#ccc" }}>Allow comments on this track</span>
               </label>
             </div>
@@ -261,7 +310,10 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
         {tab === "advanced" && (
           <div style={{ padding: 24 }}>
             <p style={{ fontSize: 13, color: "#777", marginBottom: 20 }}>Advanced options for your track.</p>
-            <div style={{ marginBottom: 20 }}><label style={lbl}>Buy link</label><input type="text" placeholder="https://" style={inp} /></div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>Buy link</label>
+              <input type="url" value={buyLink} onChange={(e) => setBuyLink(e.target.value)} placeholder="https://" style={inp} />
+            </div>
             <div style={{ marginBottom: 20 }}><label style={lbl}>P-line</label><input type="text" placeholder="P-line text" style={inp} /></div>
             <div style={{ marginBottom: 20 }}><label style={lbl}>C-line</label><input type="text" placeholder="C-line text" style={inp} /></div>
           </div>
