@@ -44,7 +44,22 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
-            <AppButton className="h-14 w-14 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-110 transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+            <AppButton 
+              className="h-14 w-14 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-110 transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)]"
+              onClick={(e) => {
+                e.preventDefault();
+                // Dynamically load to avoid circular deps with tracks model vs player model
+                import('@/features/player/model/playerStore').then(({ usePlayerStore }) => {
+                  usePlayerStore.getState().play({
+                    id: track.id,
+                    title: track.title,
+                    artist: track.artist || 'Unknown Artist',
+                    artworkUrl: track.artworkUrl || '/placeholder.png',
+                    hlsUrl: track.streamUrl || track.hlsUrl,
+                  });
+                });
+              }}
+            >
               <Play size={24} fill="currentColor" className="ml-1" />
             </AppButton>
           </div>
@@ -86,7 +101,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
 
           {/* Waveform Area */}
           <div className="mt-4 pointer-events-none opacity-80 mix-blend-screen px-1 group-hover/card:opacity-100 transition-opacity duration-500">
-            <WaveformPlayer waveform={track.waveform} />
+            <WaveformPlayer audioUrl={track.streamUrl || track.hlsUrl} waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: track.artist, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} />
           </div>
 
           {/* Footer Metadata & Actions */}

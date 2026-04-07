@@ -14,8 +14,10 @@ import { useUserReposts } from '@/features/track-engagement/model/useUserReposts
 import { ProfileCover } from '@/widgets/user-profile/ProfileCover';
 import { ProfileTabs } from '@/widgets/user-profile/ProfileTabs';
 import { ProfileSidebar } from '@/widgets/user-profile/ProfileSidebar';
+import type { LikedTrackItem } from '@/widgets/user-profile/ProfileSidebar';
 import { EditProfileModal } from '@/widgets/user-profile/EditProfileModal';
 import { ShareModal } from '@/widgets/user-profile/ShareModal';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import s from './ProfilePage.module.scss';
 
 /* apiUrl is read inline from process.env.NEXT_PUBLIC_API_URL */
@@ -57,7 +59,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
+  const [likedTrackIds, setLikedTrackIds] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<ProfileData>({ ...defaultProfile, displayName: username, permalink: username });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
@@ -76,6 +78,15 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const { data: followingList } = useFollowing(ownId !== 'me' ? ownId : '');
   const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(username);
   const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(ownId !== 'me' ? ownId : '');
+  const { data: likedTracksRaw } = useLikedTracks();
+
+  // Map liked tracks to the sidebar format
+  const likedTracks: LikedTrackItem[] = (likedTracksRaw || []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    artist: t.artist,
+    artworkUrl: t.artworkUrl,
+  }));
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -380,6 +391,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
             bio={profile.bio}
             socialLinks={profile.socialLinks}
             followingUsers={followingList || []}
+            likedTracks={isOwnProfile ? likedTracks : []}
           />
         </div>
       </div>

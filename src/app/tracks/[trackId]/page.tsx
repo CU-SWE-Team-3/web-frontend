@@ -192,12 +192,18 @@ const TrackDetailPage: React.FC = () => {
           </div>
 
           {/* Comment Input */}
-          <div className="mt-6">
-            <CommentInput
-              trackId={trackId}
-              currentTime={currentPlaybackTime}
-            />
-          </div>
+          {track.allowComments !== false ? (
+            <div className="mt-6">
+              <CommentInput
+                trackId={trackId}
+                currentTime={currentPlaybackTime}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3 bg-[#222] border border-white/10 rounded-lg p-3 mt-4 shadow-sm text-neutral-500 text-sm italic">
+              Comments have been disabled for this track.
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 py-2">

@@ -17,6 +17,14 @@ export interface Track {
   waveform: number[];
   duration: string;
   createdAt: string;
+  hlsUrl?: string;
+  streamUrl?: string;
+  // Locally retained UI metadata
+  labelName?: string;
+  isrc?: string;
+  publisher?: string;
+  buyLink?: string;
+  allowComments?: boolean;
 }
 
 export interface UploadTrackInput {
@@ -29,6 +37,14 @@ export interface UploadTrackInput {
   status: ProcessingStatus;
   artworkUrl?: string;
   fileName: string;
+  excerptStart?: number;
+  excerptEnd?: number;
+  // Locally retained UI metadata
+  labelName?: string;
+  isrc?: string;
+  publisher?: string;
+  buyLink?: string;
+  allowComments?: boolean;
 }
 
 export interface UpdateTrackInput {
@@ -40,4 +56,10 @@ export interface UpdateTrackInput {
   visibility?: TrackVisibility;
   status?: ProcessingStatus;
   artworkUrl?: string;
+  // Locally retained UI metadata
+  labelName?: string;
+  isrc?: string;
+  publisher?: string;
+  buyLink?: string;
+  allowComments?: boolean;
 }

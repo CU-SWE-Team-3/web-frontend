@@ -4,6 +4,15 @@ import React, { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { AppButton } from "@/shared/ui";
 import { Pause, Play } from "lucide-react";
+import { usePlayerStore } from "@/features/player/model/playerStore";
+
+interface TrackMeta {
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl?: string;
+  hlsUrl?: string;
+}
 
 export interface WaveformComment {
   id: string;
@@ -18,6 +27,7 @@ interface WaveformPlayerProps {
   waveform?: number[];
   comments?: WaveformComment[];
   onTimeUpdate?: (currentTime: number) => void;
+  trackMeta?: TrackMeta;
 }
 
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
@@ -25,6 +35,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   waveform,
   comments = [],
   onTimeUpdate,
+  trackMeta,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
@@ -60,13 +71,22 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
     ws.on("ready", () => {
       setIsReady(true);
-      setDuration(ws.getDuration());
+      const dur = ws.getDuration();
+      setDuration(dur);
+      // If this waveform is active, push duration to the global player bar
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().setDuration(dur);
+      }
     });
 
     ws.on("audioprocess", () => {
-      const t = ws.getCurrentTime();
-      setCurrentTime(t);
-      onTimeUpdate?.(t);
+      const time = ws.getCurrentTime();
+      setCurrentTime(time);
+      onTimeUpdate?.(time);
+      // Sync to global player bar if this waveform is the active source
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().setCurrentTime(time);
+      }
     });
 
     ws.on("play", () => setIsPlaying(true));
@@ -75,6 +95,10 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       setIsPlaying(false);
       setCurrentTime(0);
       onTimeUpdate?.(0);
+      // Trigger the global player's next track logic (handles repeat/shuffle)
+      if (usePlayerStore.getState().playbackSource === 'inline') {
+        usePlayerStore.getState().nextTrack();
+      }
     });
 
     if (audioUrl) {
@@ -98,8 +122,80 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return () => { ws.destroy(); };
   }, [audioUrl, waveform]);
 
+  // Listen for seek events from the global PlayerBar
+  useEffect(() => {
+    const handleBarSeek = (e: Event) => {
+      const time = (e as CustomEvent).detail?.time;
+      if (wavesurferRef.current && typeof time === 'number') {
+        const dur = wavesurferRef.current.getDuration();
+        if (dur > 0) {
+          wavesurferRef.current.seekTo(time / dur);
+        }
+      }
+    };
+
+    // Listen for play/pause from the global PlayerBar
+    const handleBarPlayPause = () => {
+      if (wavesurferRef.current) {
+        wavesurferRef.current.playPause();
+      }
+    };
+
+    // Listen for restart (repeat-one) — stop, seek to 0, then play
+    const handleBarRestart = () => {
+      if (wavesurferRef.current) {
+        wavesurferRef.current.stop();
+        wavesurferRef.current.seekTo(0);
+        setTimeout(() => {
+          wavesurferRef.current?.play();
+        }, 50);
+      }
+    };
+
+    // Listen for stop-all — stops THIS waveform if another track starts playing
+    const handleStopAll = (e: Event) => {
+      const activeId = (e as CustomEvent).detail?.activeTrackId;
+      // If the active track is NOT this one, stop playing
+      if (trackMeta && activeId !== trackMeta.id && wavesurferRef.current) {
+        wavesurferRef.current.stop();
+        setIsPlaying(false);
+        setCurrentTime(0);
+      }
+    };
+
+    window.addEventListener('playerbar-seek', handleBarSeek);
+    window.addEventListener('playerbar-playpause', handleBarPlayPause);
+    window.addEventListener('playerbar-restart', handleBarRestart);
+    window.addEventListener('playerbar-stop-all', handleStopAll);
+    return () => {
+      window.removeEventListener('playerbar-seek', handleBarSeek);
+      window.removeEventListener('playerbar-playpause', handleBarPlayPause);
+      window.removeEventListener('playerbar-restart', handleBarRestart);
+      window.removeEventListener('playerbar-stop-all', handleStopAll);
+    };
+  }, [trackMeta]);
+
   const togglePlay = () => {
-    if (wavesurferRef.current) wavesurferRef.current.playPause();
+    if (wavesurferRef.current) {
+      wavesurferRef.current.playPause();
+    }
+    // Also push to global player bar if track metadata is available
+    if (trackMeta && !isPlaying) {
+      const store = usePlayerStore.getState();
+      store.play({
+        id: trackMeta.id,
+        title: trackMeta.title,
+        artist: trackMeta.artist,
+        artworkUrl: trackMeta.artworkUrl || '/placeholder.png',
+        hlsUrl: trackMeta.hlsUrl || audioUrl,
+      }, 'inline');
+      
+      usePlayerStore.setState({ 
+        duration: wavesurferRef.current?.getDuration() || 0,
+      });
+    } else if (isPlaying) {
+      usePlayerStore.getState().pause();
+    }
   };
 
   const formatTime = (seconds: number) => {

@@ -12,6 +12,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10_000, // 10 seconds
+  withCredentials: true, // Needed for HttpOnly cookie authentication
 })
 
 // ─── Request Interceptor ──────────────────────────────────────────────────────

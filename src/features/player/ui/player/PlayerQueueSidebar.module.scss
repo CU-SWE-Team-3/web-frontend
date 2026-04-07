@@ -1,0 +1,323 @@
+.sidebar {
+  position: absolute;
+  bottom: 60px; /* Right above the PlayerBar */
+  right: 20px;
+  width: 360px;
+  max-height: calc(100vh - 120px);
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  z-index: 40;
+  overflow: hidden;
+}
+
+.toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f97316;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 4px;
+  z-index: 200;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+  animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #222;
+
+  .title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .clearBtn {
+    font-size: 12px;
+    color: #ccc;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    
+    &:hover {
+      color: #f97316; /* SoundCloud orange */
+    }
+  }
+
+  .closeBtn {
+    color: #999;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.trackList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+}
+
+.trackItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #222;
+    
+    .thumbOverlay {
+      opacity: 1;
+    }
+    
+    .actions {
+      opacity: 1;
+    }
+  }
+  
+  &.active {
+    background-color: #1a1a1a;
+  }
+}
+
+.thumb {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-right: 12px;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.thumbOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  
+  .active & {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  
+  .trackArtist {
+    font-size: 11px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .trackTitle {
+    font-size: 13px;
+    color: #ccc;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .active & .trackTitle {
+    color: #f97316;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-left: 8px;
+}
+
+.actionBtn {
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  
+  &:hover {
+    color: #fff;
+  }
+}
+
+.actionBtnActive {
+  color: #f50 !important;
+}
+
+.trackDuration {
+  font-size: 11px;
+  color: #666;
+  margin-left: auto;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.contextMenu {
+  position: absolute;
+  right: 16px;
+  top: 100%;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  z-index: 100;
+  min-width: 180px;
+  padding: 6px 0;
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #ccc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: #333;
+    color: #fff;
+  }
+}
+
+.footer {
+  border-top: 1px solid #222;
+  padding: 12px 16px;
+}
+
+.autoplayToggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.autoplayInfo {
+  h4 {
+    font-size: 13px;
+    color: #fff;
+    margin: 0 0 2px 0;
+  }
+  p {
+    font-size: 11px;
+    color: #999;
+    margin: 0;
+  }
+}
+
+.toggleSwitch {
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  
+  .toggleLabel {
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    background: #555;
+    border-radius: 9px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+  }
+
+  .toggleActive {
+    background: #f97316;
+    
+    &::after {
+      transform: translateX(14px);
+    }
+  }
+}

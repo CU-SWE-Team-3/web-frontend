@@ -2,7 +2,7 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
@@ -24,6 +24,7 @@ export const NavBar: FC<NavBarProps> = ({
 }) => {
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -57,9 +58,9 @@ export const NavBar: FC<NavBarProps> = ({
           <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
         </svg>
       </Link>
-      <Link href={ROUTES.HOME} className={s.navLink} data-testid="navbar-home-link">Home</Link>
-      <Link href={ROUTES.FEED} className={s.navLink} data-testid="navbar-feed-link">Feed</Link>
-      <span className={s.navLink} data-testid="navbar-library-link">Library</span>
+      <Link href={ROUTES.HOME} className={`${s.navLink} ${pathname === '/' ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
+      <Link href={ROUTES.FEED} className={`${s.navLink} ${pathname === '/feed' ? s.navLinkActive : ''}`} data-testid="navbar-feed-link">Feed</Link>
+      <Link href={ROUTES.LIBRARY} className={`${s.navLink} ${pathname.startsWith('/library') ? s.navLinkActive : ''}`} data-testid="navbar-library-link">Library</Link>
     </div>
 
     {/* Center: Search */}
@@ -96,6 +97,24 @@ export const NavBar: FC<NavBarProps> = ({
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   Profile
+                </Link>
+                <Link
+                  href={ROUTES.LIBRARY_LIKES}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-likes"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  Likes
+                </Link>
+                <Link
+                  href={ROUTES.HISTORY}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-history"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  History
                 </Link>
                 <Link
                   href={ROUTES.SETTINGS}

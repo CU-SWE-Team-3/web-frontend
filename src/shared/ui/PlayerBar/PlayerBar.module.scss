@@ -3,23 +3,32 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 80px;
+  height: 50px;
   display: flex;
   align-items: center;
   background: var(--sc-bg-dark);
   border-top: 1px solid var(--sc-bg-dark-hover);
-  z-index: var(--sc-z-sticky);
+  z-index: 9999;
   padding: 0 var(--sc-space-4);
   font-family: var(--sc-font-family);
+
+  @media (min-width: 768px) {
+    height: 56px;
+  }
 }
 
 /* ---- Left Section ---- */
 .left {
-  width: 25%;
+  flex: 1;
   display: flex;
   align-items: center;
   gap: var(--sc-space-3);
   min-width: 0;
+
+  @media (min-width: 640px) {
+    width: 25%;
+    flex: none;
+  }
 }
 
 .coverArt {
@@ -35,6 +44,27 @@
 .trackInfo {
   min-width: 0;
   flex: 1;
+  display: none;
+
+  @media (min-width: 640px) {
+    display: block;
+  }
+}
+
+.mobileTitle {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  flex: 1;
+  min-width: 0;
+
+  @media (min-width: 640px) {
+    display: none;
+  }
 }
 
 .trackTitle {
@@ -62,46 +92,67 @@
   border: none;
   cursor: pointer;
   color: var(--sc-gray-500);
-  font-size: 16px;
   padding: 4px;
-  transition: color var(--sc-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+
   &:hover { color: var(--sc-primary); }
+  &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
 }
 
 .heartLiked { color: var(--sc-primary); }
 
 /* ---- Center Section ---- */
 .center {
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  display: none; // Hidden on mobile
+
+  @media (min-width: 640px) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 0 var(--sc-space-2);
+  }
+
+  @media (min-width: 768px) {
+    margin: 0 var(--sc-space-4);
+  }
 }
 
 .controls {
   display: flex;
   align-items: center;
-  gap: var(--sc-space-4);
+  gap: var(--sc-space-3);
+
+  @media (min-width: 768px) {
+    gap: var(--sc-space-4);
+  }
 }
 
 .ctrlBtn {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--sc-gray-400);
-  font-size: 18px;
+  color: var(--sc-gray-500);
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--sc-transition-fast);
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
+
   &:hover { color: var(--sc-white); }
+  &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
 }
 
 .playPauseBtn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--sc-radius-full);
   background: var(--sc-primary);
   border: none;
@@ -109,104 +160,102 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--sc-transition-fast);
+  flex-shrink: 0;
+  transition: background 150ms ease;
+
+  @media (min-width: 768px) {
+    width: 36px;
+    height: 36px;
+  }
+
   &:hover { background: var(--sc-primary-hover); }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.4);
+  }
 }
 
-.playTriangle {
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 7px 0 7px 12px;
-  border-color: transparent transparent transparent var(--sc-white);
-  margin-left: 2px;
-}
-
-.pauseIcon { display: flex; gap: 3px; }
-.pauseBar { width: 3px; height: 14px; background: var(--sc-white); border-radius: 1px; }
-
-.progressRow {
-  display: flex;
+.seekRow {
+  display: none;
   align-items: center;
   gap: var(--sc-space-2);
   width: 100%;
   max-width: 480px;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
 }
 
 .time {
   font-size: var(--sc-font-size-xs);
   color: var(--sc-gray-500);
-  min-width: 36px;
-  text-align: center;
+  min-width: 32px;
+  font-variant-numeric: tabular-nums;
+
+  &:first-child { text-align: right; }
 }
 
-.progressTrack {
-  flex: 1;
-  height: 4px;
-  background: var(--sc-bg-dark-hover);
-  border-radius: 2px;
-  overflow: hidden;
-  cursor: pointer;
-}
+.seekWrap { flex: 1; }
 
-.progressFill {
-  height: 100%;
+.miniProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
   background: var(--sc-primary);
-  border-radius: 2px;
-  transition: width 100ms linear;
+  z-index: 10;
+  pointer-events: none;
+
+  @media (min-width: 640px) {
+    display: none;
+  }
+}
+
+.mobilePlayContainer {
+  display: flex;
+  align-items: center;
+  margin-left: var(--sc-space-3);
+
+  @media (min-width: 640px) {
+    display: none;
+  }
 }
 
 /* ---- Right Section ---- */
 .right {
-  width: 25%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sc-space-3);
-}
+  display: none;
 
-.volumeWrap {
-  display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
-}
-
-.volumeIcon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--sc-gray-400);
-  font-size: 18px;
-  padding: 4px;
-}
-
-.volumeSlider {
-  -webkit-appearance: none;
-  width: 80px;
-  height: 4px;
-  background: var(--sc-bg-dark-hover);
-  border-radius: 2px;
-  outline: none;
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: var(--sc-radius-full);
-    background: var(--sc-white);
-    cursor: pointer;
+  @media (min-width: 640px) {
+    width: 25%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sc-space-2);
+    flex-shrink: 0;
   }
 }
 
-.toggleBtn {
+.volWrap {
+  display: none;
+  @media (min-width: 1024px) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.iconBtn {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--sc-gray-500);
-  font-size: 16px;
   padding: 4px;
-  transition: color var(--sc-transition-fast);
-  &:hover { color: var(--sc-white); }
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  transition: color 150ms ease;
 
-.toggleActive { color: var(--sc-primary); }
+  &:hover { color: var(--sc-white); }
+  &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
+}

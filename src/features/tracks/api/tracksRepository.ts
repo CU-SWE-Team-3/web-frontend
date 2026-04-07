@@ -1,3 +1,4 @@
+import axios from "axios";
 import apiClient from "@/shared/api/client";
 import type { Track, UpdateTrackInput, UploadTrackInput } from "../model/track";
 
@@ -58,18 +59,42 @@ export const tracksRepository = {
     // ── Try real API first ──
     if (audioFile) {
       try {
-        const formData = new FormData();
-        formData.append("audioFile", audioFile);
-        formData.append("title", payload.title);
-        formData.append("genre", payload.genre || "");
-        formData.append("tags", (payload.tags || []).join(","));
-        formData.append("description", payload.description || "");
-        formData.append("visibility", payload.visibility || "Public");
-        if (payload.artworkUrl) formData.append("artworkUrl", payload.artworkUrl);
+        let durationInSeconds = 0;
+        let streamUrl = URL.createObjectURL(audioFile);
+        try {
+          const audio = new Audio(streamUrl);
+          await new Promise((resolve) => {
+            audio.onloadedmetadata = resolve;
+            audio.onerror = resolve;
+            setTimeout(resolve, 2000);
+          });
+          if (audio.duration && audio.duration !== Infinity && !isNaN(audio.duration)) {
+            durationInSeconds = audio.duration;
+          }
+        } catch (e) {
+          console.warn("Could not read local duration", e);
+        }
 
-        const response = await apiClient.post("/tracks/upload", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
+        // Step 1: Request Azure SAS URL from our backend
+        const initResponse = await apiClient.post("/tracks/upload", {
+          title: payload.title,
+          format: audioFile.type || "audio/mpeg",
+          size: audioFile.size,
+          duration: durationInSeconds
+        });
+
+        const trackData = initResponse.data?.data;
+        if (!trackData?.trackId || !trackData?.uploadUrl) {
+          throw new Error("Invalid response from /tracks/upload");
+        }
+        const { trackId, uploadUrl } = trackData;
+
+        // Step 2: PUT raw binary directly to Azure Blob
+        await axios.put(uploadUrl, audioFile, {
+          headers: {
+            "Content-Type": audioFile.type || "audio/mpeg",
+            "x-ms-blob-type": "BlockBlob"
+          },
           onUploadProgress: (progressEvent) => {
             if (onProgress && progressEvent.total) {
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -78,23 +103,54 @@ export const tracksRepository = {
           },
         });
 
-        const track = response.data?.data || response.data;
-        return {
-          id: track._id || track.id || String(Date.now()),
-          title: track.title || payload.title,
-          artist: track.artist?.displayName || track.artist || CURRENT_ARTIST,
-          genre: track.genre || payload.genre,
-          tags: track.tags || payload.tags,
-          description: track.description || payload.description,
-          releaseDate: track.releaseDate || payload.releaseDate || "",
-          visibility: track.visibility || payload.visibility,
-          status: track.status || "Processing",
-          audioFileName: track.audioFileName || payload.fileName,
-          artworkUrl: track.artworkUrl || payload.artworkUrl || "",
-          waveform: track.waveform || makeWaveform(),
-          duration: track.duration || "0:00",
-          createdAt: track.createdAt || new Date().toISOString(),
+        // Step 3: Confirm upload to trigger processing
+        await apiClient.patch(`/tracks/${trackId}/confirm`);
+
+        // Step 4: Update metadata (only send valid fields so we don't trip strict API validation)
+        const metadataPayload: any = { title: payload.title };
+        if (payload.description) metadataPayload.description = payload.description;
+        if (payload.genre && payload.genre.trim() !== "None") metadataPayload.genre = payload.genre;
+        if (payload.tags && payload.tags.length > 0) metadataPayload.tags = payload.tags;
+        if (payload.releaseDate) {
+          metadataPayload.releaseDate = new Date(payload.releaseDate).toISOString();
+        }
+
+        await apiClient.patch(`/tracks/${trackId}/metadata`, metadataPayload);
+
+        // Step 5: Update visibility
+        await apiClient.patch(`/tracks/${trackId}/visibility`, {
+          isPublic: payload.visibility === "Public"
+        });
+
+        const durationFormatted = `${Math.floor(durationInSeconds / 60)}:${Math.floor(durationInSeconds % 60).toString().padStart(2, "0")}`;
+
+        const fakeTrack: Track = {
+          id: trackId,
+          title: payload.title,
+          artist: CURRENT_ARTIST,
+          genre: payload.genre,
+          tags: payload.tags || [],
+          description: payload.description,
+          releaseDate: payload.releaseDate || new Date().toISOString(),
+          visibility: payload.visibility,
+          status: "Processing",
+          audioFileName: payload.fileName,
+          artworkUrl: payload.artworkUrl || "https://images.unsplash.com/photo-1458560871784-56d23406c091?w=420&h=420&fit=crop",
+          waveform: makeWaveform(),
+          duration: durationFormatted,
+          createdAt: new Date().toISOString(),
+          streamUrl: streamUrl, // Keep local reference for immediate playback while backend processes
+          labelName: payload.labelName,
+          isrc: payload.isrc,
+          publisher: payload.publisher,
+          buyLink: payload.buyLink,
+          allowComments: payload.allowComments ?? true,
         };
+
+        // Replace the tracks state locally so it shows up in getTracks right away
+        tracks = [fakeTrack, ...tracks];
+        return fakeTrack;
+
       } catch (err) {
         console.warn("Real API upload failed, falling back to mock:", err);
       }
@@ -104,12 +160,34 @@ export const tracksRepository = {
     if (onProgress) {
       for (let progress = 0; progress <= 100; progress += 20) {
         onProgress(progress);
-        // eslint-disable-next-line no-await-in-loop
         await wait(120);
       }
     }
 
     await wait(WAIT);
+
+    let streamUrl = "";
+    let durationFormatted = "0:00";
+
+    if (audioFile) {
+      try {
+        streamUrl = URL.createObjectURL(audioFile);
+        const audio = new Audio(streamUrl);
+        await new Promise((resolve) => {
+          audio.onloadedmetadata = resolve;
+          audio.onerror = resolve; // fallback if error
+          // Set a timeout just in case
+          setTimeout(resolve, 2000);
+        });
+        if (audio.duration && audio.duration !== Infinity) {
+          const m = Math.floor(audio.duration / 60);
+          const s = Math.floor(audio.duration % 60);
+          durationFormatted = `${m}:${s.toString().padStart(2, "0")}`;
+        }
+      } catch (err) {
+        console.warn("Failed to read audio file duration", err);
+      }
+    }
 
     const newTrack: Track = {
       id: String(Date.now()),
@@ -130,8 +208,14 @@ export const tracksRepository = {
         payload.artworkUrl ||
         "https://images.unsplash.com/photo-1458560871784-56d23406c091?w=420&h=420&fit=crop",
       waveform: makeWaveform(),
-      duration: "3:20",
+      duration: durationFormatted,
+      streamUrl,
       createdAt: new Date().toISOString(),
+      labelName: payload.labelName,
+      isrc: payload.isrc,
+      publisher: payload.publisher,
+      buyLink: payload.buyLink,
+      allowComments: payload.allowComments ?? true,
     };
 
     tracks = [newTrack, ...tracks];

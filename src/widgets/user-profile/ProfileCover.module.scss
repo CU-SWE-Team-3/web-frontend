@@ -4,6 +4,10 @@
   height: 260px;
   background: linear-gradient(135deg, #4a4a4a, #6a8a9a);
   overflow: visible;
+
+  @media (max-width: 768px) {
+    height: 180px;
+  }
 }
 
 .coverImage {
@@ -24,6 +28,11 @@
   height: 100%;
   padding: 0 30px 50px;
   gap: 20px;
+
+  @media (max-width: 768px) {
+    padding: 0 15px 30px;
+    gap: 12px;
+  }
 }
 
 /* ---- Avatar ---- */
@@ -32,6 +41,11 @@
   flex-shrink: 0;
   width: 160px;
   height: 160px;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
 }
 
 .avatarCircle {
@@ -42,6 +56,11 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   object-fit: cover;
   display: block;
+
+  @media (max-width: 768px) {
+    width: 100px;
+    height: 100px;
+  }
 }
 
 .uploadAvatarBtn {
@@ -125,6 +144,11 @@
   font-weight: var(--sc-font-weight-bold);
   width: fit-content;
   line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    padding: 4px 8px;
+  }
 }
 
 .subName {
