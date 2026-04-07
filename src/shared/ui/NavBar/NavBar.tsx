@@ -58,7 +58,7 @@ export const NavBar: FC<NavBarProps> = ({
           <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
         </svg>
       </Link>
-      <Link href={ROUTES.HOME} className={`${s.navLink} ${pathname === '/' ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
+      <Link href={ROUTES.DASHBOARD} className={`${s.navLink} ${pathname === ROUTES.DASHBOARD ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
       <Link href={ROUTES.FEED} className={`${s.navLink} ${pathname === '/feed' ? s.navLinkActive : ''}`} data-testid="navbar-feed-link">Feed</Link>
       <Link href={ROUTES.LIBRARY} className={`${s.navLink} ${pathname.startsWith('/library') ? s.navLinkActive : ''}`} data-testid="navbar-library-link">Library</Link>
     </div>

@@ -60,7 +60,7 @@ const LoginForm = () => {
       const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user) {
         login(user, token)
-        router.push(ROUTES.FEED)
+        router.push(ROUTES.DASHBOARD)
       }
     } catch (err: any) {
       const message = err?.response?.data?.message || 'Invalid email or password.'

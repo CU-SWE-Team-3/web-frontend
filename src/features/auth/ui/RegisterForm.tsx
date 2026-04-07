@@ -77,7 +77,7 @@ const RegisterForm = () => {
       const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user && token) {
         login(user, token)
-        router.push(ROUTES.FEED)
+        router.push(ROUTES.DASHBOARD)
         return
       }
       setSuccess(true)
