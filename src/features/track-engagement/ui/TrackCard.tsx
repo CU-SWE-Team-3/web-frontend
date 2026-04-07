@@ -8,6 +8,8 @@ import Link from "next/link";
 import { TrackNode } from "../model/types";
 import { useLikeTrack } from "../model/useLikeTrack";
 import { useUnlikeTrack } from "../model/useUnlikeTrack";
+import { useRepostTrack } from "../model/useRepostTrack";
+import { useUnrepostTrack } from "../model/useUnrepostTrack";
 import { LikeIcon } from "@/shared/ui/icons";
 
 interface TrackCardProps {
@@ -24,9 +26,13 @@ export const TrackCard = ({ track }: TrackCardProps) => {
   // We manage optimistic UI state locally for immediate response
   const [isLiked, setIsLiked] = useState(track.isLiked);
   const [likeCount, setLikeCount] = useState(track.likeCount);
+  const [isReposted, setIsReposted] = useState(track.isReposted);
+  const [repostCount, setRepostCount] = useState(track.repostCount);
 
   const likeMutation = useLikeTrack();
   const unlikeMutation = useUnlikeTrack();
+  const repostMutation = useRepostTrack();
+  const unrepostMutation = useUnrepostTrack();
 
   const toggleLike = () => {
     if (isLiked) {
@@ -37,6 +43,18 @@ export const TrackCard = ({ track }: TrackCardProps) => {
       setIsLiked(true);
       setLikeCount((c) => c + 1);
       likeMutation.mutate(track.id);
+    }
+  };
+
+  const toggleRepost = () => {
+    if (isReposted) {
+      setIsReposted(false);
+      setRepostCount((c) => Math.max(0, c - 1));
+      unrepostMutation.mutate(track.id);
+    } else {
+      setIsReposted(true);
+      setRepostCount((c) => c + 1);
+      repostMutation.mutate(track.id);
     }
   };
 
@@ -98,10 +116,20 @@ export const TrackCard = ({ track }: TrackCardProps) => {
               onToggle={toggleLike}
             />
             
-            <Link href={`/track/${track.id}/reposts`} className="flex items-center gap-1.5 px-2.5 py-1 text-[13px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
+            <button
+              data-testid={`track-card-repost-${track.id}`}
+              onClick={toggleRepost}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-[13px] rounded transition-colors"
+              style={{
+                background: isReposted ? 'rgba(255, 85, 0, 0.15)' : '#111',
+                border: `1px solid ${isReposted ? '#ff5500' : '#333'}`,
+                color: isReposted ? '#ff5500' : '#ccc',
+              }}
+              title={isReposted ? 'Unrepost' : 'Repost'}
+            >
               <RepostIcon size={14} />
-              {formatCount(track.repostCount)}
-            </Link>
+              {formatCount(repostCount)}
+            </button>
 
             <button className="flex items-center justify-center w-[30px] h-[26px] text-[#ccc] bg-[#111] border border-[#333] rounded hover:border-[#666] transition-colors">
               <ShareIcon size={14} />

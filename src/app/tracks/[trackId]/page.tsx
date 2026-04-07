@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { AppButton } from "@/shared/ui";
+import { useParams, useRouter } from "next/navigation";
+import { AppButton, NavBar } from "@/shared/ui";
+import { ROUTES } from "@/shared/constants/routes";
 import { CheckCircle2, LinkIcon } from "lucide-react";
 import WaveformPlayer from "@/features/tracks/ui/WaveformPlayer";
 import EditTrackModal from "@/features/tracks/ui/EditTrackModal";
@@ -13,13 +14,19 @@ import type {
   UpdateTrackInput,
   UploadTrackInput,
 } from "@/features/tracks/model/track";
+import { useTrackComments } from "@/features/comments/model/useTrackComments";
+import { CommentInput } from "@/features/comments/ui/CommentInput";
 
 const TrackDetailPage: React.FC = () => {
   const { trackId } = useParams<{ trackId: string }>();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const trackQuery = useTrack(trackId);
   const updateTrackMutation = useUpdateTrack();
+  const { data: comments = [] } = useTrackComments(trackId);
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
+  const [commentSort, setCommentSort] = useState<'Newest' | 'Oldest' | 'Top'>('Newest');
 
   const track = trackQuery.data ?? null;
   const loading = trackQuery.isLoading;
@@ -87,100 +94,74 @@ const TrackDetailPage: React.FC = () => {
   };
 
   return (
-    <div data-testid="track-page" className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Hero Header Section */}
-      <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-sc-surface-1 border border-white/5 mb-8">
-        <div className="absolute inset-0 z-0">
-          <img
-            src={track.artworkUrl}
-            alt=""
-            className="w-full h-full object-cover opacity-20 blur-2xl scale-110 saturate-150"
-            aria-hidden="true"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-sc-surface-1 via-sc-surface-1/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-sc-surface-1 via-sc-surface-1/50 to-transparent" />
-        </div>
+    <div className="min-h-screen bg-[#F2F2F2] flex flex-col">
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
+      
+      {/* Remove previous gap & set to SoundCloud body background #f2f2f2 */}
+      <div className="bg-[#111] flex-1 pb-12">
+        <div data-testid="track-page" className="max-w-[1240px] mx-auto pt-6 px-4">
+          {/* Hero Header Section */}
+          <div className="relative mb-6 flex h-[380px] w-full" style={{ background: 'linear-gradient(135deg, #e4e4e4 0%, #b5b5b5 100%)' }}>
+            
+            {/* Left Content Area (Info + Waveform) */}
+            <div className="flex flex-col justify-between flex-1 p-6 z-10 relative">
+              {/* Top Row: Play button & Information */}
+              <div className="flex justify-between w-full">
+                <div className="flex items-start gap-4">
+                  {/* Play Button */}
+                  <button className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1">
+                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
+                  </button>
+                  
+                  {/* Text Info */}
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="bg-black/80 px-2 py-1 text-[22px] font-black tracking-tight text-white inline-flex">
+                      {track.title}
+                    </div>
+                    <div className="bg-black/80 px-2 py-1 text-[13px] text-[#ccc] inline-flex">
+                      {track.artist}
+                    </div>
+                  </div>
+                </div>
 
-        <div className="relative z-10 grid md:grid-cols-[340px_1fr] gap-6 md:gap-10 p-6 sm:p-8 lg:p-10">
-          {/* Cover Art */}
-          <div className="shrink-0">
-            <div className="relative group w-full aspect-square rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900">
+                {/* Right Top Info */}
+                <div className="flex flex-col items-end gap-2 pr-6">
+                  <span className="text-[12px] text-black/60 font-medium">1 month ago</span>
+                  <span className="px-3 py-1 bg-black/40 rounded-full text-[12px] text-white font-bold backdrop-blur-md">
+                    # {track.genre || "Music"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Row: Waveform */}
+              <div className="w-full mt-auto mr-[20px]" data-testid="track-waveform">
+                {/* We render the waveform directly on the grey background without black box */}
+                <WaveformPlayer waveform={track.waveform} />
+              </div>
+            </div>
+
+            {/* Right Content Area: Artwork (340x340) */}
+            <div className="w-[340px] h-[340px] shrink-0 m-5 shadow-[0_5px_20px_rgba(0,0,0,0.15)] relative z-20 bg-white">
               <img
                 data-testid="track-artwork"
                 src={track.artworkUrl}
                 alt={track.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-4 left-4 flex gap-2 flex-col items-start">
-                <span
-                  className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg border backdrop-blur-md ${statusClassMap[track.status]}`}
-                >
+              <div className="absolute top-2 left-2 flex gap-1 flex-col items-start z-10">
+                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border backdrop-blur-md ${statusClassMap[track.status]}`}>
                   {track.status}
                 </span>
-                <span
-                  className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg border backdrop-blur-md ${visibilityClassMap[track.visibility]}`}
-                >
+                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border backdrop-blur-md ${visibilityClassMap[track.visibility]}`}>
                   {track.visibility}
                 </span>
               </div>
             </div>
+            
           </div>
 
-          {/* Core Info & Waveform */}
-          <div className="flex flex-col justify-between py-2">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Link
-                  href="/my-tracks"
-                  className="text-xs font-bold tracking-widest text-orange-500 uppercase hover:text-orange-400 transition-colors flex items-center gap-1"
-                >
-                  <span aria-hidden="true">←</span> All Tracks
-                </Link>
-                <div className="flex gap-3">
-                  {track.visibility === "Private" && track.secretToken && (
-                    <button
-                      onClick={handleCopySecretLink}
-                      className="px-5 py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-full text-sm font-bold transition-all shadow-lg flex content-center items-center gap-2"
-                    >
-                      {copiedLink ? (
-                        <CheckCircle2 size={16} className="text-emerald-500" />
-                      ) : (
-                        <LinkIcon size={16} />
-                      )}
-                      {copiedLink ? "Copied!" : "Secret Link"}
-                    </button>
-                  )}
-                  {!isEditing && (
-                    <AppButton
-                      onClick={() => setIsEditing(true)}
-                      className="px-5 py-2 bg-sc-primary hover:bg-sc-primary-hover text-white border border-sc-primary rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)]"
-                    >
-                      Edit Track
-                    </AppButton>
-                  )}
-                </div>
-              </div>
-
-              <h1 data-testid="track-title" className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter mb-2 leading-tight drop-shadow-lg">
-                {track.title}
-              </h1>
-              <p className="text-xl text-neutral-300 font-medium tracking-wide">
-                <span data-testid="track-artist">{track.artist}</span> <span className="mx-3 text-white/20">•</span>{" "}
-                <span className="text-orange-400">{track.genre}</span>
-              </p>
-            </div>
-
-            <div className="mt-8 mb-4 xl:mb-0">
-              <div data-testid="track-waveform" className="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/5 shadow-inner">
-                <WaveformPlayer waveform={track.waveform} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="grid lg:grid-cols-[1fr_320px] gap-8 mt-6">
+          {/* Main Content Area */}
+          <div className="grid lg:grid-cols-[1fr_320px] gap-8 mt-6">
         {/* Left Column: Banners & Comments */}
         <div className="space-y-4">
           {/* Analyzing Banner */}
@@ -211,10 +192,11 @@ const TrackDetailPage: React.FC = () => {
           </div>
 
           {/* Comment Input */}
-          <div className="bg-[#1a1a1a] p-3 rounded flex items-center gap-3 border border-[#333] mt-6">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 shrink-0"></div>
-            <input data-testid="track-comment-input" type="text" placeholder="Write a comment" className="flex-1 bg-transparent border-none text-[13px] text-white outline-none placeholder-[#999]" />
-            <button className="text-[#999] hover:text-white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+          <div className="mt-6">
+            <CommentInput
+              trackId={trackId}
+              currentTime={currentPlaybackTime}
+            />
           </div>
 
           {/* Action Buttons */}
@@ -236,8 +218,9 @@ const TrackDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Empty Section */}
+          {/* ── Comments Section (SoundCloud style) ── */}
           <div data-testid="track-comments-list" className="flex mt-8">
+            {/* Left: Artist avatar + name */}
             <div className="w-14 items-center flex flex-col gap-2 shrink-0">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-[#222]">
                  <img src={track.artworkUrl || "https://placehold.co/100x100"} alt="User" className="w-full h-full object-cover" />
@@ -245,9 +228,98 @@ const TrackDetailPage: React.FC = () => {
               <span className="text-[11px] font-bold text-[#ccc] text-center w-full truncate">{track.artist}</span>
             </div>
             
-            <div className="flex-1 flex flex-col items-center justify-center min-h-[200px] border-l border-[#222] ml-4 pl-4">
-              <h4 className="text-[22px] font-bold text-white mb-2 tracking-tight">Seems a little quiet over here</h4>
-              <p className="text-[13px] text-[#999]">Be the first to comment on this track</p>
+            {/* Right: Comment list or empty state */}
+            <div className="flex-1 border-l border-[#222] ml-4 pl-4">
+              {comments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[200px]">
+                  <h4 className="text-[22px] font-bold text-white mb-2 tracking-tight">Seems a little quiet over here</h4>
+                  <p className="text-[13px] text-[#999]">Be the first to comment on this track</p>
+                </div>
+              ) : (
+                <>
+                  {/* Comment count + sort */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="text-[15px] font-bold text-white">
+                      {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] text-[#999]">Sorted by:</span>
+                      <select
+                        value={commentSort}
+                        onChange={(e) => setCommentSort(e.target.value as any)}
+                        className="bg-[#111] border border-[#333] text-[#fff] text-[12px] rounded px-2 py-1 outline-none cursor-pointer"
+                      >
+                        <option value="Newest">Newest</option>
+                        <option value="Oldest">Oldest</option>
+                        <option value="Top">Top</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Comment items */}
+                  <div className="flex flex-col gap-0">
+                    {[...comments]
+                      .sort((a, b) => {
+                        if (commentSort === 'Oldest') return a.timestampSeconds - b.timestampSeconds;
+                        if (commentSort === 'Top') return 0; // Keep original order for Top
+                        // Newest: by createdAt descending
+                        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+                      })
+                      .map((comment) => {
+                        const tsMin = Math.floor(comment.timestampSeconds / 60);
+                        const tsSec = Math.floor(comment.timestampSeconds % 60);
+                        const formattedTs = `${tsMin}:${tsSec.toString().padStart(2, '0')}`;
+                        // Relative time
+                        const now = Date.now();
+                        const created = comment.createdAt ? new Date(comment.createdAt).getTime() : now;
+                        const diffMs = now - created;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        const diffHours = Math.floor(diffMs / 3600000);
+                        const diffDays = Math.floor(diffMs / 86400000);
+                        let relTime = 'just now';
+                        if (diffDays > 0) relTime = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                        else if (diffHours > 0) relTime = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                        else if (diffMins > 0) relTime = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+
+                        return (
+                          <div key={comment.id} className="flex gap-3 py-3 border-b border-[#1a1a1a] group">
+                            {/* Avatar */}
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-[#333] shrink-0">
+                              {comment.avatarUrl ? (
+                                <img src={comment.avatarUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-orange-400 to-purple-500" />
+                              )}
+                            </div>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1 text-[12px] text-[#999]">
+                                <span className="font-bold text-[#ccc] hover:text-white cursor-pointer">
+                                  {comment.displayName || comment.username}
+                                </span>
+                                <span>at</span>
+                                <span className="text-[#ff5500] font-semibold cursor-pointer hover:underline">{formattedTs}</span>
+                                <span className="mx-1">-</span>
+                                <span>{relTime}</span>
+                              </div>
+                              <p className="text-[13px] text-[#eee] mt-1 leading-snug">{comment.text}</p>
+                              <button className="text-[11px] text-[#999] hover:text-white mt-1 font-medium">Reply</button>
+                            </div>
+                            {/* Like */}
+                            <div className="flex items-start pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button className="flex items-center gap-1 text-[#999] hover:text-[#ff5500]">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                <span className="text-[11px]">0</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -318,8 +390,12 @@ const TrackDetailPage: React.FC = () => {
           <div className="pt-4 border-t border-[#222]">
              <h3 className="text-[12px] font-bold text-[#999] tracking-wider mb-3">GO MOBILE</h3>
              <div className="flex gap-2 mb-4">
-               <div className="h-8 w-[100px] bg-black border border-[#333] rounded flex items-center justify-center text-[10px] text-white">App Store</div>
-               <div className="h-8 w-[100px] bg-black border border-[#333] rounded flex items-center justify-center text-[10px] text-white">Google Play</div>
+               <a href="#" className="inline-block hover:opacity-80 transition-opacity">
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="Download on the App Store" className="h-[34px]" />
+               </a>
+               <a href="#" className="inline-block hover:opacity-80 transition-opacity">
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" className="h-[34px]" />
+               </a>
              </div>
              <p className="text-[10px] text-[#666] leading-relaxed">
                Legal ⁃ Privacy ⁃ Cookie Policy ⁃ Cookie Manager ⁃ Imprint ⁃ Artist Resources ⁃ Newsroom ⁃ Charts ⁃ Transparency Reports
@@ -329,14 +405,16 @@ const TrackDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <EditTrackModal
-        track={track}
-        open={isEditing}
-        onClose={() => setIsEditing(false)}
-        onSave={handleEditSubmit}
-        isSaving={updateTrackMutation.isPending}
-      />
+        <EditTrackModal
+          track={track}
+          open={isEditing}
+          onClose={() => setIsEditing(false)}
+          onSave={handleEditSubmit}
+          isSaving={updateTrackMutation.isPending}
+        />
+      </div>
     </div>
+  </div>
   );
 };
 

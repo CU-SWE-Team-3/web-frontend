@@ -15,9 +15,10 @@ export interface ProfileTabsProps {
   isOwnProfile?: boolean;
   targetUserId?: string;
   profile?: any;
+  onTabChange?: (tab: string) => void;
 }
 
-export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, isOwnProfile, targetUserId, profile }) => {
+export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, isOwnProfile, targetUserId, profile, onTabChange }) => {
   const [active, setActive] = useState('All');
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -99,7 +100,10 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
           <button
             key={t}
             className={`${s.tab} ${active === t ? s.tabActive : ''}`}
-            onClick={() => setActive(t)}
+            onClick={() => {
+              setActive(t);
+              onTabChange?.(t);
+            }}
           >
             {t}
           </button>

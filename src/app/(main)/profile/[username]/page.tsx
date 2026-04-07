@@ -10,6 +10,7 @@ import { NavBar } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useFollowers, useFollowing } from '@/features/social-graph';
 import { useUserTracks } from '@/features/tracks/model/trackQueries';
+import { useUserReposts } from '@/features/track-engagement/model/useUserReposts';
 import { ProfileCover } from '@/widgets/user-profile/ProfileCover';
 import { ProfileTabs } from '@/widgets/user-profile/ProfileTabs';
 import { ProfileSidebar } from '@/widgets/user-profile/ProfileSidebar';
@@ -59,6 +60,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<ProfileData>({ ...defaultProfile, displayName: username, permalink: username });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('All');
 
   const isMeKeyword = username === 'me';
   const isOwnProfile = isMeKeyword || (authUser && (
@@ -73,6 +75,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const { data: followersList } = useFollowers(ownId !== 'me' ? ownId : '');
   const { data: followingList } = useFollowing(ownId !== 'me' ? ownId : '');
   const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(username);
+  const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(ownId !== 'me' ? ownId : '');
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -153,6 +156,196 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const effectiveAvatarUrl = profile.avatarUrl || (isOwnProfile ? authUser?.avatarUrl : null) || null;
   const effectiveCoverUrl = profile.coverUrl || (isOwnProfile ? authUser?.coverUrl : null) || null;
 
+  // Helper: render a repost card
+  const renderRepostCard = (repost: any) => {
+    const track = repost.track || repost;
+    return (
+      <ProfileTrackCard
+        key={`repost-${repost.id || track.id || track._id}`}
+        track={{
+          id: track._id || track.id,
+          title: track.title,
+          artist: track.artist?.displayName || track.artist || 'Unknown Artist',
+          genre: track.genre || 'Electronic',
+          tags: track.tags || [],
+          releaseDate: track.releaseDate || '',
+          visibility: track.visibility || 'Public',
+          status: track.status || 'Finished',
+          audioFileName: track.audioFileName || '',
+          artworkUrl: track.artworkUrl || '',
+          waveform: track.waveform || [],
+          duration: track.duration || '0:00',
+          createdAt: track.createdAt || repost.repostedAt || '',
+        }}
+        userFullName={track.artist?.displayName || track.artist || displayName}
+        username={track.artist?.permalink || username}
+        userAvatarUrl={track.artist?.avatarUrl || effectiveAvatarUrl || undefined}
+        isOwner={false}
+        isReposted={true}
+        repostCount={track.repostCount || 0}
+        repostedBy={displayName}
+      />
+    );
+  };
+
+  // Helper: render a user's own track card
+  const renderOwnTrackCard = (track: any) => (
+    <ProfileTrackCard
+      key={`track-${track.id}`}
+      track={track}
+      userFullName={displayName}
+      username={username}
+      userAvatarUrl={effectiveAvatarUrl || undefined}
+      isOwner={!!isOwnProfile}
+    />
+  );
+
+  // Render the content area based on active tab
+  const renderTabContent = () => {
+    /* ── Reposts tab: only reposts ── */
+    if (activeTab === 'Reposts') {
+      if (isLoadingReposts) {
+        return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading reposts...</div>;
+      }
+      if (userReposts.length === 0) {
+        return (
+          <div className={s.empty} data-testid="reposts-empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.5" style={{ opacity: 0.5 }}>
+              <path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/>
+            </svg>
+            <span className={s.emptyText}>You haven&apos;t reposted any sounds.</span>
+          </div>
+        );
+      }
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {userReposts.map(renderRepostCard)}
+        </div>
+      );
+    }
+
+    /* ── Tracks tab: only user's own tracks (NO reposts) ── */
+    if (activeTab === 'Tracks') {
+      if (isLoadingTracks) {
+        return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading tracks...</div>;
+      }
+      if (userTracks.length === 0) {
+        return (
+          <div className={s.empty}>
+            <span className={s.emptyText}>Seems a little quiet over here</span>
+            {isOwnProfile && (
+              <button data-testid="profile-upload-more-button" className={s.uploadBtn} onClick={() => router.push(ROUTES.UPLOAD)}>Upload now</button>
+            )}
+          </div>
+        );
+      }
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {userTracks.map(renderOwnTrackCard)}
+        </div>
+      );
+    }
+
+    /* ── Popular tracks / Albums / Playlists: NO reposts ── */
+    if (activeTab === 'Popular tracks' || activeTab === 'Albums' || activeTab === 'Playlists') {
+      if (activeTab === 'Popular tracks') {
+        if (isLoadingTracks) {
+          return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading tracks...</div>;
+        }
+        // Sort by plays/likes descending – show own tracks only
+        const sorted = [...userTracks].sort((a, b) =>
+          ((b as any).plays || (b as any).playCount || 0) - ((a as any).plays || (a as any).playCount || 0)
+        );
+        if (sorted.length === 0) {
+          return <div className={s.empty}><span className={s.emptyText}>No popular tracks yet</span></div>;
+        }
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {sorted.map(renderOwnTrackCard)}
+          </div>
+        );
+      }
+      // Albums / Playlists: empty states for now
+      return (
+        <div className={s.empty}>
+          <span className={s.emptyText}>
+            {activeTab === 'Albums' ? 'No albums yet' : 'No playlists yet'}
+          </span>
+        </div>
+      );
+    }
+
+    /* ── All tab (default): own tracks + reposts merged by date ── */
+    if (isLoadingTracks && isLoadingReposts) {
+      return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading...</div>;
+    }
+
+    // Build a merged list of own tracks + reposts, sorted by createdAt descending
+    type MergedItem = { type: 'track'; data: any; date: string } | { type: 'repost'; data: any; date: string };
+    const merged: MergedItem[] = [];
+
+    for (const track of userTracks) {
+      merged.push({ type: 'track', data: track, date: track.createdAt || '' });
+    }
+    for (const repost of userReposts) {
+      const t = repost.track || repost;
+      merged.push({ type: 'repost', data: repost, date: (repost as any).repostedAt || t.createdAt || '' });
+    }
+
+    // Sort newest first
+    merged.sort((a, b) => {
+      const da = a.date ? new Date(a.date).getTime() : 0;
+      const db = b.date ? new Date(b.date).getTime() : 0;
+      return db - da;
+    });
+
+    if (merged.length === 0) {
+      return (
+        <div className={s.empty}>
+          <span className={s.emptyText}>Seems a little quiet over here</span>
+          {isOwnProfile && (
+            <button data-testid="profile-upload-more-button" className={s.uploadBtn} onClick={() => router.push(ROUTES.UPLOAD)}>Upload now</button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {merged.map((item) =>
+          item.type === 'repost' ? renderRepostCard(item.data) : renderOwnTrackCard(item.data)
+        )}
+
+        {/* Upload More — only on own profile */}
+        {isOwnProfile && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            padding: '40px 20px', gap: 16,
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            marginTop: 8,
+          }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#555" style={{ opacity: 0.5 }}>
+              <path d="M3 18v-3c0-.55.45-1 1-1h2v4H4c-.55 0-1-.45-1-1zm4-1h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4zm4-3c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-4z"/>
+            </svg>
+            <p style={{ color: '#888', fontSize: 14, margin: 0 }}>More uploads means more listeners.</p>
+            <button
+              data-testid="profile-upload-more-button"
+              onClick={() => router.push(ROUTES.UPLOAD)}
+              style={{
+                padding: '8px 24px', borderRadius: 100,
+                border: '1px solid #ccc',
+                background: '#fff', color: '#333',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              Upload more
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div data-testid="profile-page" className={s.page}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
@@ -170,60 +363,12 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
         isOwnProfile={!!isOwnProfile}
         targetUserId={isOwnProfile ? undefined : profile?._id || profile?.id || username}
         profile={profile}
+        onTabChange={setActiveTab}
       />
 
       <div className={s.content}>
         <div className={s.left}>
-          {isLoadingTracks ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading tracks...</div>
-          ) : userTracks.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {userTracks.map((track) => (
-                <ProfileTrackCard
-                  key={track.id}
-                  track={track}
-                  userFullName={displayName}
-                  username={username}
-                  userAvatarUrl={effectiveAvatarUrl || undefined}
-                  isOwner={!!isOwnProfile}
-                />
-              ))}
-
-              {/* Upload More — only on own profile */}
-              {isOwnProfile && (
-                <div style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '40px 20px', gap: 16,
-                  borderTop: '1px solid rgba(255,255,255,0.06)',
-                  marginTop: 8,
-                }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="#555" style={{ opacity: 0.5 }}>
-                    <path d="M3 18v-3c0-.55.45-1 1-1h2v4H4c-.55 0-1-.45-1-1zm4-1h2v4H7v-4zm4 0h2v4h-2v-4zm4 0h2v4h-2v-4zm4-3c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-4z"/>
-                  </svg>
-                  <p style={{ color: '#888', fontSize: 14, margin: 0 }}>More uploads means more listeners.</p>
-                  <button
-                    data-testid="profile-upload-more-button"
-                    onClick={() => router.push(ROUTES.UPLOAD)}
-                    style={{
-                      padding: '8px 24px', borderRadius: 100,
-                      border: '1px solid #ccc',
-                      background: '#fff', color: '#333',
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    }}
-                  >
-                    Upload more
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className={s.empty}>
-              <span className={s.emptyText}>Seems a little quiet over here</span>
-              {isOwnProfile && (
-                <button data-testid="profile-upload-more-button" className={s.uploadBtn} onClick={() => router.push(ROUTES.UPLOAD)}>Upload now</button>
-              )}
-            </div>
-          )}
+          {renderTabContent()}
         </div>
         <div className={s.right}>
           <ProfileSidebar 
