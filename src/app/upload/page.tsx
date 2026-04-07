@@ -7,6 +7,10 @@ import { SearchBar } from "../../shared/ui/SearchBar/SearchBar";
 import { ROUTES } from "../../shared/constants/routes";
 import { useAuthStore } from "../../features/auth/model/useAuthStore";
 import apiClient from "../../shared/api/client";
+import { useUploadTrack } from "../../features/tracks/model/trackQueries";
+import UploadSuccessModal from "../../features/tracks/ui/UploadSuccessModal";
+import UploadOptionsPanel from "../../features/tracks/ui/UploadOptionsPanel";
+import type { UploadOptionsData } from "../../features/tracks/ui/UploadOptionsPanel";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ACCEPTED_AUDIO = ".mp3,.wav,.flac,.aiff,.ogg,.aac,.mp4,.m4a,.wma";
@@ -72,15 +76,19 @@ export default function UploadPage() {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Options accordions
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [permissionsOpen, setPermissionsOpen] = useState(false);
-  const [audioClipOpen, setAudioClipOpen] = useState(false);
-  const [licensingOpen, setLicensingOpen] = useState(false);
+  // Options panel data
+  const [optionsData, setOptionsData] = useState<UploadOptionsData | null>(null);
+
+  // Success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [uploadedTrackTitle, setUploadedTrackTitle] = useState("");
 
   // Submit
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  // Upload mutation (TanStack Query — auto-invalidates cache)
+  const uploadMutation = useUploadTrack();
 
   // ── File handling ─────────────────────────────────────────────────────
   const validateFile = useCallback((f: File) => {
@@ -152,20 +160,36 @@ export default function UploadPage() {
     if (!file || isSaving) return;
     setIsSaving(true); setSaveError("");
     try {
-      const fd = new FormData();
-      fd.append("audioFile", file);
-      fd.append("title", title);
-      fd.append("genre", genre);
-      fd.append("tags", tags);
-      fd.append("description", description);
-      fd.append("visibility", privacy);
-      await apiClient.post("/tracks/upload", fd, { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true });
-      const uname = (user as any)?.permalink || (user as any)?.username || (user as any)?._id || "me";
-      router.push(ROUTES.PROFILE(uname));
+      const visibility = privacy === "public" ? "Public" : "Private";
+      await uploadMutation.mutateAsync({
+        payload: {
+          title,
+          genre,
+          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+          description,
+          visibility: visibility as "Public" | "Private",
+          status: "Processing",
+          fileName: file.name,
+          artworkUrl: artworkUrl || undefined,
+          excerptStart: optionsData?.excerptStart,
+          excerptEnd: optionsData?.excerptEnd,
+          releaseDate: optionsData?.releaseDate || "",
+          labelName: optionsData?.recordLabel,
+          isrc: optionsData?.isrc,
+          publisher: optionsData?.publisher,
+          buyLink: optionsData?.buyLink,
+          allowComments: optionsData?.allowComments,
+        },
+        audioFile: file,
+        onProgress: (p) => setUploadProgress(p),
+      });
+      // Show success modal instead of navigating
+      setUploadedTrackTitle(title);
+      setShowSuccessModal(true);
     } catch (err: any) {
       setSaveError(err?.response?.data?.message || "Upload failed. Please try again.");
     } finally { setIsSaving(false); }
-  }, [file, title, genre, tags, description, privacy, user, router, isSaving]);
+  }, [file, title, genre, tags, description, privacy, artworkUrl, optionsData, user, uploadMutation, isSaving]);
 
   const handleCancel = useCallback(() => {
     setFile(null); setStage("dropzone"); setUploadProgress(0); setUploadComplete(false);
@@ -397,15 +421,12 @@ export default function UploadPage() {
               </div>
             </div>
 
-            {/* ── Options section (accordions) ── */}
-            <div style={{ marginTop: 16, borderTop: "1px solid #333", paddingTop: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 16 }}>Options</h3>
-
-              <Accordion title="Advanced details" subtitle="Buy link, record label, release date, publisher..." icon={null} open={advancedOpen} onToggle={() => setAdvancedOpen(!advancedOpen)} />
-              <Accordion title="Permissions" subtitle="Control the visibility of engagements on your track, direct downloads, and more." icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>} open={permissionsOpen} onToggle={() => setPermissionsOpen(!permissionsOpen)} />
-              <Accordion title="Audio clip" subtitle="Pick the 20 second clip you'd like to use as your track preview. This will live on your feed and socials." icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>} open={audioClipOpen} onToggle={() => setAudioClipOpen(!audioClipOpen)} />
-              <Accordion title="Licensing" subtitle="Enable Creative Commons licenses options." icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M15 9.354a4 4 0 100 5.292"/></svg>} open={licensingOpen} onToggle={() => setLicensingOpen(!licensingOpen)} />
-            </div>
+            {/* ── Options section (tabbed panel) ── */}
+            <UploadOptionsPanel
+              audioFile={file}
+              artistName={(user as any)?.displayName || (user as any)?.username || ""}
+              onChange={setOptionsData}
+            />
 
             {saveError && <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(229,57,53,0.1)", border: "1px solid rgba(229,57,53,0.3)", borderRadius: 4, color: "#ef5350", fontSize: 13 }}>{saveError}</div>}
           </div>
@@ -424,6 +445,18 @@ export default function UploadPage() {
           </button>
         </div>
       )}
+
+      {/* ── Success Modal ── */}
+      <UploadSuccessModal
+        open={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          const uname = (user as any)?.permalink || (user as any)?.username || (user as any)?._id || "me";
+          router.push(ROUTES.PROFILE(uname));
+        }}
+        trackTitle={uploadedTrackTitle}
+        username={(user as any)?.permalink || (user as any)?.username || (user as any)?._id || "me"}
+      />
     </div>
   );
 }

@@ -148,7 +148,9 @@ const LoginForm = () => {
         Continue with Facebook
       </button>
 
-      <p className="text-center text-xs text-[#999] mt-2">
+
+
+      <p className="text-center text-xs text-[#999] mt-3">
         Don&apos;t have an account?{' '}
         <Link href={ROUTES.REGISTER} data-testid="login-register-link" className="text-[#ff5500] hover:underline font-medium">
           Create one for free
