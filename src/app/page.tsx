@@ -1,32 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import HeroSlider from '@/widgets/Register/HeroSlider'
 import { ROUTES } from '@/shared/constants/routes'
-import { useAuthStore } from '@/features/auth/model/useAuthStore'
 
 export default function HomePage() {
-  const router = useRouter()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const isInitialized = useAuthStore((s) => s.isInitialized)
-  const [checked, setChecked] = useState(false)
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    
-    if (isAuthenticated) {
-      router.replace(ROUTES.FEED)
-    } else {
-      setChecked(true)
-    }
-  }, [isAuthenticated, isInitialized, router])
-
-  // Show nothing while checking auth to avoid flash
-  if (!checked || !isInitialized) {
-    return <div className="min-h-screen bg-[#111111]" />
-  }
 
   return (
     <div data-testid="landing-page" className="min-h-screen bg-[#111111] text-white">

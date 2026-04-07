@@ -23,9 +23,11 @@ interface PlayerState {
   buffered: number;
   queue: Track[];
   isShuffle: boolean;
+  shuffledQueueIds: string[];
   repeatMode: 'none' | 'all' | 'one';
   isQueueOpen: boolean;
   playbackSource: 'global' | 'inline';
+  previousVolume: number;
 }
 
 interface PlayerActions {
@@ -54,12 +56,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   currentTrack: null,
   isPlaying: false,
   volume: 0.8,
+  previousVolume: 0.8,
   isMuted: false,
   currentTime: 0,
   duration: 0,
   buffered: 0,
   queue: [],
   isShuffle: false,
+  shuffledQueueIds: [],
   repeatMode: 'none',
   isQueueOpen: false,
   playbackSource: 'global',
@@ -80,60 +84,102 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   seek: (time: number) =>
     set({ currentTime: Math.max(0, Math.min(time, get().duration)) }),
 
-  setVolume: (level: number) =>
-    set({ volume: Math.max(0, Math.min(1, level)), isMuted: false }),
-
-  toggleMute: () => set((s) => ({ isMuted: !s.isMuted })),
-
-  nextTrack: () => {
-    const { queue, currentTrack, isShuffle, repeatMode } = get();
-    
-    if (repeatMode === 'one' && currentTrack) {
-      // Replay the same track
-      set({ currentTime: 0, isPlaying: true });
-      // Tell inline WaveformPlayer to restart from beginning
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('playerbar-restart'));
-      }
-      return;
-    }
-
-    if (!queue.length) {
-      if (repeatMode === 'all' && currentTrack) {
-         set({ currentTime: 0 });
-      }
-      return;
-    }
-
-    let next: Track;
-    if (isShuffle) {
-       const unplayed = queue.filter(t => t.id !== currentTrack?.id);
-       next = unplayed.length > 0 ? unplayed[Math.floor(Math.random() * unplayed.length)] : queue[0];
+  setVolume: (level: number) => {
+    const clamped = Math.max(0, Math.min(1, level));
+    if (clamped > 0) {
+      set({ volume: clamped, isMuted: false, previousVolume: clamped });
     } else {
-       const idx = queue.findIndex((t) => t.id === currentTrack?.id);
-       if (idx >= queue.length - 1) {
-         if (repeatMode === 'all') next = queue[0];
-         else { set({ isPlaying: false, currentTime: 0 }); return; }
-       } else {
-         next = queue[idx + 1];
-       }
+      set({ volume: 0, isMuted: true });
     }
-    set({ currentTrack: next, isPlaying: true, currentTime: 0, duration: next.duration ?? 0 });
   },
 
-  prevTrack: () => {
-    const { queue, currentTrack, currentTime } = get();
-    
-    // If we've played for more than 3 seconds, just restart the current track like typical players
-    if (currentTime > 3 && currentTrack) {
-      set({ currentTime: 0 });
+  toggleMute: () => set((s) => {
+    if (s.isMuted) {
+      const newVol = s.previousVolume > 0 ? s.previousVolume : 0.8;
+      return { isMuted: false, volume: newVol, previousVolume: newVol };
+    } else {
+      return { isMuted: true, volume: 0, previousVolume: s.volume };
+    }
+  }),
+
+  nextTrack: () => {
+    const { queue, currentTrack, isShuffle, shuffledQueueIds, repeatMode } = get();
+
+    if (repeatMode === 'one' && currentTrack) {
+      set({ currentTime: 0, isPlaying: true });
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playerbar-restart'));
       return;
     }
 
     if (!queue.length) return;
-    const idx = queue.findIndex((t) => t.id === currentTrack?.id);
-    const prev = queue[idx <= 0 ? queue.length - 1 : idx - 1];
-    set({ currentTrack: prev, isPlaying: true, currentTime: 0, duration: prev.duration ?? 0 });
+
+    let next: Track | undefined;
+    
+    if (isShuffle) {
+      const currentId = currentTrack?.id;
+      const idx = shuffledQueueIds.indexOf(currentId ?? '');
+      if (idx >= shuffledQueueIds.length - 1 || idx === -1) {
+        if (repeatMode === 'all') {
+          next = queue.find(t => t.id === shuffledQueueIds[0]) || queue[0];
+        } else {
+          set({ isPlaying: false, currentTime: 0 });
+          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
+          return;
+        }
+      } else {
+        next = queue.find(t => t.id === shuffledQueueIds[idx + 1]) || queue[idx + 1];
+      }
+    } else {
+      const idx = queue.findIndex((t) => t.id === currentTrack?.id);
+      if (idx >= queue.length - 1) {
+        if (repeatMode === 'all') {
+          next = queue[0];
+        } else {
+          set({ isPlaying: false, currentTime: 0 });
+          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
+          return;
+        }
+      } else {
+        next = queue[idx + 1];
+      }
+    }
+
+    if (next) {
+      set({ currentTrack: next, isPlaying: true, currentTime: 0, duration: next.duration ?? 0 });
+    }
+  },
+
+  prevTrack: () => {
+    const { queue, currentTrack, currentTime, isShuffle, shuffledQueueIds } = get();
+    
+    if (currentTime > 3 && currentTrack) {
+      set({ currentTime: 0 });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
+      }
+      return;
+    }
+
+    if (!queue.length) return;
+
+    let prev: Track | undefined;
+
+    if (isShuffle) {
+       const currentId = currentTrack?.id;
+       const idx = shuffledQueueIds.indexOf(currentId ?? '');
+       if (idx <= 0) {
+         prev = queue.find(t => t.id === shuffledQueueIds[shuffledQueueIds.length - 1]) || queue[queue.length - 1];
+       } else {
+         prev = queue.find(t => t.id === shuffledQueueIds[idx - 1]) || queue[idx - 1];
+       }
+    } else {
+      const idx = queue.findIndex((t) => t.id === currentTrack?.id);
+      prev = queue[idx <= 0 ? queue.length - 1 : idx - 1];
+    }
+    
+    if (prev) {
+      set({ currentTrack: prev, isPlaying: true, currentTime: 0, duration: prev.duration ?? 0 });
+    }
   },
 
   setCurrentTime: (time: number) => set({ currentTime: time }),
@@ -141,16 +187,36 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   setBuffered: (buffered: number) =>
     set({ buffered: Math.max(0, Math.min(1, buffered)) }),
   
-  setQueue: (tracks: Track[]) => set({ queue: tracks }),
-  addToQueue: (track: Track) => set(s => {
-    // Don't add duplicates
-    if (s.queue.some(t => t.id === track.id)) return s;
-    return { queue: [...s.queue, track] };
+  setQueue: (tracks: Track[]) => set(s => {
+    const ids = tracks.map(t => t.id);
+    if (s.isShuffle) {
+      const shuffled = [...ids].sort(() => Math.random() - 0.5);
+      return { queue: tracks, shuffledQueueIds: shuffled };
+    }
+    return { queue: tracks };
   }),
-  clearQueue: () => set({ queue: [] }),
-  removeFromQueue: (trackId: string) => set(s => ({ queue: s.queue.filter(t => t.id !== trackId) })),
+  addToQueue: (track: Track) => set(s => {
+    if (s.queue.some(t => t.id === track.id)) return s;
+    const newQueue = [...s.queue, track];
+    const newShuffled = [...s.shuffledQueueIds, track.id];
+    return { queue: newQueue, shuffledQueueIds: newShuffled };
+  }),
+  clearQueue: () => set({ queue: [], shuffledQueueIds: [] }),
+  removeFromQueue: (trackId: string) => set(s => ({
+    queue: s.queue.filter(t => t.id !== trackId),
+    shuffledQueueIds: s.shuffledQueueIds.filter(id => id !== trackId)
+  })),
   
-  toggleShuffle: () => set(s => ({ isShuffle: !s.isShuffle })),
+  toggleShuffle: () => set(s => {
+    const nextShuffle = !s.isShuffle;
+    if (nextShuffle) {
+      const ids = s.queue.map(t => t.id).filter(id => id !== s.currentTrack?.id);
+      ids.sort(() => Math.random() - 0.5);
+      const newShuffled = s.currentTrack ? [s.currentTrack.id, ...ids] : ids;
+      return { isShuffle: true, shuffledQueueIds: newShuffled };
+    }
+    return { isShuffle: false, shuffledQueueIds: [] };
+  }),
   cycleRepeatMode: () => set(s => {
     const modes: ('none' | 'all' | 'one')[] = ['none', 'all', 'one'];
     const nextIdx = (modes.indexOf(s.repeatMode) + 1) % modes.length;

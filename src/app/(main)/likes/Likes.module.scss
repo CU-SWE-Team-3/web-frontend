@@ -1,0 +1,275 @@
+/* Likes Page */
+
+.page {
+  min-height: 100vh;
+  background: var(--sc-bg-base);
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ─── Tab Bar ─── */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--sc-border);
+  margin-bottom: 28px;
+}
+
+.tab {
+  padding: 12px 18px;
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+  color: var(--sc-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--sc-transition-fast), border-color var(--sc-transition-fast);
+  font-weight: var(--sc-font-weight-medium);
+
+  &:hover {
+    color: var(--sc-white);
+  }
+}
+
+.tabActive {
+  color: var(--sc-white);
+  border-bottom-color: var(--sc-primary);
+  font-weight: var(--sc-font-weight-bold);
+}
+
+/* ─── Section Header ─── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-white);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewLabel {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  margin-right: 4px;
+}
+
+.viewToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.viewBtn {
+  background: none;
+  border: 1px solid var(--sc-border);
+  color: var(--sc-gray-500);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--sc-radius-sm);
+  transition: all var(--sc-transition-fast);
+
+  &:hover {
+    color: var(--sc-white);
+    border-color: var(--sc-gray-500);
+  }
+}
+
+.viewBtnActive {
+  color: var(--sc-white);
+  background: var(--sc-bg-dark-elevated);
+  border-color: var(--sc-gray-500);
+}
+
+.filterInput {
+  background: var(--sc-bg-dark-surface);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm);
+  font-family: var(--sc-font-family);
+  padding: 6px 12px;
+  width: 160px;
+  outline: none;
+  transition: border-color var(--sc-transition-fast);
+
+  &::placeholder {
+    color: var(--sc-gray-500);
+  }
+
+  &:focus {
+    border-color: var(--sc-primary);
+  }
+}
+
+/* ─── Grid View ─── */
+.likesGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.likeCard {
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0;
+  border-radius: var(--sc-radius-md);
+  transition: transform var(--sc-transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:hover .likeOverlay {
+    opacity: 1;
+  }
+
+  &:hover .likeImg {
+    transform: scale(1.03);
+  }
+}
+
+.likeThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--sc-radius-md);
+  overflow: hidden;
+  background: var(--sc-bg-dark-elevated);
+  margin-bottom: 8px;
+}
+
+.likeImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--sc-transition-normal);
+}
+
+.likeOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--sc-transition-fast);
+}
+
+.playBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sc-radius-full);
+  background: var(--sc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--sc-transition-fast);
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.likeTitle {
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.likeArtist {
+  font-size: 10px;
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.likeHeart {
+  color: var(--sc-primary);
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+/* ─── List View ─── */
+.likesList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--sc-gray-500);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.emptyTitle {
+  font-size: var(--sc-font-size-lg);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-gray-400);
+  margin-bottom: 8px;
+}
+
+.emptyText {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-gray-500);
+}

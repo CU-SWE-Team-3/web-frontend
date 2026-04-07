@@ -3,14 +3,15 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { BlockedUsersList } from "../ui/BlockedUsersList";
 import { useBlockedUsers } from "../model/useBlockedUsers";
 import { useUnblockUser } from "../model/useUnblockUser";
-import { useToast } from "@/components/ui/use-toast";
-
 // Mock the hooks
 jest.mock("../model/useBlockedUsers");
 jest.mock("../model/useUnblockUser");
-jest.mock("@/components/ui/use-toast", () => ({
-  useToast: jest.fn(),
-}));
+
+// Mocking toast inline since the file was moved
+const mockToast = jest.fn();
+jest.mock("@/shared/ui/AppToast/useAppToast", () => ({
+  useAppToast: () => ({ toast: mockToast }),
+}), { virtual: true });
 
 const mockBlockedUsers = [
   { id: "1", username: "user-1", displayName: "User One", avatarUrl: "avatar1.png" },
@@ -29,10 +30,6 @@ describe("BlockedUsersList", () => {
       mutate: mockMutate,
       isPending: false,
       variables: null,
-    });
-
-    (useToast as jest.Mock).mockReturnValue({
-      toast: mockToast,
     });
   });
 
