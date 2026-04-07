@@ -14,24 +14,37 @@ interface TrackMeta {
   hlsUrl?: string;
 }
 
+export interface WaveformComment {
+  id: string;
+  timestampSeconds: number;
+  text: string;
+  username: string;
+  avatarUrl?: string | null;
+}
+
 interface WaveformPlayerProps {
   audioUrl?: string;
   waveform?: number[];
+  comments?: WaveformComment[];
+  onTimeUpdate?: (currentTime: number) => void;
   trackMeta?: TrackMeta;
 }
 
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   audioUrl,
   waveform,
+  comments = [],
+  onTimeUpdate,
   trackMeta,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  // Default waveform is now only used if neither url nor peaks exist, but we should generate mock audio for peaks
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [hoveredComment, setHoveredComment] = useState<WaveformComment | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -50,7 +63,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       barWidth: 4,
       barRadius: 2,
       barGap: 3,
-      height: 80, // larger height
+      height: 80,
       normalize: true,
     });
 
@@ -69,6 +82,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     ws.on("audioprocess", () => {
       const time = ws.getCurrentTime();
       setCurrentTime(time);
+      onTimeUpdate?.(time);
       // Sync to global player bar if this waveform is the active source
       if (usePlayerStore.getState().playbackSource === 'inline') {
         usePlayerStore.getState().setCurrentTime(time);
@@ -80,6 +94,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     ws.on("finish", () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      onTimeUpdate?.(0);
       // Trigger the global player's next track logic (handles repeat/shuffle)
       if (usePlayerStore.getState().playbackSource === 'inline') {
         usePlayerStore.getState().nextTrack();
@@ -89,33 +104,22 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     if (audioUrl) {
       ws.load(audioUrl);
     } else {
-      // Create a dummy silent audio track to allow playback of the mock waveform
       const sampleRate = 44100;
-      const fakeDuration = 30; // 30 seconds
-      const buffer = new AudioContext().createBuffer(
-        1,
-        sampleRate * fakeDuration,
-        sampleRate,
-      );
-
+      const fakeDuration = 30;
+      const buffer = new AudioContext().createBuffer(1, sampleRate * fakeDuration, sampleRate);
       const channelData = buffer.getChannelData(0);
-      for (let i = 0; i < channelData.length; i++) {
-        channelData[i] = 0; // silence
-      }
+      for (let i = 0; i < channelData.length; i++) channelData[i] = 0;
 
       const peaks = waveform
         ? waveform.map((v) => v / 100)
         : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
 
-      // Load silence with mock peaks
       const blob = bufferToWaveBlob(buffer);
       const url = URL.createObjectURL(blob);
       ws.load(url, [peaks]);
     }
 
-    return () => {
-      ws.destroy();
-    };
+    return () => { ws.destroy(); };
   }, [audioUrl, waveform]);
 
   // Listen for seek events from the global PlayerBar
@@ -200,6 +204,14 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Calculate marker positions as % of duration
+  const commentMarkers = isReady && duration > 0
+    ? comments.map((c) => ({
+        ...c,
+        position: Math.min((c.timestampSeconds / duration) * 100, 100),
+      }))
+    : [];
+
   return (
     <div data-testid="waveform-player" className="w-full">
       <div className="flex items-center gap-6">
@@ -216,10 +228,117 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
           )}
         </AppButton>
 
-        <div className="flex-1 min-w-0 pointer-events-auto">
+        <div className="flex-1 min-w-0 pointer-events-auto relative">
           <div ref={containerRef} className="w-full" />
+
+          {/* ── Comment avatar markers ON the waveform ── */}
+          {commentMarkers.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 20,
+                pointerEvents: 'none',
+              }}
+            >
+              {commentMarkers.map((marker) => (
+                <div
+                  key={marker.id}
+                  data-testid={`comment-marker-${marker.id}`}
+                  style={{
+                    position: 'absolute',
+                    left: `${marker.position}%`,
+                    bottom: 0,
+                    transform: 'translateX(-50%)',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    zIndex: 10,
+                  }}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top });
+                    setHoveredComment(marker);
+                  }}
+                  onMouseLeave={() => setHoveredComment(null)}
+                >
+                  {/* Circle avatar marker */}
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: marker.avatarUrl
+                        ? `url(${marker.avatarUrl}) center/cover`
+                        : 'linear-gradient(135deg, #f97316, #8b5cf6)',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      transition: 'transform 150ms ease, box-shadow 150ms ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.3)';
+                      e.currentTarget.style.boxShadow = '0 0 6px rgba(255,85,0,0.6)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Username label below waveform (shows first commenter) ── */}
+          {commentMarkers.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                left: `${commentMarkers[0].position}%`,
+                bottom: 18,
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ color: '#ccc', fontSize: 11, fontWeight: 500 }}>
+                {commentMarkers[0].username}
+              </span>
+            </div>
+          )}
+
+          {/* Comment tooltip on hover */}
+          {hoveredComment && (
+            <div
+              data-testid="comment-tooltip"
+              style={{
+                position: 'fixed',
+                left: tooltipPos.x,
+                top: tooltipPos.y - 8,
+                transform: 'translate(-50%, -100%)',
+                background: '#1a1a1a',
+                border: '1px solid #333',
+                borderRadius: 6,
+                padding: '6px 10px',
+                maxWidth: 220,
+                zIndex: 100,
+                pointerEvents: 'none',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+              }}
+            >
+              <div style={{ color: '#ccc', fontSize: 11, fontWeight: 600 }}>
+                {hoveredComment.username}
+              </div>
+              <div style={{ color: '#999', fontSize: 12, marginTop: 2 }}>
+                {hoveredComment.text}
+              </div>
+            </div>
+          )}
+
           <div className="mt-2 flex justify-between text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-            <span data-testid="waveform-current-time">{formatTime(currentTime)}</span>
+            <span data-testid="waveform-current-time" style={{ color: '#f50' }}>{formatTime(currentTime)}</span>
             <span data-testid="waveform-duration">{isReady ? formatTime(duration) : "0:00"}</span>
           </div>
         </div>
@@ -228,7 +347,6 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   );
 };
 
-// Helper function to create silent audio blob
 function bufferToWaveBlob(abuffer: AudioBuffer) {
   var numOfChan = abuffer.numberOfChannels,
     length = abuffer.length * numOfChan * 2 + 44,
@@ -240,40 +358,31 @@ function bufferToWaveBlob(abuffer: AudioBuffer) {
     offset = 0,
     pos = 0;
 
-  function setUint16(data: number) {
-    view.setUint16(pos, data, true);
-    pos += 2;
-  }
+  function setUint16(data: number) { view.setUint16(pos, data, true); pos += 2; }
+  function setUint32(data: number) { view.setUint32(pos, data, true); pos += 4; }
 
-  function setUint32(data: number) {
-    view.setUint32(pos, data, true);
-    pos += 4;
-  }
-
-  setUint32(0x46464952); // "RIFF"
-  setUint32(length - 8); // file length - 8
-  setUint32(0x45564157); // "WAVE"
-
-  setUint32(0x20746d66); // "fmt " chunk
-  setUint32(16); // length = 16
-  setUint16(1); // PCM (uncompressed)
+  setUint32(0x46464952);
+  setUint32(length - 8);
+  setUint32(0x45564157);
+  setUint32(0x20746d66);
+  setUint32(16);
+  setUint16(1);
   setUint16(numOfChan);
   setUint32(abuffer.sampleRate);
-  setUint32(abuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
-  setUint16(numOfChan * 2); // block-align
-  setUint16(16); // 16-bit (hardcoded in this demo)
-
-  setUint32(0x61746164); // "data" - chunk
-  setUint32(length - pos - 4); // chunk length
+  setUint32(abuffer.sampleRate * 2 * numOfChan);
+  setUint16(numOfChan * 2);
+  setUint16(16);
+  setUint32(0x61746164);
+  setUint32(length - pos - 4);
 
   for (i = 0; i < abuffer.numberOfChannels; i++)
     channels.push(abuffer.getChannelData(i));
 
   while (pos < length) {
     for (i = 0; i < numOfChan; i++) {
-      sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
-      sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
-      view.setInt16(pos, sample, true); // write 16-bit sample
+      sample = Math.max(-1, Math.min(1, channels[i][offset]));
+      sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+      view.setInt16(pos, sample, true);
       pos += 2;
     }
     offset++;

@@ -82,6 +82,7 @@ export default function UploadPage() {
   // Success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [uploadedTrackTitle, setUploadedTrackTitle] = useState("");
+  const [uploadedTrackId, setUploadedTrackId] = useState("");
 
   // Submit
   const [isSaving, setIsSaving] = useState(false);
@@ -161,7 +162,7 @@ export default function UploadPage() {
     setIsSaving(true); setSaveError("");
     try {
       const visibility = privacy === "public" ? "Public" : "Private";
-      await uploadMutation.mutateAsync({
+      const result = await uploadMutation.mutateAsync({
         payload: {
           title,
           genre,
@@ -183,7 +184,11 @@ export default function UploadPage() {
         audioFile: file,
         onProgress: (p) => setUploadProgress(p),
       });
+      // Log the full upload response for debugging
+      console.log('[UploadPage] Full upload API response:', JSON.stringify(result, null, 2));
+      console.log('[UploadPage] Track ID from response:', result.id);
       // Show success modal instead of navigating
+      setUploadedTrackId(result.id);
       setUploadedTrackTitle(title);
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -455,6 +460,7 @@ export default function UploadPage() {
           router.push(ROUTES.PROFILE(uname));
         }}
         trackTitle={uploadedTrackTitle}
+        trackId={uploadedTrackId}
         username={(user as any)?.permalink || (user as any)?.username || (user as any)?._id || "me"}
       />
     </div>

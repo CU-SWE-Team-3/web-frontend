@@ -10,4 +10,5 @@ export interface TrackNode {
   repostCount: number;
   commentCount: number;
   isLiked: boolean; // Indicates if the current user likes it
+  isReposted: boolean; // Indicates if the current user reposted it
 }

@@ -22,6 +22,7 @@ describe('UploadSuccessModal', () => {
         onClose={vi.fn()}
         trackTitle="My Track"
         username="testuser"
+        trackId="track-123"
       />
     )
     expect(screen.queryByTestId('upload-success-modal')).not.toBeInTheDocument()
@@ -34,6 +35,7 @@ describe('UploadSuccessModal', () => {
         onClose={vi.fn()}
         trackTitle="My Track"
         username="testuser"
+        trackId="track-123"
       />
     )
     expect(screen.getByTestId('upload-success-modal')).toBeInTheDocument()
@@ -47,6 +49,7 @@ describe('UploadSuccessModal', () => {
         onClose={vi.fn()}
         trackTitle="City Lights"
         username="testuser"
+        trackId="track-456"
       />
     )
     expect(screen.getByText(/City Lights/)).toBeInTheDocument()
@@ -60,13 +63,46 @@ describe('UploadSuccessModal', () => {
         onClose={onClose}
         trackTitle="My Track"
         username="testuser"
+        trackId="track-123"
       />
     )
     fireEvent.click(screen.getByTestId('upload-success-close-button'))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('navigates to profile when View track is clicked', () => {
+  it('navigates to track page when View track is clicked', () => {
+    const onClose = vi.fn()
+    render(
+      <UploadSuccessModal
+        open={true}
+        onClose={onClose}
+        trackTitle="My Track"
+        username="testuser"
+        trackId="track-789"
+      />
+    )
+    fireEvent.click(screen.getByTestId('upload-success-view-track-button'))
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(mockPush).toHaveBeenCalledWith('/tracks/track-789')
+  })
+
+  it('shows the distribute section', () => {
+    render(
+      <UploadSuccessModal
+        open={true}
+        onClose={vi.fn()}
+        trackTitle="My Track"
+        username="testuser"
+        trackId="track-123"
+      />
+    )
+    expect(
+      screen.getByText('Distribute to more streaming services?')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Unlock with Artist Pro')).toBeInTheDocument()
+  })
+
+  it('falls back to profile when no trackId is provided', () => {
     const onClose = vi.fn()
     render(
       <UploadSuccessModal
@@ -77,22 +113,6 @@ describe('UploadSuccessModal', () => {
       />
     )
     fireEvent.click(screen.getByTestId('upload-success-view-track-button'))
-    expect(onClose).toHaveBeenCalledTimes(1)
     expect(mockPush).toHaveBeenCalledWith('/profile/testuser')
-  })
-
-  it('shows the distribute section', () => {
-    render(
-      <UploadSuccessModal
-        open={true}
-        onClose={vi.fn()}
-        trackTitle="My Track"
-        username="testuser"
-      />
-    )
-    expect(
-      screen.getByText('Distribute to more streaming services?')
-    ).toBeInTheDocument()
-    expect(screen.getByText('Unlock with Artist Pro')).toBeInTheDocument()
   })
 })
