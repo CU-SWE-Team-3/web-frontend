@@ -241,8 +241,8 @@ export const tracksRepository = {
   async getTracksByArtist(username: string): Promise<Track[]> {
     // ── Try real API first: fetch tracks for this specific user ──
     try {
-      console.log('[tracksRepository] Fetching tracks for user from API:', `/tracks/user/${username}`);
-      const response = await apiClient.get(`/tracks/user/${username}`);
+      console.log('[tracksRepository] Fetching tracks for user from API:', `/users/${username}/tracks`);
+      const response = await apiClient.get(`/users/${username}/tracks`);
       const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
       console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', username);
       if (Array.isArray(apiTracks) && apiTracks.length >= 0) {
@@ -272,7 +272,7 @@ export const tracksRepository = {
 
     // ── Mock fallback ──
     await wait(WAIT);
-    return tracks.filter((track) => track.artist === username || track.artist === CURRENT_ARTIST);
+    return tracks.filter((track) => track.artist === username || track.artist === CURRENT_ARTIST && username === "me");
   },
 
   async getTrackById(id: string): Promise<Track> {
