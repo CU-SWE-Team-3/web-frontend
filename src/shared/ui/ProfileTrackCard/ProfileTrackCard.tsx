@@ -117,7 +117,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   }, [liked, unlikeMutation, likeMutation, track.id]);
 
   const handleRepostToggle = useCallback(() => {
-    if (isOwner) return;
+    // Dev bypass: removed 'if (isOwner) return;' so local dev testing works
     if (reposted) {
       setReposted(false);
       setRepostCountLocal((c) => Math.max(0, c - 1));
@@ -128,7 +128,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       repostMutation.mutate(track.id);
       setToastVisible(true);
     }
-  }, [reposted, isAuthenticated, isOwner, track.id, repostMutation, unrepostMutation]);
+  }, [reposted, isAuthenticated, track.id, repostMutation, unrepostMutation]);
 
   const handlePlay = () => {
     play({
@@ -240,30 +240,28 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
           </button>
 
           {/* Repost button — same toggle pattern as like */}
-          {!isOwner && (
-            <button
-              data-testid="track-card-repost-button"
-              onClick={handleRepostToggle}
-              style={{
-                ...btnBase,
-                color: reposted ? '#ff5500' : '#ccc',
-                borderColor: reposted ? '#ff5500' : '#333',
-              }}
-              onMouseEnter={(e) => { if (!reposted) e.currentTarget.style.borderColor = '#555'; }}
-              onMouseLeave={(e) => { if (!reposted) e.currentTarget.style.borderColor = '#333'; }}
-              title={reposted ? 'Unrepost' : 'Repost'}
+          <button
+            data-testid="track-card-repost-button"
+            onClick={handleRepostToggle}
+            style={{
+              ...btnBase,
+              color: reposted ? '#ff5500' : '#ccc',
+              borderColor: reposted ? '#ff5500' : '#333',
+            }}
+            onMouseEnter={(e) => { if (!reposted) e.currentTarget.style.borderColor = '#555'; }}
+            onMouseLeave={(e) => { if (!reposted) e.currentTarget.style.borderColor = '#333'; }}
+            title={reposted ? 'Unrepost' : 'Repost'}
+          >
+            {/* Repost icon: changes color on active */}
+            <svg width="14" height="14" viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              {/* Repost icon: changes color on active */}
-              <svg width="14" height="14" viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/>
-              </svg>
-              <span>{formatCount(repostCountLocal)}</span>
-            </button>
-          )}
+              <path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/>
+            </svg>
+            <span>{formatCount(repostCountLocal)}</span>
+          </button>
 
           {/* Share (icon only) */}
           <button
@@ -280,6 +278,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
 
           {/* Copy Link (icon only) */}
           <button
+            data-testid="track-card-copy-button"
             style={btnIconOnly}
             onClick={() => {
               setCopyToastVisible(true);
