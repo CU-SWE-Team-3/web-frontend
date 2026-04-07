@@ -92,7 +92,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
           {/* Waveform */}
           <div data-testid="track-card-waveform" className="flex-1 min-h-[60px] relative mt-1">
              <Suspense fallback={<div className="h-full w-full bg-[#111]" />}>
-               <WaveformPlayer waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: userFullName || username, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} />
+               <WaveformPlayer audioUrl={track.streamUrl || track.hlsUrl} waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: userFullName || username, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} />
              </Suspense>
           </div>
         </div>

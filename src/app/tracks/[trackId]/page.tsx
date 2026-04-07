@@ -172,7 +172,16 @@ const TrackDetailPage: React.FC = () => {
 
             <div className="mt-8 mb-4 xl:mb-0">
               <div data-testid="track-waveform" className="bg-black/20 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/5 shadow-inner">
-                <WaveformPlayer waveform={track.waveform} />
+                <WaveformPlayer 
+                  waveform={track.waveform} 
+                  audioUrl={track.streamUrl || track.hlsUrl}
+                  trackMeta={{
+                    id: track.id,
+                    title: track.title,
+                    artist: track.artist,
+                    artworkUrl: track.artworkUrl
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -211,11 +220,18 @@ const TrackDetailPage: React.FC = () => {
           </div>
 
           {/* Comment Input */}
-          <div className="bg-[#1a1a1a] p-3 rounded flex items-center gap-3 border border-[#333] mt-6">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 shrink-0"></div>
-            <input data-testid="track-comment-input" type="text" placeholder="Write a comment" className="flex-1 bg-transparent border-none text-[13px] text-white outline-none placeholder-[#999]" />
-            <button className="text-[#999] hover:text-white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
-          </div>
+          {track.allowComments !== false ? (
+            <div className="flex items-center gap-3 bg-[#222] border border-white/10 rounded-lg p-2 mt-4 shadow-sm">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 shrink-0">
+                <img src="/placeholder.png" alt="User" className="w-full h-full object-cover" />
+              </div>
+              <input data-testid="track-comment-input" type="text" placeholder="Write a comment" className="flex-1 bg-transparent border-none text-[13px] text-white outline-none placeholder-[#999]" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3 bg-[#222] border border-white/10 rounded-lg p-3 mt-4 shadow-sm text-neutral-500 text-sm italic">
+              Comments have been disabled for this track.
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 py-2">
