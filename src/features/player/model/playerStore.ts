@@ -9,8 +9,10 @@ export interface Track {
   artworkUrl: string;
   duration?: number;
   hlsUrl?: string;
+  streamUrl?: string;
   restrictedRegions?: string[];
   tier?: 'free' | 'pro';
+  genre?: string;
 }
 
 interface PlayerState {
