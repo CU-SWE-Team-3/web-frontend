@@ -26,7 +26,7 @@ export const useLikeTrack = () => {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: LIKED_TRACKS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: LIKED_TRACKS_QUERY_KEY, refetchType: 'all' });
     },
   });
 };

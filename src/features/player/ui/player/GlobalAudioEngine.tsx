@@ -152,12 +152,33 @@ export const GlobalAudioEngine = () => {
   };
 
   const handleEnded = () => {
+    const { repeatMode, queue, currentTrack } = usePlayerStore.getState();
+
     if (currentTrack) {
       const durationNum = duration || audioRef.current?.duration || 0;
       import('../../api/historyApi').then(api => {
         api.historyApi.recordProgress(currentTrack.id, Math.floor(durationNum)).catch(() => {});
       });
     }
+
+    if (repeatMode === 'one') {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+      setCurrentTime(0);
+      return;
+    }
+
+    if (repeatMode === 'none') {
+      const idx = queue.findIndex(t => t.id === currentTrack?.id);
+      if (idx >= queue.length - 1) {
+        pause();
+        setCurrentTime(0);
+        return;
+      }
+    }
+
     nextTrack();
   };
 

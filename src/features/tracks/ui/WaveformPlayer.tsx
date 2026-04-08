@@ -28,6 +28,7 @@ interface WaveformPlayerProps {
   comments?: WaveformComment[];
   onTimeUpdate?: (currentTime: number) => void;
   trackMeta?: TrackMeta;
+  hidePlayButton?: boolean;
 }
 
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
@@ -36,6 +37,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   comments = [],
   onTimeUpdate,
   trackMeta,
+  hidePlayButton,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
@@ -228,18 +230,20 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   return (
     <div data-testid="waveform-player" className="w-full">
       <div className="flex items-center gap-6">
-        <AppButton
-          data-testid="track-play-button"
-          type="button"
-          onClick={togglePlay}
-          className="h-14 w-14 shrink-0 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-105 transition-all focus:outline-none shadow-[0_0_15px_rgba(249,115,22,0.3)] pointer-events-auto cursor-pointer"
-        >
-          {isPlaying ? (
-            <Pause size={22} fill="currentColor" />
-          ) : (
-            <Play size={22} fill="currentColor" className="ml-1" />
-          )}
-        </AppButton>
+        {!hidePlayButton && (
+          <AppButton
+            data-testid="track-play-button"
+            type="button"
+            onClick={togglePlay}
+            className="h-14 w-14 shrink-0 rounded-full bg-orange-500 text-white grid place-items-center hover:bg-orange-400 hover:scale-105 transition-all focus:outline-none shadow-[0_0_15px_rgba(249,115,22,0.3)] pointer-events-auto cursor-pointer"
+          >
+            {isPlaying ? (
+              <Pause size={22} fill="currentColor" />
+            ) : (
+              <Play size={22} fill="currentColor" className="ml-1" />
+            )}
+          </AppButton>
+        )}
 
         <div className="flex-1 min-w-0 pointer-events-auto relative">
           <div ref={containerRef} className="w-full" />

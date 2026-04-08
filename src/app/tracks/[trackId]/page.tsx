@@ -152,7 +152,8 @@ const TrackDetailPage: React.FC = () => {
                     onClick={() => {
                       const playerStore = usePlayerStore.getState();
                       if (playerStore.currentTrack?.id === track.id) {
-                        playerStore.isPlaying ? playerStore.pause() : playerStore.play();
+                        playerStore.isPlaying ? playerStore.pause() : playerStore.play(undefined, 'inline');
+                        window.dispatchEvent(new CustomEvent('playerbar-playpause'));
                       } else {
                         // Map local track model to player store track model
                         playerStore.play({
@@ -160,11 +161,14 @@ const TrackDetailPage: React.FC = () => {
                           title: track.title,
                           artist: track.artist,
                           artworkUrl: track.artworkUrl,
-                          duration: typeof track.duration === 'string' ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0) : track.duration,
+                          duration: typeof track.duration === 'string'
+                            ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0)
+                            : track.duration,
                           hlsUrl: track.hlsUrl,
                           streamUrl: track.streamUrl,
                           genre: track.genre,
-                        });
+                        }, 'inline');
+                        setTimeout(() => window.dispatchEvent(new CustomEvent('playerbar-playpause')), 50);
                       }
                     }}
                     className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1"
@@ -193,6 +197,9 @@ const TrackDetailPage: React.FC = () => {
                   <span className="px-3 py-1 bg-black/40 rounded-full text-[12px] text-white font-bold backdrop-blur-md">
                     # {track.genre || "Music"}
                   </span>
+                  <span className="px-3 py-1 bg-black/40 rounded-full text-[12px] text-white font-bold backdrop-blur-md">
+                    {track.duration}
+                  </span>
                 </div>
               </div>
 
@@ -202,6 +209,22 @@ const TrackDetailPage: React.FC = () => {
                 <WaveformPlayer 
                   waveform={track.waveform} 
                   onTimeUpdate={setCurrentPlaybackTime}
+                  audioUrl={track.streamUrl || track.hlsUrl}
+                  comments={comments.map(c => ({
+                    id: c.id,
+                    timestampSeconds: c.timestampSeconds,
+                    text: c.text,
+                    username: c.displayName || c.username,
+                    avatarUrl: c.avatarUrl,
+                  }))}
+                  trackMeta={{
+                    id: track.id,
+                    title: track.title,
+                    artist: track.artist,
+                    artworkUrl: track.artworkUrl,
+                    hlsUrl: track.hlsUrl,
+                  }}
+                  hidePlayButton
                 />
               </div>
             </div>
@@ -307,7 +330,7 @@ const TrackDetailPage: React.FC = () => {
                 } else {
                   setLocalIsReposted(true);
                   setLocalRepostCount((c) => (c || 0) + 1);
-                  repostMutation.mutate(track.id);
+                  repostMutation.mutate({ trackId: track.id });
                 }
               }}
               className={`px-3 py-1.5 ml-2 bg-[#151515] border rounded flex items-center justify-center gap-2 transition-colors ${localIsReposted ? 'border-[#ff5500] text-[#ff5500]' : 'border-[#333] hover:border-[#555] text-[#ccc]'}`} 

@@ -77,7 +77,7 @@ export const TrackCard = ({ track }: TrackCardProps) => {
     } else {
       setIsReposted(true);
       setRepostCount((c) => c + 1);
-      repostMutation.mutate(track.id);
+      repostMutation.mutate({ trackId: track.id });
     }
   };
 
