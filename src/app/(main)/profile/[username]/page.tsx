@@ -72,11 +72,16 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   ));
 
   // Fetch true counts to fallback to if backend profile omits them
-  const ownId = isOwnProfile ? ((authUser as any)?._id || authUser?.id || username) : username;
-  const { data: followersList } = useFollowers(ownId !== 'me' ? ownId : '');
-  const { data: followingList } = useFollowing(ownId !== 'me' ? ownId : '');
-  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(username);
-  const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(ownId !== 'me' ? ownId : '');
+  // We use profile._id or profile.id if available, falling back to username.
+  // This ensures the backend gets a valid ObjectId if it doesn't support permalink strings for these endpoints.
+  const targetId = isOwnProfile 
+    ? ((authUser as any)?._id || authUser?.id || username)
+    : (profile._id || profile.id || username);
+
+  const { data: followersList } = useFollowers(targetId !== 'me' ? targetId : '');
+  const { data: followingList } = useFollowing(targetId !== 'me' ? targetId : '');
+  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(targetId);
+  const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(targetId !== 'me' ? targetId : '');
   const { data: likedTracksRaw } = useLikedTracks();
 
   // Map liked tracks to the sidebar format
