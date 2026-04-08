@@ -9,17 +9,22 @@ export const LIKED_TRACKS_QUERY_KEY = ["liked-tracks"] as const;
  * Map raw API liked-track response to our TrackNode interface.
  * The backend may return `_id`, nested `artist` objects, etc.
  */
-function mapLikedTrack(t: any): TrackNode {
+function mapLikedTrack(rawItem: any): TrackNode {
+  // Backends often return likes as an array of { track: { ... }, likedAt: "..." }
+  // or it might just be the track directly. This handles both.
+  const t = rawItem.track || rawItem;
+
   return {
     id: t._id || t.id,
-    title: t.title || "Untitled",
+    title: t.title || t.name || "Untitled",
     artist:
       t.artist?.displayName ||
-      t.artist?.permalink ||
       t.artist?.username ||
+      t.artist?.name ||
+      t.artist?.permalink ||
       (typeof t.artist === "string" ? t.artist : "") ||
       "Unknown Artist",
-    artworkUrl: t.artworkUrl || t.coverUrl || null,
+    artworkUrl: t.artworkUrl || t.coverUrl || t.imageUrl || null,
     createdAt: t.createdAt || t.likedAt || "",
     durationFormatted:
       typeof t.duration === "number"
