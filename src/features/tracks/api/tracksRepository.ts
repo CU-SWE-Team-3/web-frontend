@@ -75,10 +75,21 @@ export const tracksRepository = {
           console.warn("Could not read local duration", e);
         }
 
+        // Try to get a reliable mime type, falling back to extension-based guessing
+        let finalFormat = audioFile.type;
+        if (!finalFormat) {
+          const ext = audioFile.name.split('.').pop()?.toLowerCase();
+          const mimeMap: Record<string, string> = {
+            'mp3': 'audio/mpeg', 'wav': 'audio/wav', 'flac': 'audio/flac', 
+            'ogg': 'audio/ogg', 'aac': 'audio/aac', 'm4a': 'audio/mp4'
+          };
+          finalFormat = (ext && mimeMap[ext]) ? mimeMap[ext] : "audio/mpeg";
+        }
+
         // Step 1: Request Azure SAS URL from our backend
         const initResponse = await apiClient.post("/tracks/upload", {
           title: payload.title,
-          format: audioFile.type || "audio/mpeg",
+          format: finalFormat,
           size: audioFile.size,
           duration: durationInSeconds
         });
@@ -92,7 +103,7 @@ export const tracksRepository = {
         // Step 2: PUT raw binary directly to Azure Blob
         await axios.put(uploadUrl, audioFile, {
           headers: {
-            "Content-Type": audioFile.type || "audio/mpeg",
+            "Content-Type": finalFormat,
             "x-ms-blob-type": "BlockBlob"
           },
           onUploadProgress: (progressEvent) => {

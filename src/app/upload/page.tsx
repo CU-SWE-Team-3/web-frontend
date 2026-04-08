@@ -192,7 +192,10 @@ export default function UploadPage() {
       setUploadedTrackTitle(title);
       setShowSuccessModal(true);
     } catch (err: any) {
-      setSaveError(err?.response?.data?.message || "Upload failed. Please try again.");
+      console.error('[UploadPage] Upload failed:', err);
+      const backendMsg = err?.response?.data?.message || err?.response?.data;
+      const exactErr = typeof backendMsg === 'string' ? backendMsg : JSON.stringify(backendMsg);
+      setSaveError(exactErr || err?.message || "Upload failed. Please try again.");
     } finally { setIsSaving(false); }
   }, [file, title, genre, tags, description, privacy, artworkUrl, optionsData, user, uploadMutation, isSaving]);
 
