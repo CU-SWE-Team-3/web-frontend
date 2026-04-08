@@ -1,0 +1,11 @@
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\player_files.txt
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player\model\playerStore.ts
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player\model\usePlayer.ts
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player\tests\PlayerBar.test.tsx
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player\tests\usePlayer.test.ts
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\player\ui\player
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\features\tracks\ui\WaveformPlayer.tsx
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayerBar
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayerBar\PlayerBar.module.scss
+C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\src\shared\ui\PlayerBar\PlayerBar.tsx
