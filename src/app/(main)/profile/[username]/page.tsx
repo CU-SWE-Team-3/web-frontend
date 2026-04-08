@@ -82,7 +82,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const { data: followingList } = useFollowing(targetId !== 'me' ? targetId : '');
   const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(targetId);
   const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(targetId !== 'me' ? targetId : '');
-  const { data: likedTracksRaw } = useLikedTracks();
+  const { data: likedTracksRaw } = useLikedTracks(targetId !== 'me' ? targetId : '');
 
   // Map liked tracks to the sidebar format
   const likedTracks: LikedTrackItem[] = (likedTracksRaw || []).map((t) => ({
@@ -192,6 +192,8 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
           waveform: track.waveform || [],
           duration: track.duration || '0:00',
           createdAt: track.createdAt || repost.repostedAt || '',
+          streamUrl: track.streamUrl || track.hlsUrl || track.audioUrl || '',
+          hlsUrl: track.hlsUrl || track.audioUrl || '',
         }}
         userFullName={track.artist?.displayName || track.artist || displayName}
         username={track.artist?.permalink || username}
@@ -401,7 +403,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
             bio={profile.bio}
             socialLinks={profile.socialLinks}
             followingUsers={followingList || []}
-            likedTracks={isOwnProfile ? likedTracks : []}
+            likedTracks={likedTracks}
           />
         </div>
       </div>

@@ -158,66 +158,47 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return () => { ws.destroy(); };
   }, [audioUrl, waveform]);
 
-  // Listen for seek events from the global PlayerBar
+  // Sync wave playback and scrubbing with the global PlayerBar
   useEffect(() => {
-    const handleBarSeek = (e: Event) => {
-      const time = (e as CustomEvent).detail?.time;
-      if (wavesurferRef.current && typeof time === 'number') {
-        const dur = wavesurferRef.current.getDuration();
-        if (dur > 0) {
-          wavesurferRef.current.seekTo(time / dur);
+    if (!trackMeta) return;
+
+    return usePlayerStore.subscribe((state) => {
+      const ws = wavesurferRef.current;
+      if (!ws) return;
+
+      const isThisTrack = state.currentTrack?.id === trackMeta.id;
+
+      // 1. Sync Play/Pause
+      if (isThisTrack) {
+        if (state.isPlaying && !ws.isPlaying()) {
+          ws.play();
+        } else if (!state.isPlaying && ws.isPlaying()) {
+          ws.pause();
+        }
+      } else {
+        // If another track starts playing globally, stop this waveform
+        if (ws.isPlaying()) {
+          ws.stop();
+          setIsPlaying(false);
+          setCurrentTime(0);
         }
       }
-    };
 
-    // Listen for play/pause from the global PlayerBar
-    const handleBarPlayPause = () => {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.playPause();
+      // 2. Sync Global Player scrubbing -> Waveform visual playhead
+      if (isThisTrack && typeof state.currentTime === 'number') {
+        const wsTime = ws.getCurrentTime();
+        // If the difference is > 0.5s, the user scrubbed the global player bar. Update waveform!
+        if (Math.abs(wsTime - state.currentTime) > 0.5) {
+          const dur = ws.getDuration();
+          if (dur > 0) {
+            ws.seekTo(state.currentTime / dur);
+          }
+        }
       }
-    };
 
-    // Listen for restart (repeat-one) — stop, seek to 0, then play
-    const handleBarRestart = () => {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.stop();
-        wavesurferRef.current.seekTo(0);
-        setTimeout(() => {
-          wavesurferRef.current?.play();
-        }, 50);
-      }
-    };
-
-    // Listen for stop-all — stops THIS waveform if another track starts playing
-    const handleStopAll = (e: Event) => {
-      const activeId = (e as CustomEvent).detail?.activeTrackId;
-      // If the active track is NOT this one, stop playing
-      if (trackMeta && activeId !== trackMeta.id && wavesurferRef.current) {
-        wavesurferRef.current.stop();
-        setIsPlaying(false);
-        setCurrentTime(0);
-      }
-    };
-
-    window.addEventListener('playerbar-seek', handleBarSeek);
-    window.addEventListener('playerbar-playpause', handleBarPlayPause);
-    window.addEventListener('playerbar-restart', handleBarRestart);
-    window.addEventListener('playerbar-stop-all', handleStopAll);
-    
-    // Subscribe to volume changes
-    const unsubVolume = usePlayerStore.subscribe((state) => {
-      if (wavesurferRef.current) {
-        wavesurferRef.current.setVolume(state.isMuted ? 0 : state.volume);
-      }
+      // 3. Sync Volume
+      ws.setVolume(state.isMuted ? 0 : state.volume);
     });
-
-    return () => {
-      window.removeEventListener('playerbar-seek', handleBarSeek);
-      window.removeEventListener('playerbar-playpause', handleBarPlayPause);
-      window.removeEventListener('playerbar-restart', handleBarRestart);
-      window.removeEventListener('playerbar-stop-all', handleStopAll);
-      unsubVolume();
-    };
   }, [trackMeta]);
 
   const togglePlay = () => {
