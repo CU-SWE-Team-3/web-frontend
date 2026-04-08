@@ -1,5 +1,5 @@
 import axios from "axios";
-import apiClient from "@/shared/api/client";
+import apiClient, { API_TIMEOUTS } from "@/shared/api/client";
 import { useAuthStore } from "@/features/auth/model/useAuthStore";
 import type { Track, UpdateTrackInput, UploadTrackInput } from "../model/track";
 
@@ -16,6 +16,23 @@ function resolveUsername(username: string): string {
     return user?.permalink || user?.username || (user as any)?._id || user?.id || username;
   }
   return username;
+}
+
+function isCurrentUserIdentifier(username: string): boolean {
+  const { user } = useAuthStore.getState();
+  if (!user) return username === "me";
+
+  const identifiers = new Set(
+    [
+      "me",
+      user.permalink,
+      user.username,
+      user.id,
+      (user as any)?._id,
+    ].filter(Boolean),
+  );
+
+  return identifiers.has(username);
 }
 
 /**
@@ -92,7 +109,7 @@ export const tracksRepository = {
           format: finalFormat,
           size: audioFile.size,
           duration: durationInSeconds
-        });
+        }, { timeout: API_TIMEOUTS.uploadInit });
 
         const trackData = initResponse.data?.data;
         if (!trackData?.trackId || !trackData?.uploadUrl) {
@@ -106,6 +123,7 @@ export const tracksRepository = {
             "Content-Type": finalFormat,
             "x-ms-blob-type": "BlockBlob"
           },
+          timeout: API_TIMEOUTS.uploadBinary,
           onUploadProgress: (progressEvent) => {
             if (onProgress && progressEvent.total) {
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -115,7 +133,7 @@ export const tracksRepository = {
         });
 
         // Step 3: Confirm upload to trigger processing
-        await apiClient.patch(`/tracks/${trackId}/confirm`);
+        await apiClient.patch(`/tracks/${trackId}/confirm`, {}, { timeout: API_TIMEOUTS.uploadConfirm });
         console.log('[tracksRepository] Upload confirmed for trackId:', trackId, '| userId is derived from JWT on backend');
 
         // Step 4: Update metadata (only send valid fields so we don't trip strict API validation)
@@ -127,12 +145,12 @@ export const tracksRepository = {
           metadataPayload.releaseDate = new Date(payload.releaseDate).toISOString();
         }
 
-        await apiClient.patch(`/tracks/${trackId}/metadata`, metadataPayload);
+        await apiClient.patch(`/tracks/${trackId}/metadata`, metadataPayload, { timeout: API_TIMEOUTS.uploadMetadata });
 
         // Step 5: Update visibility
         await apiClient.patch(`/tracks/${trackId}/visibility`, {
           isPublic: payload.visibility === "Public"
-        });
+        }, { timeout: API_TIMEOUTS.uploadMetadata });
 
         const durationFormatted = `${Math.floor(durationInSeconds / 60)}:${Math.floor(durationInSeconds % 60).toString().padStart(2, "0")}`;
 
@@ -182,12 +200,23 @@ export const tracksRepository = {
    */
   async getTracks(): Promise<Track[]> {
     try {
-      // Try fetching the current user's tracks via their permalink
+      console.log('[tracksRepository] getTracks: fetching from API via /tracks/my-tracks');
+      const response = await apiClient.get('/tracks/my-tracks');
+      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+
+      if (Array.isArray(apiTracks)) {
+        return apiTracks.map((t: any) => mapApiTrack(t));
+      }
+    } catch (err) {
+      console.warn('[tracksRepository] /tracks/my-tracks failed, falling back:', err);
+    }
+
+    try {
       const { user } = useAuthStore.getState();
       const username = user?.permalink || user?.username || (user as any)?._id || user?.id;
 
       if (username) {
-        console.log('[tracksRepository] getTracks: fetching from API via /users/' + username + '/tracks');
+        console.log('[tracksRepository] getTracks: fallback via /users/' + username + '/tracks');
         const response = await apiClient.get(`/users/${username}/tracks`);
         const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
 
@@ -195,15 +224,17 @@ export const tracksRepository = {
           return apiTracks.map((t: any) => mapApiTrack(t, username));
         }
       }
+    } catch (err) {
+      console.warn('[tracksRepository] getTracks user fallback failed:', err);
+    }
 
-      // Fallback: try generic /tracks endpoint
+    try {
       console.log('[tracksRepository] getTracks: trying generic /tracks endpoint');
       const response = await apiClient.get('/tracks');
       const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
       if (Array.isArray(apiTracks)) {
         return apiTracks.map((t: any) => mapApiTrack(t));
       }
-
       return [];
     } catch (err) {
       console.warn('[tracksRepository] getTracks API failed:', err);
@@ -215,6 +246,16 @@ export const tracksRepository = {
     const resolvedUsername = resolveUsername(username);
 
     try {
+      if (isCurrentUserIdentifier(username) || isCurrentUserIdentifier(resolvedUsername)) {
+        console.log('[tracksRepository] Fetching own tracks from API:', '/tracks/my-tracks');
+        const response = await apiClient.get('/tracks/my-tracks');
+        const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+
+        if (Array.isArray(apiTracks)) {
+          return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
+        }
+      }
+
       console.log('[tracksRepository] Fetching tracks for user from API:', `/users/${resolvedUsername}/tracks`);
       const response = await apiClient.get(`/users/${resolvedUsername}/tracks`);
       const apiTracks = response.data?.data || response.data?.tracks || response.data || [];

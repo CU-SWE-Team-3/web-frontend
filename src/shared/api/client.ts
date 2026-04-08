@@ -1,5 +1,13 @@
 import axios from 'axios'
 
+export const API_TIMEOUTS = {
+  default: 30_000,
+  uploadInit: 120_000,
+  uploadBinary: 300_000,
+  uploadConfirm: 120_000,
+  uploadMetadata: 60_000,
+} as const
+
 // ─── Axios Client ─────────────────────────────────────────────────────────────
 // This is the one HTTP client used by the whole app.
 // UI components NEVER call fetch() directly — they always call repository functions,
@@ -11,7 +19,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10_000, // 10 seconds
+  timeout: API_TIMEOUTS.default,
   withCredentials: true, // Needed for HttpOnly cookie authentication
 })
 
