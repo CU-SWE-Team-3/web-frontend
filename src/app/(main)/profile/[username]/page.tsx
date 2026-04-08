@@ -80,7 +80,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
 
   const { data: followersList } = useFollowers(targetId !== 'me' ? targetId : '');
   const { data: followingList } = useFollowing(targetId !== 'me' ? targetId : '');
-  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(targetId);
+  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(username);
   const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(targetId !== 'me' ? targetId : '');
   const { data: likedTracksRaw } = useLikedTracks(targetId !== 'me' ? targetId : '');
 
@@ -180,6 +180,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
         key={`repost-${repost.id || track.id || track._id}`}
         track={{
           id: track._id || track.id,
+          permalink: track.permalink || track.id,
           title: track.title,
           artist: track.artist?.displayName || track.artist || 'Unknown Artist',
           genre: track.genre || 'Electronic',

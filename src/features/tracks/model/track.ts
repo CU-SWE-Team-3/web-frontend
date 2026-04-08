@@ -3,6 +3,7 @@ export type ProcessingStatus = "Processing" | "Finished";
 
 export interface Track {
   id: string;
+  permalink?: string;
   title: string;
   artist: string;
   genre: string;
