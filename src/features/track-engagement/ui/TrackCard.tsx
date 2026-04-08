@@ -16,7 +16,8 @@ interface TrackCardProps {
   track: TrackNode;
 }
 
-const formatCount = (count: number) => {
+const formatCount = (count?: number) => {
+  if (count == null || isNaN(count)) return "0";
   if (count >= 1000000) return `${(count / 1000000).toFixed(2)}M`;
   if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
   return count.toString();

@@ -56,11 +56,15 @@ function mapLikedTrack(rawItem: any): TrackNode {
  */
 export const useLikedTracks = (userId: string = "me") => {
   const isInitialized = useAuthStore((s) => s.isInitialized);
+  const user = useAuthStore((s) => s.user);
+
+  // If "me" is passed, use the real user ID to prevent 400 Bad Requests
+  const actualUserId = userId === "me" ? (user?.id || (user as any)?._id || "me") : userId;
 
   return useQuery<TrackNode[], Error>({
-    queryKey: [...LIKED_TRACKS_QUERY_KEY, userId],
+    queryKey: [...LIKED_TRACKS_QUERY_KEY, actualUserId],
     queryFn: async (): Promise<TrackNode[]> => {
-      const { data } = await apiClient.get(`/profile/${userId}/likes`, {
+      const { data } = await apiClient.get(`/profile/${actualUserId}/likes`, {
         withCredentials: true,
       });
 
