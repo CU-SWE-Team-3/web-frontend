@@ -36,6 +36,7 @@ const TrackDetailPage: React.FC = () => {
   const { data: comments = [] } = useTrackComments(trackId);
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
   const [commentSort, setCommentSort] = useState<'Newest' | 'Oldest' | 'Top'>('Newest');
+  const isCurrentTrackPlaying = usePlayerStore(state => state.currentTrack?.id === trackId && state.isPlaying);
 
   // Engagement State
   const { data: likedTracks } = useLikedTracks();
@@ -168,7 +169,7 @@ const TrackDetailPage: React.FC = () => {
                     }}
                     className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1"
                   >
-                     {usePlayerStore(state => state.currentTrack?.id === track.id && state.isPlaying) ? (
+                     {isCurrentTrackPlaying ? (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                      ) : (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
