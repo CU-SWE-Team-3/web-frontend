@@ -110,16 +110,10 @@ export const GlobalAudioEngine = () => {
       // Add to local history store immediately
       if (currentTrack) {
         useHistoryStore.getState().addToHistory(currentTrack, 0);
-        
-        // Firing progress to backend so recently-played is updated globally
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        if (apiUrl) {
-           fetch(`${apiUrl}/history/progress`, {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ trackId: currentTrack.id, progressSeconds: 0 })
-           }).catch(err => console.error('Failed to post history progress:', err));
-        }
+        // Also ping the backend lightly
+        import('../../api/historyApi').then(api => {
+          api.historyApi.recordProgress(currentTrack.id, 0).catch(err => console.debug('Initial progress log ignored', err));
+        });
       }
     } else {
       audioRef.current.pause();
@@ -158,6 +152,12 @@ export const GlobalAudioEngine = () => {
   };
 
   const handleEnded = () => {
+    if (currentTrack) {
+      const durationNum = duration || audioRef.current?.duration || 0;
+      import('../../api/historyApi').then(api => {
+        api.historyApi.recordProgress(currentTrack.id, Math.floor(durationNum)).catch(() => {});
+      });
+    }
     nextTrack();
   };
 
@@ -201,7 +201,7 @@ export const GlobalAudioEngine = () => {
     <>
       <audio
         ref={audioRef}
-        src={currentTrack?.hlsUrl || undefined}
+        src={currentTrack?.streamUrl || currentTrack?.hlsUrl || undefined}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onProgress={handleProgress}
