@@ -295,42 +295,8 @@ export const tracksRepository = {
   },
 
   async getTrackById(id: string): Promise<Track> {
-    // ── Try real API first ──
-    try {
-      console.log('[tracksRepository] Fetching track from API by id/permalink:', id);
-      const response = await apiClient.get(`/tracks/${id}`);
-      const t = response.data?.data?.track || response.data?.data || response.data;
-      if (t) {
-        return {
-          id: t._id || t.id,
-          title: t.title || 'Untitled',
-          artist: t.artist?.displayName || t.artist?.permalink || t.artist?.username || t.artist || '',
-          genre: t.genre || '',
-          tags: t.tags || [],
-          description: t.description || '',
-          releaseDate: t.releaseDate || '',
-          visibility: t.isPublic === false ? 'Private' as const : 'Public' as const,
-          status: (t.processingState === 'Finished' || t.status === 'Finished' ? 'Finished' : 'Processing') as 'Finished' | 'Processing',
-          audioFileName: t.audioFileName || t.fileName || '',
-          artworkUrl: t.artworkUrl || '',
-          waveform: t.waveform || makeWaveform(),
-          duration: typeof t.duration === 'number' ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}` : t.duration || '0:00',
-          createdAt: t.createdAt || '',
-          streamUrl: t.hlsUrl || t.streamUrl || '',
-          hlsUrl: t.hlsUrl || '',
-          playCount: t.playCount || 0,
-          likeCount: t.likeCount || 0,
-          repostCount: t.repostCount || 0,
-          commentCount: t.commentCount || 0,
-        };
-      }
-    } catch (err) {
-      console.warn('[tracksRepository] API fetch for track failed, falling back to mock:', err);
-    }
-
-    // ── Mock fallback ──
     await wait(WAIT);
-    const found = tracks.find((track) => track.id === id || (track as any).permalink === id);
+    const found = tracks.find((track) => track.id === id);
     if (!found) {
       throw new Error("Track not found");
     }
