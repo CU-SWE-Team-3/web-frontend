@@ -282,7 +282,23 @@ export const tracksRepository = {
         return mapApiTrack(t);
       }
     } catch (err) {
-      console.warn('[tracksRepository] API fetch for track failed:', err);
+      console.warn('[tracksRepository] API fetch for track failed, falling back to my-tracks:', err);
+      
+      // Fallback: the backend might hide "Processing" or "Private" tracks from the main GET /tracks/:id route.
+      // We check if it is one of the logged-in user's own tracks.
+      try {
+        const fallbackResponse = await apiClient.get('/tracks/my-tracks');
+        const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
+        if (Array.isArray(apiTracks)) {
+          const foundTrack = apiTracks.find((t: any) => (t._id || t.id) === id);
+          if (foundTrack) {
+            console.log('[tracksRepository] Track successfully found in my-tracks fallback!');
+            return mapApiTrack(foundTrack);
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn('[tracksRepository] Fallback to my-tracks also failed:', fallbackErr);
+      }
     }
 
     throw new Error("Track not found");
