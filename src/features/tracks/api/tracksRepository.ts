@@ -269,18 +269,36 @@ export const tracksRepository = {
         }
       }
 
-      console.log('[tracksRepository] Fetching tracks for user from API:', `/users/${resolvedUsername}/tracks`);
-      const response = await apiClient.get(`/users/${resolvedUsername}/tracks`);
-      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
-      console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', resolvedUsername);
+      let apiTracks: any[] = [];
+      const endpointsToTry = [
+        `/users/${resolvedUsername}/tracks?limit=100`,
+        `/profile/${resolvedUsername}/tracks?limit=100`, // Added fallback for backend strict routing
+        `/tracks/user/${resolvedUsername}?limit=100`
+      ];
 
-      if (Array.isArray(apiTracks)) {
+      for (const endpoint of endpointsToTry) {
+        try {
+          console.log('[tracksRepository] Attempting to fetch tracks from API:', endpoint);
+          const response = await apiClient.get(endpoint);
+          apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+          if (Array.isArray(apiTracks) && apiTracks.length > 0) {
+            console.log(`[tracksRepository] API returned ${apiTracks.length} tracks using endpoint: ${endpoint}`);
+            break; // Stop trying if we successfully found tracks!
+          }
+        } catch (err: any) {
+          if (err.response?.status !== 404) {
+            console.warn(`[tracksRepository] API endpoint ${endpoint} failed with non-404:`, err.message);
+          }
+        }
+      }
+
+      if (Array.isArray(apiTracks) && apiTracks.length > 0) {
         return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
       }
 
       return [];
     } catch (err) {
-      console.warn('[tracksRepository] API fetch for user tracks failed:', err);
+      console.warn('[tracksRepository] API fetch for user tracks entirely failed:', err);
       return [];
     }
   },
