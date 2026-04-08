@@ -4,21 +4,23 @@ import { useParams } from 'next/navigation';
 import { useTrackReposters } from '@/features/track-engagement/model/useTrackReposters';
 import { EngagementListLayout } from '@/features/track-engagement/ui/EngagementListLayout';
 import { UserGridItem } from '@/features/track-engagement/ui/UserGridItem';
+import { useTrack } from '@/features/tracks/model/trackQueries';
 import { EmptyState } from '@/shared/ui';
 import { RepostIcon } from '@/shared/ui/icons';
 
 export default function TrackRepostersPage() {
   const { id } = useParams<{ id: string }>();
   const { data: reposters, isLoading } = useTrackReposters(id) as { data: any[], isLoading: boolean };
+  const { data: track } = useTrack(id);
 
-  const mockTrackInfo = {
-    title: "سورة البقرة | اسلام صبحي",
-    artist: "Quran| قرآن",
-    artworkUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop",
-  };
+  const trackInfo = track ? {
+    title: track.title,
+    artist: (track.artist as any)?.displayName || (track.artist as any)?.username || "Unknown Artist",
+    artworkUrl: track.artworkUrl || (track as any).coverUrl || null,
+  } : undefined;
 
   return (
-    <EngagementListLayout trackId={id} trackInfo={mockTrackInfo}>
+    <EngagementListLayout trackId={id} trackInfo={trackInfo}>
       {isLoading ? (
         <div className="col-span-full py-12 text-center text-gray-500">Loading...</div>
       ) : !reposters || reposters.length === 0 ? (
