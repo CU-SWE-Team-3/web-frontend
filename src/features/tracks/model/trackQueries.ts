@@ -77,9 +77,17 @@ export function useTracks() {
  * Fetch a single track by ID.
  */
 export function useTrack(trackId?: string) {
+  const pendingTracks = usePendingTracksStore((s) => s.pendingTracks);
+
   return useQuery({
     queryKey: [...TRACKS_QUERY_KEY, trackId],
-    queryFn: () => tracksRepository.getTrackById(trackId as string),
+    queryFn: async () => {
+      const localPending = pendingTracks.find(t => t.id === trackId || t.audioFileName === trackId);
+      if (localPending) {
+        return localPending;
+      }
+      return tracksRepository.getTrackById(trackId as string);
+    },
     enabled: Boolean(trackId),
   });
 }
