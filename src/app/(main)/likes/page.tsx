@@ -1,3 +1,5 @@
+'use client';
+
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
