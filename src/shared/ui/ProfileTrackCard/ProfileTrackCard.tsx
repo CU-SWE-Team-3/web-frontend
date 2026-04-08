@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FC, lazy, Suspense, useState, useCallback } from 'react';
+import React, { FC, lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import type { Track } from '@/features/tracks/model/track';
 import { useRepostTrack } from '@/features/track-engagement/model/useRepostTrack';
@@ -76,9 +76,9 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   const { isAuthenticated } = useAuthStore();
   const play = usePlayerStore((s) => s.play);
   const [liked, setLiked] = useState(initialLiked);
-  const [likeCountLocal, setLikeCountLocal] = useState(initialLikeCount);
+  const [likeCountLocal, setLikeCountLocal] = useState(initialLiked ? Math.max(1, initialLikeCount) : initialLikeCount);
   const [reposted, setReposted] = useState(initialReposted);
-  const [repostCountLocal, setRepostCountLocal] = useState(initialRepostCount);
+  const [repostCountLocal, setRepostCountLocal] = useState(initialReposted ? Math.max(1, initialRepostCount) : initialRepostCount);
   const [toastVisible, setToastVisible] = useState(false);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
   const [nextUpToastVisible, setNextUpToastVisible] = useState(false);
@@ -125,10 +125,10 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
     } else {
       setReposted(true);
       setRepostCountLocal((c) => c + 1);
-      repostMutation.mutate(track.id);
+      repostMutation.mutate({ trackId: track.id, track });
       setToastVisible(true);
     }
-  }, [reposted, isAuthenticated, track.id, repostMutation, unrepostMutation]);
+  }, [reposted, isAuthenticated, track, repostMutation, unrepostMutation]);
 
   const handlePlay = () => {
     play({

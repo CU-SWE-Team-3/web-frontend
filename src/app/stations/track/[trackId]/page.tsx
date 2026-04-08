@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { NavBar } from "@/shared/ui";
 import { useTrack, useTracks } from "@/features/tracks/model/trackQueries";
 import { useSuggestedUsers } from "@/features/social-graph/model/useSuggestedUsers";
+import { useLikeTrack } from "@/features/track-engagement/model/useLikeTrack";
+import { useUnlikeTrack } from "@/features/track-engagement/model/useUnlikeTrack";
+import { useRepostTrack } from "@/features/track-engagement/model/useRepostTrack";
+import { useUnrepostTrack } from "@/features/track-engagement/model/useUnrepostTrack";
+import { TrackShareModal } from "@/shared/ui/TrackShareModal/TrackShareModal";
+import { RepostToast } from "@/shared/ui/RepostToast/RepostToast";
 
 export default function StationPage() {
   const { trackId } = useParams<{ trackId: string }>();
@@ -15,6 +21,27 @@ export default function StationPage() {
 
   const allTracks = tracksQuery.data || [];
   const suggestedArtists = suggestedQuery.data || [];
+
+  const [liked, setLiked] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+
+  const toggleMainLike = () => {
+    if (liked) {
+      setLiked(false);
+      unlikeMutation.mutate(trackId);
+    } else {
+      setLiked(true);
+      likeMutation.mutate(trackId);
+    }
+  };
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 3000);
+  };
 
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 6, height: 26, padding: '0 10px',
@@ -86,67 +113,25 @@ export default function StationPage() {
             
             {/* Action Bar */}
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-[#222]">
-               <button style={btnBase} className="hover:border-[#555]">
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Like
+               <button data-testid="station-like-btn" onClick={toggleMainLike} style={{ ...btnBase, color: liked ? '#ff5500' : '#ccc', borderColor: liked ? '#ff5500' : '#333' }} className="hover:border-[#555]">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke={liked ? 'none' : 'currentColor'} strokeWidth="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Like
                </button>
-               <button style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-share-btn" onClick={() => setShareOpen(true)} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> Share
                </button>
-               <button style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-nextup-btn" onClick={() => showToast('Added to Next up')} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 004 4h12"/><line x1="12" y1="19" x2="12" y2="19"/></svg> Add to Next up
                </button>
-               <button style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-playlist-btn" onClick={() => showToast('Add to playlist opened')} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><path d="M12 15h6v6h-6z" fill="currentColor" stroke="none"/></svg> Add to playlist
                </button>
             </div>
 
             {/* Tracklist List */}
             <div className="flex flex-col w-full">
-              {allTracks.map((t, idx) => {
-                const isActive = t.id === trackId;
-                return (
-                <div key={t.id} className={`flex items-center group justify-between py-2 border-b border-[#222] ${isActive ? 'bg-[#222]' : 'hover:bg-[#1a1a1a]'}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-[34px] h-[34px] bg-[#333] rounded overflow-hidden shadow">
-                      {t.artworkUrl ? (
-                         <img src={t.artworkUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                         <div className="w-full h-full bg-gradient-to-br from-[#555] to-[#333]" />
-                      )}
-                      
-                      {isActive && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <span className={`text-[12px] w-[14px] text-right font-medium ${isActive ? 'text-[#f50]' : 'text-[#999]'}`}>{idx + 1}</span>
-                       <span className="text-[12px] text-[#999]">•</span>
-                       <span className="text-[12px] text-[#999] hover:text-[#ccc] cursor-pointer max-w-[120px] truncate">{t.artist || 'Unknown Artist'}</span>
-                       <span className="text-[12px] text-[#ccc] mx-1">-</span>
-                       <span className="text-[12px] text-[#fff] font-medium cursor-pointer max-w-[160px] truncate">{t.title}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 pr-2">
-                    {/* Inline Hover Action Bar */}
-                    {isActive && (
-                      <div className="flex items-center gap-1.5 opacity-80">
-                         <button className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
-                         <button className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></button>
-                         <button className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
-                         <button className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
-                         <button className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 text-[11px] text-[#999]">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                      {0 /* API doesn't return playCount */}
-                    </div>
-                  </div>
-                </div>
-              )})}
+              {allTracks.map((t, idx) => (
+                <StationTrackRow key={t.id} t={t} idx={idx} isActive={t.id === trackId} />
+              ))}
             </div>
             
           </div>
@@ -197,6 +182,169 @@ export default function StationPage() {
         </div>
 
       </div>
+      
+      {toastMsg && (
+        <div className="fixed bottom-[80px] left-1/2 -translate-x-1/2 bg-[#f50] text-[#fff] px-6 py-3 rounded-md text-[14px] font-bold shadow-[0_4px_16px_rgba(0,0,0,0.5)] z-50 transition-opacity duration-300">
+          {toastMsg}
+        </div>
+      )}
+
+      {track && (
+        <TrackShareModal 
+          open={shareOpen} 
+          onClose={() => setShareOpen(false)} 
+          trackTitle={track.title} 
+          trackArtist={track.artist || 'Station Artist'} 
+          trackUrl={typeof window !== 'undefined' ? window.location.href : ''} 
+          trackArtworkUrl={track.artworkUrl}
+        />
+      )}
     </div>
   )
+}
+
+function StationTrackRow({ t, idx, isActive }: { t: any, idx: number, isActive: boolean }) {
+  const [liked, setLiked] = useState(false);
+  const [reposted, setReposted] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copyToastVisible, setCopyToastVisible] = useState(false);
+  const [nextUpToastVisible, setNextUpToastVisible] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+  const repostMutation = useRepostTrack();
+  const unrepostMutation = useUnrepostTrack();
+
+  const toggleLike = () => {
+    if (liked) {
+      setLiked(false);
+      unlikeMutation.mutate(t.id);
+    } else {
+      setLiked(true);
+      likeMutation.mutate(t.id);
+    }
+  };
+
+  const toggleRepost = () => {
+    if (reposted) {
+      setReposted(false);
+      unrepostMutation.mutate(t.id);
+    } else {
+      setReposted(true);
+      repostMutation.mutate({ trackId: t.id, track: t });
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(`${window.location.origin}/tracks/${t.id}`);
+      setCopyToastVisible(true);
+      setTimeout(() => setCopyToastVisible(false), 3000);
+    }
+  };
+
+  return (
+    <>
+      <div className={`flex items-center group justify-between py-2 border-b border-[#222] ${isActive ? 'bg-[#222]' : 'hover:bg-[#1a1a1a]'}`}>
+        <div className="flex items-center gap-3">
+          <div className="relative w-[34px] h-[34px] bg-[#333] rounded overflow-hidden shadow">
+            {t.artworkUrl ? (
+                <img src={t.artworkUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#555] to-[#333]" />
+            )}
+            
+            {isActive && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+              <span className={`text-[12px] w-[14px] text-right font-medium ${isActive ? 'text-[#f50]' : 'text-[#999]'}`}>{idx + 1}</span>
+              <span className="text-[12px] text-[#999]">•</span>
+              <span className="text-[12px] text-[#999] hover:text-[#ccc] cursor-pointer max-w-[120px] truncate">{t.artist || 'Unknown Artist'}</span>
+              <span className="text-[12px] text-[#ccc] mx-1">-</span>
+              <span className="text-[12px] text-[#fff] font-medium cursor-pointer max-w-[160px] truncate">{t.title}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 pr-2 relative">
+          <div className={`flex items-center gap-1.5 opacity-80 ${isActive ? 'opacity-100 flex' : 'hidden group-hover:flex'}`}>
+              <button onClick={toggleLike} className={`p-1 ${liked ? 'text-[#f50]' : 'text-[#ccc] hover:text-[#fff]'}`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke={liked ? 'none' : 'currentColor'} strokeWidth="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </button>
+              <button onClick={toggleRepost} className={`p-1 ${reposted ? 'text-[#f50]' : 'text-[#ccc] hover:text-[#fff]'}`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+              </button>
+              <button onClick={() => setShareOpen(true)} className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
+              <button onClick={handleCopyLink} className="text-[#ccc] hover:text-[#fff] p-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+              <div className="relative">
+                <button onClick={(e) => { e.stopPropagation(); setMoreOpen(!moreOpen); }} className={`p-1 ${moreOpen ? 'text-[#fff]' : 'text-[#ccc] hover:text-[#fff]'}`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+                </button>
+                {moreOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setMoreOpen(false); }} />
+                    <div className="absolute top-8 right-0 w-[160px] bg-[#222] border border-[#333] shadow-lg rounded-[4px] z-50 flex flex-col py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => { setNextUpToastVisible(true); setTimeout(() => setNextUpToastVisible(false), 3000); setMoreOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 004 4h12"/><line x1="12" y1="19" x2="12" y2="19"/></svg> Add to Next up
+                      </button>
+                      <button onClick={() => { setIsPlaylistModalOpen(true); setMoreOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><path d="M12 15h6v6h-6z" fill="currentColor" stroke="none"/></svg> Add to Playlist
+                      </button>
+                      <button onClick={() => { window.location.href = `/stations/track/${t.id}`; setMoreOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg> Station
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+          </div>
+          <div className="flex items-center gap-1 text-[11px] text-[#999]">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            {t.playCount || t.plays || 0}
+          </div>
+        </div>
+      </div>
+
+      <TrackShareModal open={shareOpen} onClose={() => setShareOpen(false)} trackTitle={t.title} trackArtist={t.artist || 'Unknown Artist'} trackUrl={`/tracks/${t.id}`} trackArtworkUrl={t.artworkUrl} />
+      
+      {copyToastVisible && (
+        <div style={{ position: 'fixed', top: 60, right: 20, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12, background: '#333', borderRadius: 4, padding: '12px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', color: '#fff', fontSize: 13, fontWeight: 500, animation: 'fadeIn 0.2s ease-out' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#009A55"><circle cx="12" cy="12" r="12"/><path d="M10 15.5l-3.5-3.5 1.5-1.5L10 12.5 16 6.5 17.5 8z" fill="#fff"/></svg> Link has been copied to the clipboard!
+        </div>
+      )}
+
+      {nextUpToastVisible && (
+        <div style={{ position: 'fixed', top: 60, right: 20, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 12, background: '#333', borderRadius: 4, padding: '10px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', animation: 'fadeIn 0.2s ease-out' }}>
+          {t.artworkUrl && <img src={t.artworkUrl} alt="" style={{ width: 44, height: 44, borderRadius: 4, objectFit: 'cover' }} />}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{t.title}</span><span style={{ color: '#999', fontSize: 13 }}>was added to <span style={{ color: '#fff' }}>Next up</span>.</span>
+          </div>
+        </div>
+      )}
+
+      {isPlaylistModalOpen && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.6)' }} onClick={() => setIsPlaylistModalOpen(false)} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: '#111', width: '100%', maxWidth: 440, borderRadius: 4, display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
+            <div style={{ padding: '24px 24px 0 24px' }}>
+              <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: '0 0 16px 0', borderBottom: '1px solid #333', paddingBottom: 16 }}>Create a playlist</h2>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', color: '#fff', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Playlist title <span style={{ color: '#f50' }}>*</span></label>
+                <input type="text" autoFocus style={{ width: '100%', background: '#222', border: '1px solid #444', borderRadius: 4, padding: '8px 12px', color: '#fff', fontSize: 14, outline: 'none' }} placeholder="New playlist" />
+              </div>
+            </div>
+            <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'flex-end', gap: 12, borderTop: '1px solid #333' }}>
+              <button onClick={() => setIsPlaylistModalOpen(false)} style={{ background: 'transparent', color: '#fff', border: 'none', padding: '8px 16px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
+              <button onClick={() => setIsPlaylistModalOpen(false)} style={{ background: '#f50', color: '#fff', border: 'none', borderRadius: 3, padding: '8px 16px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Save</button>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
 }

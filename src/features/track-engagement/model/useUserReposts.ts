@@ -32,7 +32,9 @@ export interface RepostedTrack {
 export const useUserReposts = (userId: string) => {
   return useQuery<RepostedTrack[], Error>({
     queryKey: [...USER_REPOSTS_QUERY_KEY, userId],
-    queryFn: () => getUserReposts(userId),
+    queryFn: async () => {
+      return await getUserReposts(userId);
+    },
     enabled: Boolean(userId),
   });
 };
