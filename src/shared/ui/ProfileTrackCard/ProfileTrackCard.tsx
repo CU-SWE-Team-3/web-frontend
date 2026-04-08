@@ -79,6 +79,16 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   const [likeCountLocal, setLikeCountLocal] = useState(initialLiked ? Math.max(1, initialLikeCount) : initialLikeCount);
   const [reposted, setReposted] = useState(initialReposted);
   const [repostCountLocal, setRepostCountLocal] = useState(initialReposted ? Math.max(1, initialRepostCount) : initialRepostCount);
+
+  useEffect(() => {
+    setLiked(initialLiked);
+    setLikeCountLocal(initialLikeCount);
+  }, [initialLiked, initialLikeCount]);
+
+  useEffect(() => {
+    setReposted(initialReposted);
+    setRepostCountLocal(initialRepostCount);
+  }, [initialReposted, initialRepostCount]);
   const [toastVisible, setToastVisible] = useState(false);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
   const [nextUpToastVisible, setNextUpToastVisible] = useState(false);

@@ -59,7 +59,6 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [likedTrackIds, setLikedTrackIds] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<ProfileData>({ ...defaultProfile, displayName: username, permalink: username });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
@@ -87,6 +86,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
     artist: t.artist,
     artworkUrl: t.artworkUrl,
   }));
+  const likedTrackIds = new Set((likedTracksRaw || []).map(t => t.id || (t as any)._id));
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -193,6 +193,8 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
         userAvatarUrl={track.artist?.avatarUrl || effectiveAvatarUrl || undefined}
         isOwner={false}
         isReposted={true}
+        isLiked={likedTrackIds.has(track._id || track.id)}
+        likeCount={track.likeCount || 0}
         repostCount={track.repostCount || 0}
         repostedBy={displayName}
       />
@@ -208,6 +210,9 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
       username={username}
       userAvatarUrl={effectiveAvatarUrl || undefined}
       isOwner={!!isOwnProfile}
+      isLiked={likedTrackIds.has(track.id || track._id)}
+      likeCount={track.likeCount || 0}
+      repostCount={track.repostCount || 0}
     />
   );
 
