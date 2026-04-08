@@ -80,7 +80,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
 
   const { data: followersList } = useFollowers(targetId !== 'me' ? targetId : '');
   const { data: followingList } = useFollowing(targetId !== 'me' ? targetId : '');
-  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(username);
+  const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(targetId);
   const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(targetId !== 'me' ? targetId : '');
   const { data: likedTracksRaw } = useLikedTracks(targetId !== 'me' ? targetId : '');
 
