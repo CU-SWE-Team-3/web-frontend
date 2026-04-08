@@ -9,8 +9,9 @@ export const useUnlikeTrack = () => {
     mutationFn: (trackId: string) => unlikeTrack(trackId),
     onMutate: async (trackId) => {
       await queryClient.cancelQueries({ queryKey: LIKED_TRACKS_QUERY_KEY });
+
       const previousLikes = queryClient.getQueryData([...LIKED_TRACKS_QUERY_KEY, 'me']);
-      
+
       // Optimistically remove the track from the cache
       queryClient.setQueryData([...LIKED_TRACKS_QUERY_KEY, 'me'], (old: any) => {
         const arr = Array.isArray(old) ? old : [];
@@ -19,12 +20,15 @@ export const useUnlikeTrack = () => {
 
       return { previousLikes };
     },
-    onError: (_err, _newUnlike, context) => {
+    onError: (err, trackId, context) => {
+      console.error(`[useUnlikeTrack] Failed to unlike track ${trackId}:`, err);
+      // Roll back the optimistic update
       if (context?.previousLikes) {
         queryClient.setQueryData([...LIKED_TRACKS_QUERY_KEY, 'me'], context.previousLikes);
       }
     },
     onSettled: () => {
+      // Always refetch to get the real server state
       queryClient.invalidateQueries({ queryKey: LIKED_TRACKS_QUERY_KEY, refetchType: 'all' });
     },
   });
