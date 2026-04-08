@@ -24,8 +24,8 @@ function mapLikedTrack(t: any): TrackNode {
     durationFormatted:
       typeof t.duration === "number"
         ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60)
-            .toString()
-            .padStart(2, "0")}`
+          .toString()
+          .padStart(2, "0")}`
         : t.duration || t.durationFormatted || "0:00",
     playCount: t.playCount ?? 0,
     likeCount: t.likeCount ?? 0,
