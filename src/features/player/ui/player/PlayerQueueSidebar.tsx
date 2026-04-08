@@ -1,12 +1,13 @@
 'use client';
 
-import { type FC, useState, useCallback } from 'react';
+import { type FC, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Play, Equal, Heart, Share2, ListPlus, ListMusic, Download, Radio } from 'lucide-react';
 import { usePlayerStore } from '../../model/playerStore';
 import { formatTime } from '../../lib/playbackUtils';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import s from './PlayerQueueSidebar.module.scss';
 import clsx from 'clsx';
 
@@ -15,7 +16,15 @@ export const PlayerQueueSidebar: FC = () => {
   const { currentTrack, queue, isQueueOpen, isPlaying, toggleQueueSidebar, play, pause, clearQueue, addToQueue } = usePlayerStore();
   const [autoplay, setAutoplay] = useState(true);
   const [contextMenuTrackId, setContextMenuTrackId] = useState<string | null>(null);
-  const [likedTrackIds, setLikedTrackIds] = useState<Set<string>>(new Set());
+  const { data: likedTracksData } = useLikedTracks();
+  const likedTrackIds = useMemo(() => {
+    const set = new Set<string>();
+    likedTracksData?.forEach(t => {
+      set.add(t.id);
+      if ((t as any)._id) set.add((t as any)._id);
+    });
+    return set;
+  }, [likedTracksData]);
   const [toast, setToast] = useState<string | null>(null);
 
   const likeMutation = useLikeTrack();
@@ -34,11 +43,9 @@ export const PlayerQueueSidebar: FC = () => {
 
   const handleLike = (trackId: string) => {
     if (likedTrackIds.has(trackId)) {
-      setLikedTrackIds(prev => { const next = new Set(prev); next.delete(trackId); return next; });
       unlikeMutation.mutate(trackId);
       showToast('Removed from Likes');
     } else {
-      setLikedTrackIds(prev => new Set(prev).add(trackId));
       likeMutation.mutate(trackId);
       showToast('Added to Likes');
     }
