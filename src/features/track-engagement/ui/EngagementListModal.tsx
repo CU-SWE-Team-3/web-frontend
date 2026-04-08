@@ -27,7 +27,8 @@ export const EngagementListModal = ({
   const repostsData = useTrackReposters(trackId);
 
   const query = type === 'likes' ? likesData : repostsData;
-  const users = query.data as any[] | undefined;
+  const rawData = query.data as any;
+  const users = Array.isArray(rawData) ? rawData : (rawData?.users || []);
   const isLoading = query.isLoading;
 
   const title = type === 'likes' ? 'Likes' : 'Reposts';
@@ -56,7 +57,7 @@ export const EngagementListModal = ({
           />
         ) : (
           <div className={s.list}>
-            {users.map((user) => (
+            {users.map((user: any) => (
               <EngagementUserItem key={user.id} user={user} />
             ))}
           </div>
