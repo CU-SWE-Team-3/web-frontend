@@ -3,53 +3,52 @@ import apiClient from "@/shared/api/client";
 import { useAuthStore } from "@/features/auth/model/useAuthStore";
 import type { Track, UpdateTrackInput, UploadTrackInput } from "../model/track";
 
-const WAIT = 450;
-const CURRENT_ARTIST = "You";
-
 const makeWaveform = () =>
   Array.from({ length: 70 }, (_, i) => 10 + ((i * 13) % 62));
 
-let tracks: Track[] = [
-  {
-    id: "1",
-    title: "City Lights",
-    artist: CURRENT_ARTIST,
-    genre: "Electronic",
-    description: "A driving synth wave track inspired by the neon lights of the city.",
-    tags: ["night", "synth", "driving"],
-    releaseDate: "2026-03-01",
-    visibility: "Public",
-    status: "Finished",
-    audioFileName: "city-lights.mp3",
-    artworkUrl:
-      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=420&h=420&fit=crop",
-    waveform: makeWaveform(),
-    duration: "3:46",
-    createdAt: "2026-03-01T10:20:00.000Z",
-  },
-  {
-    id: "2",
-    title: "Unreleased Draft",
-    artist: CURRENT_ARTIST,
-    genre: "House",
-    description: "Early concept mix for a club banger. Needs more bass.",
-    tags: ["draft", "club"],
-    releaseDate: "2026-03-15",
-    visibility: "Private",
-    status: "Processing",
-    audioFileName: "draft-mix.wav",
-    artworkUrl:
-      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=420&h=420&fit=crop",
-    waveform: makeWaveform(),
-    duration: "4:02",
-    createdAt: "2026-03-05T08:00:00.000Z",
-  },
-];
+/**
+ * Resolve the "me" keyword or the current user's identifier
+ * to a real permalink/username the API understands.
+ */
+function resolveUsername(username: string): string {
+  if (username === "me") {
+    const { user } = useAuthStore.getState();
+    return user?.permalink || user?.username || (user as any)?._id || user?.id || username;
+  }
+  return username;
+}
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Map a raw API track object to the local Track interface.
+ */
+function mapApiTrack(t: any, fallbackArtist?: string): Track {
+  const durationValue = typeof t.duration === "number"
+    ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
+    : t.duration || "0:00";
 
-// Keep axios usage through a repository boundary while serving local mock data.
-void apiClient;
+  return {
+    id: t._id || t.id,
+    title: t.title || "Untitled",
+    artist: t.artist?.displayName || t.artist?.permalink || t.artist?.username || t.artist || fallbackArtist || "",
+    genre: t.genre || "",
+    tags: t.tags || [],
+    description: t.description || "",
+    releaseDate: t.releaseDate || "",
+    visibility: t.isPublic === false ? "Private" as const : "Public" as const,
+    status: (t.processingState === "Finished" || t.status === "Finished" ? "Finished" : "Processing") as "Finished" | "Processing",
+    audioFileName: t.audioFileName || t.fileName || "",
+    artworkUrl: t.artworkUrl || "",
+    waveform: t.waveform || makeWaveform(),
+    duration: durationValue,
+    createdAt: t.createdAt || "",
+    streamUrl: t.hlsUrl || t.streamUrl || "",
+    hlsUrl: t.hlsUrl || "",
+    playCount: t.playCount || 0,
+    likeCount: t.likeCount || 0,
+    repostCount: t.repostCount || 0,
+    commentCount: t.commentCount || 0,
+  };
+}
 
 export const tracksRepository = {
   async uploadTrack(
@@ -128,9 +127,11 @@ export const tracksRepository = {
 
         const authState = useAuthStore.getState();
         const currentUser = authState.user;
-        const uploaderName = currentUser?.permalink || currentUser?.username || currentUser?.id || CURRENT_ARTIST;
+        const uploaderName = currentUser?.permalink || currentUser?.username || currentUser?.id || "You";
 
-        const fakeTrack: Track = {
+        // Return a Track object for immediate UI display.
+        // React Query will invalidate & refetch from the backend automatically.
+        const uploadedTrack: Track = {
           id: trackId,
           title: payload.title,
           artist: uploaderName,
@@ -145,7 +146,7 @@ export const tracksRepository = {
           waveform: makeWaveform(),
           duration: durationFormatted,
           createdAt: new Date().toISOString(),
-          streamUrl: streamUrl, // Keep local reference for immediate playback while backend processes
+          streamUrl: streamUrl,
           labelName: payload.labelName,
           isrc: payload.isrc,
           publisher: payload.publisher,
@@ -153,145 +154,70 @@ export const tracksRepository = {
           allowComments: payload.allowComments ?? true,
         };
 
-        // Replace the tracks state locally so it shows up in getTracks right away
-        tracks = [fakeTrack, ...tracks];
-        return fakeTrack;
+        return uploadedTrack;
 
       } catch (err) {
-        console.warn("Real API upload failed, falling back to mock:", err);
+        console.error("Real API upload failed:", err);
+        throw err; // Don't silently fall back — let the user know
       }
     }
 
-    // ── Mock fallback ──
-    if (onProgress) {
-      for (let progress = 0; progress <= 100; progress += 20) {
-        onProgress(progress);
-        await wait(120);
-      }
-    }
-
-    await wait(WAIT);
-
-    let streamUrl = "";
-    let durationFormatted = "0:00";
-
-    if (audioFile) {
-      try {
-        streamUrl = URL.createObjectURL(audioFile);
-        const audio = new Audio(streamUrl);
-        await new Promise((resolve) => {
-          audio.onloadedmetadata = resolve;
-          audio.onerror = resolve; // fallback if error
-          // Set a timeout just in case
-          setTimeout(resolve, 2000);
-        });
-        if (audio.duration && audio.duration !== Infinity) {
-          const m = Math.floor(audio.duration / 60);
-          const s = Math.floor(audio.duration % 60);
-          durationFormatted = `${m}:${s.toString().padStart(2, "0")}`;
-        }
-      } catch (err) {
-        console.warn("Failed to read audio file duration", err);
-      }
-    }
-
-    const authState = useAuthStore.getState();
-    const currentUser = authState.user;
-    const uploaderName = currentUser?.permalink || currentUser?.username || currentUser?.id || CURRENT_ARTIST;
-
-    const newTrack: Track = {
-      id: String(Date.now()),
-      title: payload.title,
-      artist: uploaderName,
-      genre: payload.genre,
-      tags: payload.tags,
-      description: payload.description,
-      releaseDate: payload.releaseDate,
-      visibility: payload.visibility,
-      status: payload.status || "Processing",
-      secretToken:
-        payload.visibility === "Private"
-          ? Math.random().toString(36).substring(2, 15)
-          : undefined,
-      audioFileName: payload.fileName,
-      artworkUrl:
-        payload.artworkUrl ||
-        "https://images.unsplash.com/photo-1458560871784-56d23406c091?w=420&h=420&fit=crop",
-      waveform: makeWaveform(),
-      duration: durationFormatted,
-      streamUrl,
-      createdAt: new Date().toISOString(),
-      labelName: payload.labelName,
-      isrc: payload.isrc,
-      publisher: payload.publisher,
-      buyLink: payload.buyLink,
-      allowComments: payload.allowComments ?? true,
-    };
-
-    tracks = [newTrack, ...tracks];
-    console.log("Track saved (mock):", newTrack);
-
-    if (newTrack.status !== "Finished") {
-      setTimeout(() => {
-        tracks = tracks.map((track) =>
-          track.id === newTrack.id ? { ...track, status: "Finished" } : track,
-        );
-      }, 2800);
-    }
-
-    return newTrack;
+    throw new Error("No audio file provided for upload.");
   },
 
+  /**
+   * Fetch ALL tracks visible to the current user from the backend.
+   * Used by the My Tracks / Track Management page.
+   */
   async getTracks(): Promise<Track[]> {
-    await wait(WAIT);
-    return [...tracks];
+    try {
+      // Try fetching the current user's tracks via their permalink
+      const { user } = useAuthStore.getState();
+      const username = user?.permalink || user?.username || (user as any)?._id || user?.id;
+
+      if (username) {
+        console.log('[tracksRepository] getTracks: fetching from API via /users/' + username + '/tracks');
+        const response = await apiClient.get(`/users/${username}/tracks`);
+        const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+
+        if (Array.isArray(apiTracks)) {
+          return apiTracks.map((t: any) => mapApiTrack(t, username));
+        }
+      }
+
+      // Fallback: try generic /tracks endpoint
+      console.log('[tracksRepository] getTracks: trying generic /tracks endpoint');
+      const response = await apiClient.get('/tracks');
+      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+      if (Array.isArray(apiTracks)) {
+        return apiTracks.map((t: any) => mapApiTrack(t));
+      }
+
+      return [];
+    } catch (err) {
+      console.warn('[tracksRepository] getTracks API failed:', err);
+      return [];
+    }
   },
 
   async getTracksByArtist(username: string): Promise<Track[]> {
-    // ── Try real API first: fetch tracks for this specific user ──
+    const resolvedUsername = resolveUsername(username);
+
     try {
-      console.log('[tracksRepository] Fetching tracks for user from API:', `/users/${username}/tracks`);
-      const response = await apiClient.get(`/users/${username}/tracks`);
+      console.log('[tracksRepository] Fetching tracks for user from API:', `/users/${resolvedUsername}/tracks`);
+      const response = await apiClient.get(`/users/${resolvedUsername}/tracks`);
       const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
-      console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', username);
-      
-      let realTracks: Track[] = [];
+      console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', resolvedUsername);
+
       if (Array.isArray(apiTracks)) {
-        // Map API response to our Track interface
-        realTracks = apiTracks.map((t: any) => ({
-          id: t._id || t.id,
-          title: t.title || 'Untitled',
-          artist: t.artist?.displayName || t.artist?.username || t.artist || username,
-          genre: t.genre || '',
-          tags: t.tags || [],
-          description: t.description || '',
-          releaseDate: t.releaseDate || '',
-          visibility: t.isPublic === false ? 'Private' as const : 'Public' as const,
-          status: (t.status === 'Finished' ? 'Finished' : 'Processing') as 'Finished' | 'Processing',
-          audioFileName: t.audioFileName || t.fileName || '',
-          artworkUrl: t.artworkUrl || '',
-          waveform: t.waveform || makeWaveform(),
-          duration: t.duration || '0:00',
-          createdAt: t.createdAt || '',
-          streamUrl: t.streamUrl || t.hlsUrl || '',
-          hlsUrl: t.hlsUrl || '',
-        }));
+        return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
       }
 
-      // Merge real tracks with mock tracks uploaded in this session to prevent them from disappearing
-      const localMockTracks = tracks.filter((track) => track.artist === username || (track.artist === CURRENT_ARTIST && username === "me"));
-      const realIds = new Set(realTracks.map(t => t.id));
-      const uniqueMockTracks = localMockTracks.filter(t => !realIds.has(t.id));
-
-      return [...uniqueMockTracks, ...realTracks];
-
+      return [];
     } catch (err) {
-      console.warn('[tracksRepository] API fetch for user tracks failed, falling back to mock:', err);
+      console.warn('[tracksRepository] API fetch for user tracks failed:', err);
+      return [];
     }
-
-    // ── Mock fallback ──
-    await wait(WAIT);
-    return tracks.filter((track) => track.artist === username || track.artist === CURRENT_ARTIST && username === "me");
   },
 
   async getTrackById(id: string): Promise<Track> {
@@ -301,55 +227,49 @@ export const tracksRepository = {
       const response = await apiClient.get(`/tracks/${id}`);
       const t = response.data?.data?.track || response.data?.data || response.data;
       if (t) {
-        return {
-          id: t._id || t.id,
-          title: t.title || 'Untitled',
-          artist: t.artist?.displayName || t.artist?.permalink || t.artist?.username || t.artist || '',
-          genre: t.genre || '',
-          tags: t.tags || [],
-          description: t.description || '',
-          releaseDate: t.releaseDate || '',
-          visibility: t.isPublic === false ? 'Private' as const : 'Public' as const,
-          status: (t.processingState === 'Finished' || t.status === 'Finished' ? 'Finished' : 'Processing') as 'Finished' | 'Processing',
-          audioFileName: t.audioFileName || t.fileName || '',
-          artworkUrl: t.artworkUrl || '',
-          waveform: t.waveform || makeWaveform(),
-          duration: typeof t.duration === 'number' ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}` : t.duration || '0:00',
-          createdAt: t.createdAt || '',
-          streamUrl: t.hlsUrl || t.streamUrl || '',
-          hlsUrl: t.hlsUrl || '',
-          playCount: t.playCount || 0,
-          likeCount: t.likeCount || 0,
-          repostCount: t.repostCount || 0,
-          commentCount: t.commentCount || 0,
-        };
+        return mapApiTrack(t);
       }
     } catch (err) {
-      console.warn('[tracksRepository] API fetch for track failed, falling back to mock:', err);
+      console.warn('[tracksRepository] API fetch for track failed:', err);
     }
 
-    // ── Mock fallback ──
-    await wait(WAIT);
-    const found = tracks.find((track) => track.id === id || (track as any).permalink === id);
-    if (!found) {
-      throw new Error("Track not found");
-    }
-    return found;
+    throw new Error("Track not found");
   },
 
   async updateTrack(id: string, updates: UpdateTrackInput): Promise<Track> {
-    await wait(WAIT);
-    tracks = tracks.map((track) => (track.id === id ? { ...track, ...updates } : track));
-    const updated = tracks.find((track) => track.id === id);
-    if (!updated) {
-      throw new Error("Track not found");
+    try {
+      const metadataPayload: any = {};
+      if (updates.title) metadataPayload.title = updates.title;
+      if (updates.description) metadataPayload.description = updates.description;
+      if (updates.genre) metadataPayload.genre = updates.genre;
+      if (updates.tags) metadataPayload.tags = updates.tags;
+      if (updates.releaseDate) metadataPayload.releaseDate = new Date(updates.releaseDate).toISOString();
+
+      if (Object.keys(metadataPayload).length > 0) {
+        await apiClient.patch(`/tracks/${id}/metadata`, metadataPayload);
+      }
+
+      if (updates.visibility !== undefined) {
+        await apiClient.patch(`/tracks/${id}/visibility`, {
+          isPublic: updates.visibility === "Public"
+        });
+      }
+
+      // Re-fetch the updated track from the API
+      return await this.getTrackById(id);
+    } catch (err) {
+      console.warn('[tracksRepository] API update failed:', err);
+      throw err;
     }
-    return updated;
   },
 
   async deleteTrack(id: string): Promise<{ success: boolean }> {
-    await wait(WAIT);
-    tracks = tracks.filter((track) => track.id !== id);
-    return { success: true };
+    try {
+      await apiClient.delete(`/tracks/${id}`);
+      return { success: true };
+    } catch (err) {
+      console.warn('[tracksRepository] API delete failed:', err);
+      throw err;
+    }
   },
 };
