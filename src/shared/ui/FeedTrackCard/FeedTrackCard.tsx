@@ -57,7 +57,7 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
       <div data-testid="track-card-waveform" className={s.waveform}>
         {waveformSlot || (audioUrl ? (
           <Suspense fallback={<div style={{ height: 80, background: '#222' }} />}>
-            <WaveformPlayer audioUrl={audioUrl} />
+            <WaveformPlayer audioUrl={audioUrl} hidePlayButton />
           </Suspense>
         ) : null)}
       </div>

@@ -101,7 +101,7 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, onEdit, onDelete }) => {
 
           {/* Waveform Area */}
           <div className="mt-4 pointer-events-none opacity-80 mix-blend-screen px-1 group-hover/card:opacity-100 transition-opacity duration-500">
-            <WaveformPlayer audioUrl={track.streamUrl || track.hlsUrl} waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: track.artist, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} />
+            <WaveformPlayer audioUrl={track.streamUrl || track.hlsUrl} waveform={track.waveform} trackMeta={{ id: track.id, title: track.title, artist: track.artist, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }} hidePlayButton />
           </div>
 
           {/* Footer Metadata & Actions */}
