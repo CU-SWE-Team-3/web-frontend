@@ -43,10 +43,17 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
     : t.duration || "0:00";
 
+  let artistName = t.artist?.displayName || t.artist?.permalink || t.artist?.username || t.artist;
+  if (typeof artistName === 'string' && /^[0-9a-fA-F]{24}$/.test(artistName)) {
+    artistName = fallbackArtist || "Unknown Artist";
+  } else if (!artistName) {
+    artistName = fallbackArtist || "Unknown Artist";
+  }
+
   return {
     id: t._id || t.id,
     title: t.title || "Untitled",
-    artist: t.artist?.displayName || t.artist?.permalink || t.artist?.username || t.artist || fallbackArtist || "",
+    artist: artistName,
     genre: t.genre || "",
     tags: t.tags || [],
     description: t.description || "",

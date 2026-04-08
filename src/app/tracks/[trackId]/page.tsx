@@ -205,11 +205,11 @@ const TrackDetailPage: React.FC = () => {
 
               {/* Bottom Row: Waveform */}
               <div className="w-full mt-auto mr-[20px]" data-testid="track-waveform">
-                {/* We render the waveform directly on the grey background without black box */}
                 <WaveformPlayer 
                   waveform={track.waveform} 
                   onTimeUpdate={setCurrentPlaybackTime}
                   audioUrl={track.streamUrl || track.hlsUrl}
+                  durationSeconds={typeof track.duration === 'string' ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0) : track.duration}
                   comments={comments.map(c => ({
                     id: c.id,
                     timestampSeconds: c.timestampSeconds,

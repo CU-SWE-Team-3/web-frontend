@@ -29,6 +29,7 @@ interface WaveformPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   trackMeta?: TrackMeta;
   hidePlayButton?: boolean;
+  durationSeconds?: number;
 }
 
 const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
@@ -38,6 +39,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   onTimeUpdate,
   trackMeta,
   hidePlayButton,
+  durationSeconds,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
@@ -111,18 +113,19 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       ws.load(audioUrl);
     } else {
       const sampleRate = 44100;
-      const fakeDuration = 30;
+      const fakeDuration = durationSeconds && durationSeconds > 0 ? durationSeconds : 30;
       const buffer = new AudioContext().createBuffer(1, sampleRate * fakeDuration, sampleRate);
       const channelData = buffer.getChannelData(0);
       for (let i = 0; i < channelData.length; i++) channelData[i] = 0;
 
-      const peaks = waveform
+      const hasRealPeaks = Array.isArray(waveform) && waveform.length > 0;
+      const peaks = hasRealPeaks
         ? waveform.map((v) => v / 100)
         : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
 
       const blob = bufferToWaveBlob(buffer);
       const url = URL.createObjectURL(blob);
-      ws.load(url, [peaks]);
+      ws.load(url, [peaks], fakeDuration);
     }
 
     return () => { ws.destroy(); };

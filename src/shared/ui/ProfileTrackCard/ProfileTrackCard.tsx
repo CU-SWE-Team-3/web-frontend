@@ -198,12 +198,12 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
             </div>
           </div>
 
-          {/* Waveform with comment avatar markers */}
           <div data-testid="track-card-waveform" className="flex-1 min-h-[60px] relative mt-1">
              <Suspense fallback={<div className="h-full w-full bg-[#111]" />}>
                <WaveformPlayer
                  waveform={track.waveform}
                  audioUrl={track.streamUrl || track.hlsUrl}
+                 durationSeconds={typeof track.duration === 'string' ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0) : track.duration}
                  comments={waveformComments}
                  onTimeUpdate={setCurrentPlaybackTime}
                  trackMeta={{ id: track.id, title: track.title, artist: userFullName || username, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }}
