@@ -3,6 +3,7 @@
 
 # Next.js build output
 /.next/
+/.next-dev/
 /out/
 /build
 
