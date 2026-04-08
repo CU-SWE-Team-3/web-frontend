@@ -58,6 +58,7 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
 
   return {
     id: t._id || t.id,
+    permalink: t.permalink || t.id,
     title: t.title || "Untitled",
     artist: artistName,
     genre: t.genre || "",
