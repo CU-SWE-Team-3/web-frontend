@@ -8,6 +8,7 @@ import { ROUTES } from "@/shared/constants/routes";
 import { CheckCircle2, LinkIcon } from "lucide-react";
 import WaveformPlayer from "@/features/tracks/ui/WaveformPlayer";
 import EditTrackModal from "@/features/tracks/ui/EditTrackModal";
+import { usePlayerStore } from "@/features/player/model/playerStore";
 import { useTrack, useUpdateTrack } from "@/features/tracks/model/trackQueries";
 import type {
   Track,
@@ -17,16 +18,53 @@ import type {
 import { useTrackComments } from "@/features/comments/model/useTrackComments";
 import { CommentInput } from "@/features/comments/ui/CommentInput";
 
+import { useLikedTracks } from "@/features/track-engagement/model/useLikedTracks";
+import { useLikeTrack } from "@/features/track-engagement/model/useLikeTrack";
+import { useUnlikeTrack } from "@/features/track-engagement/model/useUnlikeTrack";
+import { useRepostTrack } from "@/features/track-engagement/model/useRepostTrack";
+import { useUnrepostTrack } from "@/features/track-engagement/model/useUnrepostTrack";
+import { EngagementListModal } from "@/features/track-engagement/ui/EngagementListModal";
+
 const TrackDetailPage: React.FC = () => {
   const { trackId } = useParams<{ trackId: string }>();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  
   const trackQuery = useTrack(trackId);
   const updateTrackMutation = useUpdateTrack();
   const { data: comments = [] } = useTrackComments(trackId);
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
   const [commentSort, setCommentSort] = useState<'Newest' | 'Oldest' | 'Top'>('Newest');
+
+  // Engagement State
+  const { data: likedTracks } = useLikedTracks();
+  // Assume useUserReposts exists, but since we don't have it explicitly imported here, we might just rely on checking if it was toggled locally.
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+  const repostMutation = useRepostTrack();
+  const unrepostMutation = useUnrepostTrack();
+
+  const [localLikeCount, setLocalLikeCount] = useState<number | null>(null);
+  const [localRepostCount, setLocalRepostCount] = useState<number | null>(null);
+  const [localIsLiked, setLocalIsLiked] = useState<boolean | null>(null);
+  const [localIsReposted, setLocalIsReposted] = useState<boolean | null>(null); // defaults to false if not provided by track
+  const [engagementModal, setEngagementModal] = useState<{ isOpen: boolean; type: 'likes' | 'reposts' }>({ isOpen: false, type: 'likes' });
+
+  React.useEffect(() => {
+    if (trackQuery.data) {
+      if (localLikeCount === null) setLocalLikeCount(trackQuery.data.likeCount || 0);
+      if (localRepostCount === null) setLocalRepostCount(trackQuery.data.repostCount || 0);
+      // We don't have isReposted in track yet, assume false unless set
+      if (localIsReposted === null) setLocalIsReposted(false);
+    }
+  }, [trackQuery.data]);
+
+  React.useEffect(() => {
+    if (trackQuery.data && likedTracks && localIsLiked === null) {
+      setLocalIsLiked(likedTracks.some(t => t.id === trackQuery.data.id));
+    }
+  }, [trackQuery.data, likedTracks]);
 
   const track = trackQuery.data ?? null;
   const loading = trackQuery.isLoading;
@@ -109,8 +147,32 @@ const TrackDetailPage: React.FC = () => {
               <div className="flex justify-between w-full">
                 <div className="flex items-start gap-4">
                   {/* Play Button */}
-                  <button className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1">
-                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
+                  <button 
+                    onClick={() => {
+                      const playerStore = usePlayerStore.getState();
+                      if (playerStore.currentTrack?.id === track.id) {
+                        playerStore.isPlaying ? playerStore.pause() : playerStore.play();
+                      } else {
+                        // Map local track model to player store track model
+                        playerStore.play({
+                          id: track.id,
+                          title: track.title,
+                          artist: track.artist,
+                          artworkUrl: track.artworkUrl,
+                          duration: typeof track.duration === 'string' ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0) : track.duration,
+                          hlsUrl: track.hlsUrl,
+                          streamUrl: track.streamUrl,
+                          genre: track.genre,
+                        });
+                      }
+                    }}
+                    className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1"
+                  >
+                     {usePlayerStore(state => state.currentTrack?.id === track.id && state.isPlaying) ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                     ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
+                     )}
                   </button>
                   
                   {/* Text Info */}
@@ -136,7 +198,10 @@ const TrackDetailPage: React.FC = () => {
               {/* Bottom Row: Waveform */}
               <div className="w-full mt-auto mr-[20px]" data-testid="track-waveform">
                 {/* We render the waveform directly on the grey background without black box */}
-                <WaveformPlayer waveform={track.waveform} />
+                <WaveformPlayer 
+                  waveform={track.waveform} 
+                  onTimeUpdate={setCurrentPlaybackTime}
+                />
               </div>
             </div>
 
@@ -207,16 +272,56 @@ const TrackDetailPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 py-2">
-            <button data-testid="track-like-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Like">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
+            <button 
+              data-testid="track-like-button" 
+              onClick={() => {
+                if (localIsLiked) {
+                  setLocalIsLiked(false);
+                  setLocalLikeCount((c) => (c || 0) - 1);
+                  unlikeMutation.mutate(track.id);
+                } else {
+                  setLocalIsLiked(true);
+                  setLocalLikeCount((c) => (c || 0) + 1);
+                  likeMutation.mutate(track.id);
+                }
+              }}
+              className={`px-3 py-1.5 bg-[#151515] border rounded flex items-center justify-center gap-2 transition-colors ${localIsLiked ? 'border-[#ff5500] text-[#ff5500]' : 'border-[#333] hover:border-[#555] text-[#ccc]'}`} 
+              aria-label="Like"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={localIsLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={localIsLiked ? '0' : '2'}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>
-            <button data-testid="track-share-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Share">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
-            </button>
-            <button data-testid="track-repost-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center" aria-label="Repost">
+            {localLikeCount !== null && localLikeCount > 0 && (
+              <button onClick={() => setEngagementModal({ isOpen: true, type: 'likes' })} className="text-[12px] font-medium text-[#ccc] hover:text-white px-1">
+                {localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}
+              </button>
+            )}
+
+            <button 
+              data-testid="track-repost-button" 
+              onClick={() => {
+                if (localIsReposted) {
+                  setLocalIsReposted(false);
+                  setLocalRepostCount((c) => (c || 0) - 1);
+                  unrepostMutation.mutate(track.id);
+                } else {
+                  setLocalIsReposted(true);
+                  setLocalRepostCount((c) => (c || 0) + 1);
+                  repostMutation.mutate(track.id);
+                }
+              }}
+              className={`px-3 py-1.5 ml-2 bg-[#151515] border rounded flex items-center justify-center gap-2 transition-colors ${localIsReposted ? 'border-[#ff5500] text-[#ff5500]' : 'border-[#333] hover:border-[#555] text-[#ccc]'}`} 
+              aria-label="Repost"
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 2l4 4-4 4M7 22l-4-4 4-4M21 6H9a4 4 0 00-4 4M3 18h12a4 4 0 004-4"/></svg>
+            </button>
+            {localRepostCount !== null && localRepostCount > 0 && (
+              <button onClick={() => setEngagementModal({ isOpen: true, type: 'reposts' })} className="text-[12px] font-medium text-[#ccc] hover:text-white px-1">
+                {localRepostCount} {localRepostCount === 1 ? 'repost' : 'reposts'}
+              </button>
+            )}
+            
+            <button data-testid="track-share-button" className="px-3 py-1.5 ml-2 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center gap-2" aria-label="Share">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> Share
             </button>
             <button className="px-4 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[12px] text-[#ccc] flex items-center gap-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link</button>
             <button data-testid="track-more-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center">
@@ -417,6 +522,12 @@ const TrackDetailPage: React.FC = () => {
           onClose={() => setIsEditing(false)}
           onSave={handleEditSubmit}
           isSaving={updateTrackMutation.isPending}
+        />
+        <EngagementListModal
+          isOpen={engagementModal.isOpen}
+          onClose={() => setEngagementModal({ ...engagementModal, isOpen: false })}
+          trackId={track.id}
+          type={engagementModal.type}
         />
       </div>
     </div>
