@@ -68,6 +68,10 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     });
 
     wavesurferRef.current = ws;
+    
+    // Set initial volume
+    const globalState = usePlayerStore.getState();
+    ws.setVolume(globalState.isMuted ? 0 : globalState.volume);
 
     ws.on("ready", () => {
       setIsReady(true);
@@ -167,11 +171,20 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     window.addEventListener('playerbar-playpause', handleBarPlayPause);
     window.addEventListener('playerbar-restart', handleBarRestart);
     window.addEventListener('playerbar-stop-all', handleStopAll);
+    
+    // Subscribe to volume changes
+    const unsubVolume = usePlayerStore.subscribe((state) => {
+      if (wavesurferRef.current) {
+        wavesurferRef.current.setVolume(state.isMuted ? 0 : state.volume);
+      }
+    });
+
     return () => {
       window.removeEventListener('playerbar-seek', handleBarSeek);
       window.removeEventListener('playerbar-playpause', handleBarPlayPause);
       window.removeEventListener('playerbar-restart', handleBarRestart);
       window.removeEventListener('playerbar-stop-all', handleStopAll);
+      unsubVolume();
     };
   }, [trackMeta]);
 

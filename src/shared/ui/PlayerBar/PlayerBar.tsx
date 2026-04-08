@@ -94,7 +94,7 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           className={`${s.heartBtn} ${isLiked ? s.heartLiked : ''}`}
           aria-label={isLiked ? 'Unlike' : 'Like'}
         >
-          <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+          <Heart size={14} fill={isLiked ? '#ff5500' : 'none'} color={isLiked ? '#ff5500' : 'currentColor'} />
         </button>
       </div>
 

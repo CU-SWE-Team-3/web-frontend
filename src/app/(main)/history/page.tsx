@@ -9,6 +9,10 @@ import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useRecentlyPlayed, HistoryRecord } from '@/features/player/model/useRecentlyPlayed';
 import type { Track } from '@/features/player/model/playerStore';
+import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 import s from './History.module.scss';
 
 const LIBRARY_TABS = [
@@ -24,6 +28,19 @@ export default function HistoryPage() {
   const clearRecent = useHistoryStore((st) => st.clearRecent);
   const deleteHistoryItem = useHistoryStore((st) => st.deleteHistoryItem);
   const play = usePlayerStore((st) => st.play);
+
+  // Likes tracking
+  const { data: likedTracks } = useLikedTracks();
+  const likeMutation = useLikeTrack();
+  const unlikeMutation = useUnlikeTrack();
+
+  const handleToggleLike = (trackId: string, isLiked: boolean) => {
+    if (isLiked) {
+      unlikeMutation.mutate(trackId);
+    } else {
+      likeMutation.mutate(trackId);
+    }
+  };
 
   // Fetch from the latest API endpoint
   const { data: serverHistory } = useRecentlyPlayed();
@@ -185,80 +202,50 @@ export default function HistoryPage() {
               </div>
             </div>
           ) : (
-            <div>
+            <div className="flex flex-col gap-6 mt-6">
               {filteredHistory.map((entry, idx) => {
-                const bars = getWaveformBars(entry.track.id);
                 const playedAgo = getTimeAgo(entry.playedAt);
+                const isLiked = likedTracks?.some(t => t.id === entry.track.id) ?? false;
+                
                 return (
-                  <div
+                  <FeedTrackCard
                     key={entry.id}
-                    className={s.historyTrack}
-                    data-testid={`history-track-${idx}`}
-                  >
-                    <div className={s.historyArtwork}>
-                      {entry.track.artworkUrl ? (
-                        <img src={entry.track.artworkUrl} alt={entry.track.title} />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: 'var(--sc-bg-dark-elevated)' }} />
-                      )}
-                    </div>
-                    <div className={s.historyInfo}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <div>
-                          <div className={s.historyTrackArtist}>{entry.track.artist}</div>
-                          <div className={s.historyTrackTitle}>{entry.track.title}</div>
-                        </div>
-                        <span className={s.historyTime}>{playedAgo}</span>
-                      </div>
-                      <div className={s.historyWaveform}>
-                        {bars.map((h, i) => (
-                          <div
-                            key={i}
-                            className={s.waveformBar}
-                            style={{ height: `${h}%` }}
-                          />
-                        ))}
-                      </div>
-                      <div className={s.historyMeta}>
+                    title={entry.track.title}
+                    artist={entry.track.artist || 'Unknown Artist'}
+                    coverUrl={entry.track.artworkUrl || undefined}
+                    timeAgo={playedAgo}
+                    genre={''} // Provide if available
+                    plays={(entry.track as any).playCount ?? 0}
+                    likes={(entry.track as any).likeCount ?? 0}
+                    reposts={(entry.track as any).repostCount ?? 0}
+                    comments={(entry.track as any).commentCount ?? 0}
+                    liked={isLiked}
+                    audioUrl={entry.track.streamUrl || entry.track.hlsUrl}
+                    onPlay={() => handlePlay(entry.track)}
+                    actionsSlot={
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePlay(entry.track);
-                          }}
-                          style={{
-                            background: 'var(--sc-primary)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: 28,
-                            height: 28,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
+                          onClick={() => handleToggleLike(entry.track.id, isLiked)}
+                          className={`w-8 h-8 rounded border flex items-center justify-center transition-colors shadow-sm ${
+                            isLiked
+                              ? 'border-[#ff5500] bg-[#ff5500]/10 text-[#ff5500]'
+                              : 'border-[#444] bg-[#222] hover:border-[#666] text-[#ccc]'
+                          }`}
                         >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                            <polygon points="5,3 19,12 5,21" />
-                          </svg>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                        <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4M12 8v8"/></svg>
+                        </button>
+                        <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                        </button>
+                        <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
+                          <svg width="16" height="4" viewBox="0 0 16 4" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/></svg>
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteHistoryItem(entry.id);
-                          }}
-                          style={{
-                            background: 'none',
-                            border: '1px solid var(--sc-border)',
-                            borderRadius: 'var(--sc-radius-md)',
-                            color: 'var(--sc-gray-500)',
-                            padding: '4px 8px',
-                            fontSize: 11,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
+                          onClick={() => deleteHistoryItem(entry.id)}
+                          className="ml-auto w-auto px-3 h-8 rounded border border-[#444] bg-transparent hover:border-[#666] flex items-center gap-1 transition-colors text-[#aaa] text-[11px]"
                           data-testid={`history-delete-${idx}`}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -270,8 +257,8 @@ export default function HistoryPage() {
                           Remove
                         </button>
                       </div>
-                    </div>
-                  </div>
+                    }
+                  />
                 );
               })}
             </div>
