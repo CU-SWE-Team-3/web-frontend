@@ -13,11 +13,10 @@ export const useLikedTracks = (userId: string = "me") => {
     queryKey: [...LIKED_TRACKS_QUERY_KEY, userId],
     queryFn: async (): Promise<TrackNode[]> => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const { data } = await apiClient.get(`${apiUrl}/profile/${userId}/likes`, {
+        const { data } = await apiClient.get(`/profile/${userId}/likes`, {
           withCredentials: true,
         });
-        return data.data ?? data ?? []; // Handle standard API response wrapping
+        return data?.data?.likes || data?.data || data || []; // Handle standard API response wrapping
       } catch (err) {
         console.error('Failed to fetch liked tracks:', err);
         return [];

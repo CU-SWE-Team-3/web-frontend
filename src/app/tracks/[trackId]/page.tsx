@@ -53,16 +53,16 @@ const TrackDetailPage: React.FC = () => {
 
   React.useEffect(() => {
     if (trackQuery.data) {
-      if (localLikeCount === null) setLocalLikeCount(trackQuery.data.likeCount || 0);
-      if (localRepostCount === null) setLocalRepostCount(trackQuery.data.repostCount || 0);
+      if (localLikeCount === null) setLocalLikeCount(Number(trackQuery.data.likeCount) || 0);
+      if (localRepostCount === null) setLocalRepostCount(Number(trackQuery.data.repostCount) || 0);
       // We don't have isReposted in track yet, assume false unless set
       if (localIsReposted === null) setLocalIsReposted(false);
     }
   }, [trackQuery.data]);
 
   React.useEffect(() => {
-    if (trackQuery.data && likedTracks && localIsLiked === null) {
-      setLocalIsLiked(likedTracks.some(t => t.id === trackQuery.data.id));
+    if (trackQuery.data && Array.isArray(likedTracks) && localIsLiked === null) {
+      setLocalIsLiked(likedTracks.some(t => t.id === trackQuery.data?.id));
     }
   }, [trackQuery.data, likedTracks]);
 
@@ -369,7 +369,7 @@ const TrackDetailPage: React.FC = () => {
 
                   {/* Comment items */}
                   <div className="flex flex-col gap-0">
-                    {[...comments]
+                    {(Array.isArray(comments) ? comments : [])
                       .sort((a, b) => {
                         if (commentSort === 'Oldest') return a.timestampSeconds - b.timestampSeconds;
                         if (commentSort === 'Top') return 0; // Keep original order for Top
