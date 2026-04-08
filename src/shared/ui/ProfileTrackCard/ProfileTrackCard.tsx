@@ -197,6 +197,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                  comments={waveformComments}
                  onTimeUpdate={setCurrentPlaybackTime}
                  trackMeta={{ id: track.id, title: track.title, artist: userFullName || username, artworkUrl: track.artworkUrl, hlsUrl: track.streamUrl || track.hlsUrl }}
+                 hidePlayButton
                />
              </Suspense>
           </div>
