@@ -1,0 +1,27 @@
+[33mcommit b4eae95e4eeef5b260ca5eaef94509ae7ec02faf[m
+Author: khaled zain eldein <Khaled.Eldein03@eng-st.cu.edu.eg>
+Date:   Wed Mar 18 15:10:36 2026 +0200
+
+    refactor(auth): implement Google OAuth and ReCaptcha with FSD architecture and direct axios pattern
+    
+    - Refactored Login, Register, Forgot Password, and Reset Password forms into FSD structure.
+    - Integrated Google OAuth with backend redirect and custom frontend callback page.
+    - Fixed ReCaptcha implementation with correct environment variables and port configuration (5173).
+    - Updated API calls to use direct axios instances as per team standards.
+    - Removed obsolete repository and client files.
+
+ app/(auth)/google/callback/page.tsx         | 97 [32m++++++++++++++++++++++[m[31m-------[m
+ app/for-artists/page.tsx                    |  3 [32m+[m
+ package-lock.json                           | 10 [32m+++[m
+ package.json                                |  3 [32m+[m[31m-[m
+ src/features/auth/api/authRepository.ts     | 81 [31m------------------------[m
+ src/features/auth/index.ts                  |  1 [31m-[m
+ src/features/auth/model/useAuthStore.ts     | 40 [32m++++[m[31m--------[m
+ src/features/auth/ui/ForgotPasswordForm.tsx | 12 [32m++[m[31m--[m
+ src/features/auth/ui/LoginForm.tsx          | 58 [32m+++++++++[m[31m--------[m
+ src/features/auth/ui/RegisterForm.tsx       | 54 [32m++++++++++[m[31m------[m
+ src/features/auth/ui/ResetPasswordForm.tsx  | 22 [32m++++[m[31m---[m
+ src/shared/ui/AppButton.tsx                 |  2 [32m+[m[31m-[m
+ src/shared/ui/AppInput.tsx                  |  2 [32m+[m[31m-[m
+ src/shared/ui/index.ts                      |  4 [32m+[m[31m-[m
+ 14 files changed, 191 insertions(+), 198 deletions(-)
