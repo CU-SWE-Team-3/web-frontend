@@ -156,7 +156,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       <div className="flex gap-4">
         {/* Cover Art */}
         <div className="w-[160px] h-[160px] shrink-0 bg-[#222] rounded overflow-hidden relative group cursor-pointer">
-          <Link href={`/tracks/${track.permalink || track.id}`} className="absolute inset-0 z-10" aria-label={`Go to ${track.title}`} />
+          <Link href={`/tracks/${track.id}`} className="absolute inset-0 z-10" aria-label={`Go to ${track.title}`} />
           {track.artworkUrl ? (
             <img data-testid="track-card-artwork" src={track.artworkUrl} alt={track.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : null}
@@ -185,7 +185,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                     {userFullName}
                   </Link>
                 </div>
-                <Link data-testid="track-card-title" href={`/tracks/${track.permalink || track.id}`} className="text-white text-[15px] hover:text-white block truncate leading-tight">
+                <Link data-testid="track-card-title" href={`/tracks/${track.id}`} className="text-white text-[15px] hover:text-white block truncate leading-tight">
                   {track.title}
                 </Link>
               </div>
