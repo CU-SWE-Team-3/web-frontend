@@ -6,7 +6,10 @@ export const useRepostTrack = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (trackId: string) => repostTrack(trackId),
+    mutationFn: async ({ trackId }: { trackId: string; track?: any }) => {
+      await repostTrack(trackId);
+      return { trackId };
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USER_REPOSTS_QUERY_KEY });
     },

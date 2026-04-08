@@ -6,7 +6,10 @@ export const useUnrepostTrack = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (trackId: string) => unrepostTrack(trackId),
+    mutationFn: async (trackId: string) => {
+      await unrepostTrack(trackId);
+      return trackId;
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USER_REPOSTS_QUERY_KEY });
     },
