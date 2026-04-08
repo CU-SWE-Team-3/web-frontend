@@ -24,8 +24,8 @@ function mapLikedTrack(t: any): TrackNode {
     durationFormatted:
       typeof t.duration === "number"
         ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60)
-          .toString()
-          .padStart(2, "0")}`
+            .toString()
+            .padStart(2, "0")}`
         : t.duration || t.durationFormatted || "0:00",
     playCount: t.playCount ?? 0,
     likeCount: t.likeCount ?? 0,
@@ -51,15 +51,11 @@ function mapLikedTrack(t: any): TrackNode {
  */
 export const useLikedTracks = (userId: string = "me") => {
   const isInitialized = useAuthStore((s) => s.isInitialized);
-  const user = useAuthStore((s) => s.user);
-
-  // If "me" is passed, use the real user ID to prevent 400 Bad Requests
-  const actualUserId = userId === "me" ? (user?.id || (user as any)?._id || "me") : userId;
 
   return useQuery<TrackNode[], Error>({
-    queryKey: [...LIKED_TRACKS_QUERY_KEY, actualUserId],
+    queryKey: [...LIKED_TRACKS_QUERY_KEY, userId],
     queryFn: async (): Promise<TrackNode[]> => {
-      const { data } = await apiClient.get(`/profile/${actualUserId}/likes`, {
+      const { data } = await apiClient.get(`/profile/${userId}/likes`, {
         withCredentials: true,
       });
 
