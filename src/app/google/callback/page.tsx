@@ -47,7 +47,7 @@ function GoogleCallbackContent() {
           }
           
           login(userObj)
-          router.push(ROUTES.FEED)
+          router.push(ROUTES.DASHBOARD)
         } else {
           setError('Failed to fetch user profile.')
         }

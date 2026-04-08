@@ -119,26 +119,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       const currentId = currentTrack?.id;
       const idx = shuffledQueueIds.indexOf(currentId ?? '');
       if (idx >= shuffledQueueIds.length - 1 || idx === -1) {
-        if (repeatMode === 'all') {
-          next = queue.find(t => t.id === shuffledQueueIds[0]) || queue[0];
-        } else {
-          set({ isPlaying: false, currentTime: 0 });
-          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
-          return;
-        }
+        next = queue.find(t => t.id === shuffledQueueIds[0]) || queue[0];
       } else {
         next = queue.find(t => t.id === shuffledQueueIds[idx + 1]) || queue[idx + 1];
       }
     } else {
       const idx = queue.findIndex((t) => t.id === currentTrack?.id);
-      if (idx >= queue.length - 1) {
-        if (repeatMode === 'all') {
-          next = queue[0];
-        } else {
-          set({ isPlaying: false, currentTime: 0 });
-          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: 0 } }));
-          return;
-        }
+      if (idx >= queue.length - 1 || idx === -1) {
+        next = queue[0];
       } else {
         next = queue[idx + 1];
       }

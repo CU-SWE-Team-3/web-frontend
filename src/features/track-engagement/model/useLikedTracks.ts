@@ -1,23 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/client";
+import { TrackNode } from "./types";
 
 export const LIKED_TRACKS_QUERY_KEY = ["liked-tracks"] as const;
 
 /**
- * There is no dedicated "GET liked tracks" endpoint in the YAML spec.
- * The YAML only provides POST/DELETE /tracks/{id}/like for toggling.
- * We keep this hook as a query to fetch the user's liked track list —
- * when the backend adds the endpoint it will just work.
+ * Fetch the user's liked track list —
+ * The backend team added /profile/{userId}/likes for this.
  */
 export const useLikedTracks = (userId: string = "me") => {
-  return useQuery<any[], Error>({
+  return useQuery<TrackNode[], Error>({
     queryKey: [...LIKED_TRACKS_QUERY_KEY, userId],
-    queryFn: async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const { data } = await apiClient.get(`${apiUrl}/users/${userId}/likes`, {
-        withCredentials: true,
-      });
-      return data.data ?? data ?? [];
+    queryFn: async (): Promise<TrackNode[]> => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const { data } = await apiClient.get(`${apiUrl}/profile/${userId}/likes`, {
+          withCredentials: true,
+        });
+        return data.data ?? data ?? []; // Handle standard API response wrapping
+      } catch (err) {
+        console.error('Failed to fetch liked tracks:', err);
+        return [];
+      }
     },
     staleTime: 5 * 60 * 1000,
   });
