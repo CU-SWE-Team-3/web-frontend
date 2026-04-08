@@ -31,15 +31,18 @@ export const useHistoryStore = create<HistoryStore>((set) => ({
     set((state) => {
       const filtered = state.recentlyPlayed.filter((t) => t.id !== track.id);
       const newRecent = [track, ...filtered].slice(0, 10);
+      
+      const filteredListening = state.listeningHistory.filter((e) => e.track.id !== track.id);
       const entry: HistoryEntry = {
         id: `${track.id}-${Date.now()}`,
         track,
         playedAt: new Date().toISOString(),
         durationPlayed,
       };
+      
       return {
         recentlyPlayed: newRecent,
-        listeningHistory: [entry, ...state.listeningHistory],
+        listeningHistory: [entry, ...filteredListening],
       };
     }),
 
