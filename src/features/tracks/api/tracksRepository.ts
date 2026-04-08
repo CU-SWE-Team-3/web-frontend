@@ -4,7 +4,13 @@ import { useAuthStore } from "@/features/auth/model/useAuthStore";
 import type { Track, UpdateTrackInput, UploadTrackInput } from "../model/track";
 
 const makeWaveform = () =>
-  Array.from({ length: 70 }, (_, i) => 10 + ((i * 13) % 62));
+  Array.from({ length: 140 }, (_, i) => {
+    const x = i / 140;
+    const peak = Math.sin(x * Math.PI * 3) * Math.cos(x * Math.PI * 11) * Math.sin(x * Math.PI * 5);
+    const noise = Math.random() * 0.15;
+    const value = Math.abs(peak) * 80 + noise * 20 + 5; 
+    return Math.floor(value);
+  });
 
 /**
  * Resolve the "me" keyword or the current user's identifier

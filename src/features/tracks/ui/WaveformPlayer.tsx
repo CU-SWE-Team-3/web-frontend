@@ -53,20 +53,37 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+
+    // Top half is solid grey, bottom half is semi-transparent grey acting as reflection
+    const waveGradient = ctx.createLinearGradient(0, 0, 0, 80);
+    waveGradient.addColorStop(0, '#999999');
+    waveGradient.addColorStop(0.5, '#999999');
+    waveGradient.addColorStop(0.5, 'transparent');
+    waveGradient.addColorStop(0.52, 'rgba(153, 153, 153, 0.4)');
+    waveGradient.addColorStop(1, 'rgba(153, 153, 153, 0.4)');
+
+    // Top half is solid orange, bottom half is semi-transparent orange acting as reflection
+    const progGradient = ctx.createLinearGradient(0, 0, 0, 80);
+    progGradient.addColorStop(0, '#f97316');
+    progGradient.addColorStop(0.5, '#f97316');
+    progGradient.addColorStop(0.5, 'transparent');
+    progGradient.addColorStop(0.52, 'rgba(249, 115, 22, 0.4)');
+    progGradient.addColorStop(1, 'rgba(249, 115, 22, 0.4)');
+
     const style = getComputedStyle(document.documentElement);
-    const waveColor = style.getPropertyValue("--sc-wave-bar").trim() || "#404040";
-    const progressColor = style.getPropertyValue("--sc-wave-progress").trim() || "#f97316";
     const cursorColor = style.getPropertyValue("--sc-wave-cursor").trim() || "#ffffff";
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor,
-      progressColor,
+      waveColor: waveGradient,
+      progressColor: progGradient,
       cursorColor,
-      cursorWidth: 2,
-      barWidth: 4,
+      cursorWidth: 1, // thinner cursor like SC
+      barWidth: 2, // thinner bars like SC
       barRadius: 2,
-      barGap: 3,
+      barGap: 1.5, // closer bars like SC
       height: 80,
       normalize: true,
     });
@@ -109,23 +126,33 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
 
-    if (audioUrl) {
+    // Determine if we should trust the backend waveform
+    // Some old tracks might have an empty array [0,0,0] or extremely low values [1,1,1] from a failed backend process.
+    const maxVal = Array.isArray(waveform) && waveform.length > 0 ? Math.max(...waveform) : 0;
+    const hasRealPeaks = maxVal > 5;
+    
+    const peaks = hasRealPeaks
+      ? waveform!.map((v) => v / 100)
+      : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
+
+    // If audioUrl is a local blob (e.g., during track upload), WaveSurfer can natively decode it to extract highly accurate peaks.
+    // If audioUrl is a backend HLS playlist (.m3u8), WaveSurfer CANNOT decode it. Attempting to load it directly would crash silently.
+    // Therefore, for anything other than a blob URL, we MUST create a silent dummy audio buffer and pass the pre-calculated peaks.
+    // This also elegantly prevents double-audio because the Global Player handles actual m3u8 playback.
+    if (audioUrl && audioUrl.startsWith('blob:')) {
       ws.load(audioUrl);
     } else {
       const sampleRate = 44100;
       const fakeDuration = durationSeconds && durationSeconds > 0 ? durationSeconds : 30;
       const buffer = new AudioContext().createBuffer(1, sampleRate * fakeDuration, sampleRate);
       const channelData = buffer.getChannelData(0);
-      for (let i = 0; i < channelData.length; i++) channelData[i] = 0;
-
-      const hasRealPeaks = Array.isArray(waveform) && waveform.length > 0;
-      const peaks = hasRealPeaks
-        ? waveform.map((v) => v / 100)
-        : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
+      for (let i = 0; i < channelData.length; i++) channelData[i] = 0; // Silent audio
 
       const blob = bufferToWaveBlob(buffer);
-      const url = URL.createObjectURL(blob);
-      ws.load(url, [peaks], fakeDuration);
+      const dummyUrl = URL.createObjectURL(blob);
+      
+      // Load the silent audio and explicitly declare the visual peaks and duration!
+      ws.load(dummyUrl, [peaks], fakeDuration);
     }
 
     return () => { ws.destroy(); };
