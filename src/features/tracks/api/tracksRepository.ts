@@ -1,5 +1,6 @@
 import axios from "axios";
 import apiClient from "@/shared/api/client";
+import { useAuthStore } from "@/features/auth/model/useAuthStore";
 import type { Track, UpdateTrackInput, UploadTrackInput } from "../model/track";
 
 const WAIT = 450;
@@ -125,10 +126,14 @@ export const tracksRepository = {
 
         const durationFormatted = `${Math.floor(durationInSeconds / 60)}:${Math.floor(durationInSeconds % 60).toString().padStart(2, "0")}`;
 
+        const authState = useAuthStore.getState();
+        const currentUser = authState.user;
+        const uploaderName = currentUser?.permalink || currentUser?.username || currentUser?.id || CURRENT_ARTIST;
+
         const fakeTrack: Track = {
           id: trackId,
           title: payload.title,
-          artist: CURRENT_ARTIST,
+          artist: uploaderName,
           genre: payload.genre,
           tags: payload.tags || [],
           description: payload.description,
@@ -190,10 +195,14 @@ export const tracksRepository = {
       }
     }
 
+    const authState = useAuthStore.getState();
+    const currentUser = authState.user;
+    const uploaderName = currentUser?.permalink || currentUser?.username || currentUser?.id || CURRENT_ARTIST;
+
     const newTrack: Track = {
       id: String(Date.now()),
       title: payload.title,
-      artist: CURRENT_ARTIST,
+      artist: uploaderName,
       genre: payload.genre,
       tags: payload.tags,
       description: payload.description,
@@ -245,9 +254,11 @@ export const tracksRepository = {
       const response = await apiClient.get(`/users/${username}/tracks`);
       const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
       console.log('[tracksRepository] API returned', Array.isArray(apiTracks) ? apiTracks.length : 0, 'tracks for user:', username);
-      if (Array.isArray(apiTracks) && apiTracks.length >= 0) {
+      
+      let realTracks: Track[] = [];
+      if (Array.isArray(apiTracks)) {
         // Map API response to our Track interface
-        return apiTracks.map((t: any) => ({
+        realTracks = apiTracks.map((t: any) => ({
           id: t._id || t.id,
           title: t.title || 'Untitled',
           artist: t.artist?.displayName || t.artist?.username || t.artist || username,
@@ -266,6 +277,14 @@ export const tracksRepository = {
           hlsUrl: t.hlsUrl || '',
         }));
       }
+
+      // Merge real tracks with mock tracks uploaded in this session to prevent them from disappearing
+      const localMockTracks = tracks.filter((track) => track.artist === username || (track.artist === CURRENT_ARTIST && username === "me"));
+      const realIds = new Set(realTracks.map(t => t.id));
+      const uniqueMockTracks = localMockTracks.filter(t => !realIds.has(t.id));
+
+      return [...uniqueMockTracks, ...realTracks];
+
     } catch (err) {
       console.warn('[tracksRepository] API fetch for user tracks failed, falling back to mock:', err);
     }
