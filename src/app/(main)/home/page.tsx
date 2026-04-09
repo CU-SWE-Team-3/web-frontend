@@ -11,7 +11,7 @@ import apiClient from '@/shared/api/client';
 import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
-import { SquareTrackCard } from '@/shared/ui/SquareTrackCard/SquareTrackCard';
+import { SquareTrackCard } from '@/shared/ui';
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

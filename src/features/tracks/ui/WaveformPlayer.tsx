@@ -419,4 +419,5 @@ function bufferToWaveBlob(abuffer: AudioBuffer) {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
+export { WaveformPlayer };
 export default WaveformPlayer;
