@@ -98,8 +98,15 @@ export const PlayerBar: FC<PlayerBarProps> = ({
         </button>
       </div>
 
-      {/* ── MOBILE: Play/Pause Button ── */}
+      {/* ── MOBILE: Play/Pause/Queue Buttons ── */}
       <div className={s.mobilePlayContainer}>
+        <button
+          onClick={onToggleQueue}
+          className={`${s.mobileIconBtn} ${isQueueOpen ? s.active : ''}`}
+          aria-label="Toggle queue"
+        >
+          <ListMusic size={20} color={isQueueOpen ? '#ff5500' : 'white'} />
+        </button>
         <button
           onClick={onPlayPause}
           className={s.playPauseBtn}
@@ -111,6 +118,7 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           }
         </button>
       </div>
+
 
       {/* ── CENTER: transport controls + seek bar ── */}
       <div className={s.center}>

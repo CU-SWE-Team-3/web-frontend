@@ -94,6 +94,11 @@
   top: 20px;
   right: 20px;
   z-index: 10;
+
+  @media (max-width: 768px) {
+    top: 10px;
+    right: 10px;
+  }
 }
 
 .dropdown {
@@ -144,9 +149,13 @@
   font-weight: var(--sc-font-weight-bold);
   width: fit-content;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 
   @media (max-width: 768px) {
-    font-size: 18px;
+    font-size: 16px;
     padding: 4px 8px;
   }
 }
@@ -157,6 +166,11 @@
   padding: 3px 10px;
   font-size: 14px;
   width: fit-content;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+    padding: 2px 8px;
+  }
 }
 
 .locationTag {
@@ -165,6 +179,11 @@
   padding: 3px 10px;
   font-size: 13px;
   width: fit-content;
+
+  @media (max-width: 768px) {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
 }
 
 /* ---- Upload header btn ---- */
@@ -179,6 +198,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
+
+  @media (max-width: 768px) {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
 
   &:hover {
     background: rgba(0, 0, 0, 0.9);

@@ -11,6 +11,7 @@
   z-index: 9999;
   padding: 0 var(--sc-space-4);
   font-family: var(--sc-font-family);
+  user-select: none;
 
   @media (min-width: 768px) {
     height: 56px;
@@ -215,10 +216,28 @@
 .mobilePlayContainer {
   display: flex;
   align-items: center;
-  margin-left: var(--sc-space-3);
+  gap: var(--sc-space-3);
+  margin-left: auto;
 
   @media (min-width: 640px) {
     display: none;
+  }
+}
+
+.mobileIconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-white);
+  transition: all 0.2s ease;
+
+  &.active {
+    color: var(--sc-primary);
   }
 }
 
