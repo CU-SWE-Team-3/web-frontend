@@ -6,9 +6,11 @@ import EditTrackModal from "../EditTrackModal";
 const mockTrack = {
   id: "test-track-1",
   title: "Test Track Title",
+  artist: "Test Artist",
   genre: "House",
   tags: ["electronic", "dance"],
   description: "A test description",
+  releaseDate: "2024-01-01",
   visibility: "Public" as const,
   status: "Finished" as const,
   audioFileName: "test.mp3",
@@ -23,7 +25,7 @@ describe("EditTrackModal Component", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
     render(<EditTrackModal track={mockTrack} open={true} onClose={handleClose} onSave={handleSave} />);
-    
+
     expect(screen.getByTestId("edit-track-modal")).toBeInTheDocument();
   });
 
@@ -31,7 +33,7 @@ describe("EditTrackModal Component", () => {
     const handleClose = vi.fn();
     const handleSave = vi.fn();
     render(<EditTrackModal track={mockTrack} open={false} onClose={handleClose} onSave={handleSave} />);
-    
+
     expect(screen.queryByTestId("edit-track-modal")).not.toBeInTheDocument();
   });
 
@@ -50,10 +52,10 @@ describe("EditTrackModal Component", () => {
 
     const titleInput = screen.getByTestId("edit-track-title-input");
     fireEvent.change(titleInput, { target: { value: "Updated Title" } });
-    
+
     const saveBtn = screen.getByTestId("edit-track-save-button");
     fireEvent.click(saveBtn);
-    
+
     await waitFor(() => {
       expect(handleSave).toHaveBeenCalledWith(expect.objectContaining({
         title: "Updated Title",
@@ -66,10 +68,10 @@ describe("EditTrackModal Component", () => {
   it("calls onClose when cancel button is clicked", () => {
     const handleClose = vi.fn();
     render(<EditTrackModal track={mockTrack} open={true} onClose={handleClose} onSave={vi.fn()} />);
-    
+
     const cancelBtn = screen.getByTestId("edit-track-cancel-button");
     fireEvent.click(cancelBtn);
-    
+
     expect(handleClose).toHaveBeenCalled();
   });
 });
