@@ -73,6 +73,7 @@
 .actionBtn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   background: none;
   border: 1px solid var(--sc-border);
@@ -83,6 +84,12 @@
   font-family: var(--sc-font-family);
   cursor: pointer;
   transition: border-color var(--sc-transition-fast);
+  white-space: nowrap;
+
+  @media (max-width: 500px) {
+    padding: 6px 10px;
+    span { display: none; } /* Hide the text inside buttons on mobile */
+  }
 
   &:hover {
     border-color: var(--sc-text-primary);

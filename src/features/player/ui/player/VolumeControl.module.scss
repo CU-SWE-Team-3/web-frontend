@@ -34,6 +34,11 @@
   outline: none;
   cursor: pointer;
 
+  @media (max-width: 640px) {
+    height: 8px; /* Thicker track for mobile */
+    border-radius: 4px;
+  }
+
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 12px;
@@ -42,6 +47,12 @@
     background: var(--sc-white);
     cursor: pointer;
     transition: transform 150ms ease;
+
+    @media (max-width: 640px) {
+      width: 24px; /* Much larger handle for touch */
+      height: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
 
     &:hover { transform: scale(1.25); }
   }
@@ -53,6 +64,11 @@
     background: var(--sc-white);
     border: 0;
     cursor: pointer;
+
+    @media (max-width: 640px) {
+      width: 24px;
+      height: 24px;
+    }
   }
 
   &:focus-visible {

@@ -82,7 +82,7 @@ export const GlobalAudioEngine = () => {
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.volume = isMuted ? 0 : volume;
-  }, [volume, isMuted]);
+  }, [volume, isMuted, currentTrack]);
 
   useEffect(() => {
     if (!audioRef.current) return;

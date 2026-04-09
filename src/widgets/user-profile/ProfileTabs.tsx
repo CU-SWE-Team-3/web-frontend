@@ -124,17 +124,21 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
               opacity: followLoading ? 0.6 : 1,
             }}
           >
-            {isFollowing ? '✓ Following' : '+ Follow'}
+            {isFollowing ? (
+              <><span>✓ Following</span></>
+            ) : (
+              <><span>+ Follow</span></>
+            )}
           </button>
         )}
 
         <button className={s.actionBtn} onClick={onShareClick}>
-          <ShareIcon size={14} /> Share
+          <ShareIcon size={14} /> <span>Share</span>
         </button>
 
         {isOwnProfile && (
           <button data-testid="profile-edit-button" className={s.actionBtn} onClick={onEditClick}>
-            <EditIcon size={14} /> Edit
+            <EditIcon size={14} /> <span>Edit</span>
           </button>
         )}
 
