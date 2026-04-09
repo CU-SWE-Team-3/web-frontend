@@ -32,6 +32,8 @@
   @media (max-width: 768px) {
     padding: 0 15px 30px;
     gap: 12px;
+    overflow: hidden;
+    max-width: 100vw;
   }
 }
 
