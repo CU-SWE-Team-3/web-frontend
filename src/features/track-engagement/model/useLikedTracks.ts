@@ -62,34 +62,61 @@ export const useLikedTracks = (userId: string = "me") => {
   // If "me" is passed, use the real user ID to prevent 400 Bad Requests
   const actualUserId = userId === "me" ? (user?.id || (user as any)?._id || "me") : userId;
 
+  // Check if the userId looks like a MongoDB ObjectId (24 hex chars)
+  const isObjectId = /^[0-9a-fA-F]{24}$/.test(actualUserId);
+
   return useQuery<TrackNode[], Error>({
     queryKey: [...LIKED_TRACKS_QUERY_KEY, actualUserId],
     queryFn: async (): Promise<TrackNode[]> => {
-      const { data } = await apiClient.get(`/profile/${actualUserId}/likes`, {
-        withCredentials: true,
-      });
+      let resolvedId = actualUserId;
 
-      // Parse the API response envelope — try all known shapes
-      const rawTracks =
-        data?.data?.likes ||
-        data?.data?.likedTracks ||
-        data?.data ||
-        data?.likes ||
-        data ||
-        [];
-
-      if (!Array.isArray(rawTracks)) {
-        console.warn(
-          "[useLikedTracks] API response is not an array, got:",
-          typeof rawTracks,
-          rawTracks
-        );
-        return [];
+      // If the userId is not a MongoDB ObjectId (it's a permalink/username),
+      // resolve it to the actual profile _id first
+      if (!isObjectId && actualUserId !== "me") {
+        try {
+          const profileRes = await apiClient.get(`/profile/${actualUserId}`, {
+            withCredentials: true,
+          });
+          const profileData = profileRes.data?.data?.user || profileRes.data?.data;
+          if (profileData?._id || profileData?.id) {
+            resolvedId = profileData._id || profileData.id;
+          }
+        } catch (profileErr) {
+          console.warn("[useLikedTracks] Could not resolve permalink to ID:", profileErr);
+          // Continue with the original userId as a last-ditch attempt
+        }
       }
 
-      return rawTracks.map(mapLikedTrack);
+      // Try fetching likes with the resolved ID
+      try {
+        const { data } = await apiClient.get(`/profile/${resolvedId}/likes`, {
+          withCredentials: true,
+        });
+
+        const rawTracks =
+          data?.data?.likes ||
+          data?.data?.likedTracks ||
+          data?.data ||
+          data?.likes ||
+          data ||
+          [];
+
+        if (!Array.isArray(rawTracks)) {
+          console.warn(
+            "[useLikedTracks] API response is not an array, got:",
+            typeof rawTracks,
+            rawTracks
+          );
+          return [];
+        }
+
+        return rawTracks.map(mapLikedTrack);
+      } catch (likesErr) {
+        console.warn("[useLikedTracks] Failed to fetch likes for", resolvedId, likesErr);
+        return [];
+      }
     },
-    enabled: isInitialized,
+    enabled: isInitialized && !!actualUserId && actualUserId !== "",
     staleTime: 0,
     refetchOnMount: "always" as const,
   });

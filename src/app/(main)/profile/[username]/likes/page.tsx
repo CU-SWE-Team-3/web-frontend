@@ -10,7 +10,7 @@ export default function LikesPage({ params }: { params: { username: string } }) 
       displayName={params.username}
       activeTab="likes"
     >
-      <LikedTracksList />
+      <LikedTracksList userId={params.username} />
     </SocialPageLayout>
   );
 }
