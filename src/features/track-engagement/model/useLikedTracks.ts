@@ -38,9 +38,10 @@ function mapLikedTrack(rawItem: any): TrackNode {
     commentCount: t.commentCount ?? 0,
     isLiked: true, // If it's in the liked list, it's liked
     isReposted: t.isReposted ?? false,
-    // Pass through streaming URLs so the Library/Likes pages can play them
-    ...(t.streamUrl && { streamUrl: t.streamUrl }),
-    ...(t.hlsUrl && { hlsUrl: t.hlsUrl }),
+    streamUrl: t.streamUrl || t.hlsUrl || t.audioUrl || "",
+    hlsUrl: t.hlsUrl || t.streamUrl || t.audioUrl || "",
+    audioFileName: t.audioFileName || "",
+    duration: typeof t.duration === "number" ? t.duration : 0,
   };
 }
 

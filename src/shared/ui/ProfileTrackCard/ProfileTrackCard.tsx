@@ -14,6 +14,7 @@ import type { WaveformComment } from '@/features/tracks/ui/WaveformPlayer';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { useDeleteTrack } from '@/features/tracks/model/trackQueries';
 
 const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
@@ -101,6 +102,19 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   const unrepostMutation = useUnrepostTrack();
   const likeMutation = useLikeTrack();
   const unlikeMutation = useUnlikeTrack();
+  const deleteMutation = useDeleteTrack();
+
+  const handleDelete = useCallback(async () => {
+    if (window.confirm('Are you sure you want to delete this track? This action cannot be undone.')) {
+      try {
+        await deleteMutation.mutateAsync(track.id);
+        setIsMoreMenuOpen(false);
+      } catch (err) {
+        console.error('Failed to delete track:', err);
+        alert('Failed to delete track. Please try again.');
+      }
+    }
+  }, [deleteMutation, track.id]);
 
   // Fetch comments for this track
   const { data: comments = [] } = useTrackComments(track.id);
@@ -157,8 +171,14 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
         {/* Cover Art */}
         <div className="w-[160px] h-[160px] shrink-0 bg-[#222] rounded overflow-hidden relative group cursor-pointer">
           <Link href={`/tracks/${track.id}`} className="absolute inset-0 z-10" aria-label={`Go to ${track.title}`} />
-          {track.artworkUrl ? (
-            <img data-testid="track-card-artwork" src={track.artworkUrl} alt={track.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          {track.artworkUrl && track.artworkUrl !== 'undefined' && track.artworkUrl !== 'null' ? (
+            <img 
+              data-testid="track-card-artwork" 
+              src={track.artworkUrl} 
+              alt={track.title} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           ) : null}
         </div>
 
@@ -360,6 +380,23 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
                     Station
                   </Link>
+
+                  {isOwner && (
+                    <>
+                      <div style={{ height: 1, background: '#333', margin: '4px 0' }} />
+                      <button 
+                        onClick={handleDelete}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', background: 'transparent', color: '#f50', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#333'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
+                        </svg>
+                        Delete track
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}

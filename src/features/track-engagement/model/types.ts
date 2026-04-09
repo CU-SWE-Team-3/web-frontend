@@ -11,4 +11,8 @@ export interface TrackNode {
   commentCount: number;
   isLiked: boolean; // Indicates if the current user likes it
   isReposted: boolean; // Indicates if the current user reposted it
+  streamUrl?: string;
+  hlsUrl?: string;
+  audioFileName?: string;
+  duration?: number;
 }
