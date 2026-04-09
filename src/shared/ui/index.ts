@@ -100,8 +100,8 @@ export type { SoundCloudLogoProps } from './Brand';
 
 export * from './icons';
 
-export { SquareTrackCard } from './SquareTrackCard/SquareTrackCard';
-export type { SquareTrackCardProps } from './SquareTrackCard/SquareTrackCard';
+export { SquareTrackCard } from './SquareTrackCard';
+export type { SquareTrackCardProps } from './SquareTrackCard';
 
 /* ---- Module 4 Components ---- */
 export { default as ImageCropper } from './ImageCropper';
