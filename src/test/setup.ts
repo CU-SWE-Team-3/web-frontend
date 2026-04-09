@@ -14,6 +14,7 @@ class MockResizeObserver {
   disconnect() { }
 }
 window.ResizeObserver = MockResizeObserver;
+globalThis.ResizeObserver = MockResizeObserver;
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -78,6 +79,9 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
   fill: vi.fn(),
   scale: vi.fn(),
   roundRect: vi.fn(),
+  createLinearGradient: vi.fn().mockReturnValue({
+    addColorStop: vi.fn()
+  }),
   get fillStyle() { return ''; },
   set fillStyle(_v: string) {},
 }) as unknown as typeof HTMLCanvasElement.prototype.getContext;

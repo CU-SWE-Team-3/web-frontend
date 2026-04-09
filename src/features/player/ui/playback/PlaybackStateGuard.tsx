@@ -27,7 +27,7 @@ export const PlaybackStateGuard: FC<PlaybackStateGuardProps> = ({
 }) => {
   if (state === 'blocked') {
     return (
-      <div id="sc-playback-guard" data-state="blocked">
+      <div id="sc-playback-guard" data-testid="sc-playback-guard" data-state="blocked">
         <BlockedOverlay
           region={region}
           userTier={userTier}
@@ -40,7 +40,7 @@ export const PlaybackStateGuard: FC<PlaybackStateGuardProps> = ({
 
   if (state === 'preview') {
     return (
-      <div id="sc-playback-guard" data-state="preview" style={{ position: 'relative' }}>
+      <div id="sc-playback-guard" data-testid="sc-playback-guard" data-state="preview" style={{ position: 'relative' }}>
         {children}
         <PreviewBanner
           userTier={userTier}
@@ -52,7 +52,7 @@ export const PlaybackStateGuard: FC<PlaybackStateGuardProps> = ({
   }
 
   return (
-    <div id="sc-playback-guard" data-state="playable">
+    <div id="sc-playback-guard" data-testid="sc-playback-guard" data-state="playable">
       {children}
     </div>
   );

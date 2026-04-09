@@ -14,21 +14,7 @@ import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 
-// Temporary MockWaveform until actual waveform data is parsed
-const MockWaveform = () => (
-  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 48, width: '100%' }}>
-    {Array.from({ length: 80 }, (_, i) => {
-      const h = 8 + Math.abs(Math.sin(i * 0.4) * 35) + Math.random() * 10;
-      return (
-        <div key={i} style={{
-          flex: 1, height: h, borderRadius: 1,
-          background: i < 30 ? '#ff5500' : 'rgba(255,255,255,0.15)',
-          transition: 'background 200ms',
-        }} />
-      );
-    })}
-  </div>
-);
+
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -95,6 +81,18 @@ export default function FeedPage() {
     
     fetchData();
   }, []);
+
+  const handlePlayTrack = (trackNode: any) => {
+    const track = {
+      id: trackNode.id || trackNode._id,
+      title: trackNode.title,
+      artist: trackNode.artist?.displayName || trackNode.artist || 'Unknown',
+      artworkUrl: trackNode.artworkUrl || null,
+      hlsUrl: trackNode.hlsUrl || trackNode.streamUrl || '',
+      duration: trackNode.duration || 0,
+    };
+    play(track);
+  };
 
   const handleFollowToggle = async (artistId: string) => {
     if (!isAuthenticated) return;
@@ -195,8 +193,8 @@ export default function FeedPage() {
                     reposts={track.repostCount || 0}
                     comments={track.commentCount || 0}
                     liked={liked}
-                    waveformSlot={<MockWaveform />}
-                    onPlay={() => {}}
+                    audioUrl={track.hlsUrl || track.streamUrl}
+                    onPlay={() => handlePlayTrack(track)}
                     actionsSlot={
                       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                         <button

@@ -1,0 +1,15 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend[39m
+
+ [31mΓ¥»[39m src/features/tracks/ui/__tests__/WaveformPlayer.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 42[2mms[22m[39m
+[31m     [31m├ù[31m renders correctly with test ID[39m[32m 31[2mms[22m[39m
+[31m     [31m├ù[31m renders play button when hidePlayButton is false[39m[32m 3[2mms[22m[39m
+[31m     [31m├ù[31m hides play button when hidePlayButton is true[39m[32m 2[2mms[22m[39m
+[31m     [31m├ù[31m calls play logic when play button is clicked[39m[32m 3[2mms[22m[39m
+     [32mΓ£ô[39m renders comment markers correctly[32m 0[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 05:03:10
+[2m   Duration [22m 3.87s[2m (transform 1.32s, setup 187ms, import 1.65s, tests 42ms, environment 1.58s)[22m
+
