@@ -6,9 +6,11 @@ import EditTrackModal from "../EditTrackModal";
 const mockTrack = {
   id: "test-track-1",
   title: "Test Track Title",
+  artist: "Test Artist",
   genre: "House",
   tags: ["electronic", "dance"],
   description: "A test description",
+  releaseDate: "2024-01-01",
   visibility: "Public" as const,
   status: "Finished" as const,
   audioFileName: "test.mp3",

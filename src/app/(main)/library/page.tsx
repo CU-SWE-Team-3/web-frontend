@@ -14,7 +14,8 @@ import { useFollowUser } from '@/features/social-graph/model/useFollowUser';
 import { useUnfollowUser } from '@/features/social-graph/model/useUnfollowUser';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
-import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
+import { FeedTrackCard, SquareTrackCard } from '@/shared/ui';
+import { Heart } from 'lucide-react';
 import type { FollowNode } from '@/features/social-graph/model/types';
 import type { Track } from '@/features/player/model/playerStore';
 import s from './Library.module.scss';
@@ -201,19 +202,14 @@ function LikesTab({ tracks, isLoading, filter, setFilter }: LikesTabProps) {
           <div className={s.emptyText}>Tracks you like will appear here</div>
         </div>
       ) : (
-        <div className="flex flex-col gap-6 mt-6 pb-24">
+        <div className="flex flex-wrap gap-x-8 gap-y-10 mt-6 pb-24">
           {tracks.map((track) => (
-            <FeedTrackCard
+            <SquareTrackCard
               key={track.id}
+              id={track.id}
               title={track.title}
               artist={track.artist || 'Unknown Artist'}
-              coverUrl={track.artworkUrl || undefined}
-              plays={(track as any).playCount ?? 0}
-              likes={(track as any).likeCount ?? 0}
-              reposts={(track as any).repostCount ?? 0}
-              comments={(track as any).commentCount ?? 0}
-              liked={true}
-              audioUrl={(track as any).streamUrl || (track as any).hlsUrl}
+              artworkUrl={track.artworkUrl}
               onPlay={() => play({
                 id: track.id,
                 title: track.title,
@@ -221,25 +217,7 @@ function LikesTab({ tracks, isLoading, filter, setFilter }: LikesTabProps) {
                 artworkUrl: track.artworkUrl || '/placeholder.png',
                 hlsUrl: (track as any).streamUrl || (track as any).hlsUrl,
               })}
-              actionsSlot={
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => unlikeMutation.mutate(track.id)}
-                    className="w-8 h-8 rounded border border-[#ff5500] bg-[#ff5500]/10 text-[#ff5500] flex items-center justify-center transition-colors shadow-sm"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  </button>
-                  <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4M12 8v8"/></svg>
-                  </button>
-                  <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
-                  </button>
-                  <button className="w-8 h-8 rounded border border-[#444] bg-[#222] hover:border-[#666] flex items-center justify-center transition-colors text-[#ccc] shadow-sm">
-                    <svg width="16" height="4" viewBox="0 0 16 4" fill="currentColor"><circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/></svg>
-                  </button>
-                </div>
-              }
+              titlePrefixNode={<Heart size={14} className="fill-[#999] text-[#999]" />}
             />
           ))}
         </div>
@@ -303,26 +281,16 @@ function HistoryTab({
             <div className={s.emptyText}>Tracks you listen to will appear here</div>
           </div>
         ) : (
-          <div className={s.grid} style={{ marginBottom: 40 }}>
+          <div className="flex flex-wrap gap-8 mb-10">
             {recentlyPlayed.slice(0, 6).map((track, idx) => (
-              <button key={track.id} className={s.card} onClick={() => onPlay(track)} data-testid={`recent-card-${idx}`}>
-                <div className={s.cardThumb}>
-                  {track.artworkUrl ? (
-                    <img src={track.artworkUrl} alt={track.title} className={s.cardImg} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', background: 'var(--sc-bg-dark-elevated)' }} />
-                  )}
-                  <div className={s.cardOverlay}>
-                    <div className={s.playBtn}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                        <polygon points="5,3 19,12 5,21" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                <span className={s.cardTitle}>{track.title}</span>
-                <span className={s.cardArtist}>{track.artist}</span>
-              </button>
+              <SquareTrackCard
+                key={track.id}
+                id={track.id}
+                title={track.title}
+                artist={track.artist || 'Unknown Artist'}
+                artworkUrl={track.artworkUrl}
+                onPlay={() => onPlay(track)}
+              />
             ))}
           </div>
         )}
