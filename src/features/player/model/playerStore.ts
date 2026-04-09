@@ -88,6 +88,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   setVolume: (level: number) => {
     const clamped = Math.max(0, Math.min(1, level));
+    const current = get();
+    if (clamped === current.volume && (clamped > 0 ? !current.isMuted : current.isMuted)) return;
+
     if (clamped > 0) {
       set({ volume: clamped, isMuted: false, previousVolume: clamped });
     } else {
