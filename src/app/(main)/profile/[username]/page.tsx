@@ -9,7 +9,7 @@ import { CloseIcon } from '@/shared/ui/icons';
 import { NavBar } from '@/shared/ui';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useFollowers, useFollowing } from '@/features/social-graph';
-import { useUserTracks } from '@/features/tracks/model/trackQueries';
+import { useUserTracks, TRACKS_QUERY_KEY } from '@/features/tracks/model/trackQueries';
 import { useUserReposts } from '@/features/track-engagement/model/useUserReposts';
 import { ProfileCover } from '@/widgets/user-profile/ProfileCover';
 import { ProfileTabs } from '@/widgets/user-profile/ProfileTabs';
@@ -18,6 +18,7 @@ import type { LikedTrackItem } from '@/widgets/user-profile/ProfileSidebar';
 import { EditProfileModal } from '@/widgets/user-profile/EditProfileModal';
 import { ShareModal } from '@/widgets/user-profile/ShareModal';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useQueryClient } from '@tanstack/react-query';
 import s from './ProfilePage.module.scss';
 
 /* apiUrl is read inline from process.env.NEXT_PUBLIC_API_URL */
@@ -83,6 +84,41 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const { data: userTracks = [], isLoading: isLoadingTracks } = useUserTracks(targetId);
   const { data: userReposts = [], isLoading: isLoadingReposts } = useUserReposts(targetId !== 'me' ? targetId : '');
   const { data: likedTracksRaw } = useLikedTracks(targetId !== 'me' ? targetId : '');
+  const queryClient = useQueryClient();
+
+  // Seed individual track cache from liked tracks so clicking them opens the detail page
+  // without relying on the broken backend GET /tracks/:id endpoint
+  useEffect(() => {
+    if (likedTracksRaw) {
+      for (const t of likedTracksRaw) {
+        // Only seed if not already cached — convert TrackNode to a partial Track shape
+        const existing = queryClient.getQueryData([...TRACKS_QUERY_KEY, t.id]);
+        if (!existing) {
+          queryClient.setQueryData([...TRACKS_QUERY_KEY, t.id], {
+            id: t.id,
+            title: t.title,
+            artist: t.artist,
+            artworkUrl: t.artworkUrl || '',
+            genre: '',
+            tags: [],
+            releaseDate: '',
+            visibility: 'Public' as const,
+            status: 'Finished' as const,
+            audioFileName: t.audioFileName || '',
+            waveform: [],
+            duration: t.durationFormatted || '0:00',
+            createdAt: t.createdAt || '',
+            streamUrl: t.streamUrl || t.hlsUrl || '',
+            hlsUrl: t.hlsUrl || t.streamUrl || '',
+            playCount: t.playCount ?? 0,
+            likeCount: t.likeCount ?? 0,
+            repostCount: t.repostCount ?? 0,
+            commentCount: t.commentCount ?? 0,
+          });
+        }
+      }
+    }
+  }, [likedTracksRaw, queryClient]);
 
   // Map liked tracks to the sidebar format
   const likedTracks: LikedTrackItem[] = (likedTracksRaw || []).map((t) => ({
