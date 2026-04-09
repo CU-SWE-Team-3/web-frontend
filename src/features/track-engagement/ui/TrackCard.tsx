@@ -11,7 +11,7 @@ import { useUnlikeTrack } from "../model/useUnlikeTrack";
 import { useRepostTrack } from "../model/useRepostTrack";
 import { useUnrepostTrack } from "../model/useUnrepostTrack";
 import { LikeIcon } from "@/shared/ui/icons";
-import { WaveformPlayer } from "@/features/tracks/ui/WaveformPlayer";
+import WaveformPlayer from "@/features/tracks/ui/WaveformPlayer";
 import { Suspense } from "react";
 
 interface TrackCardProps {
