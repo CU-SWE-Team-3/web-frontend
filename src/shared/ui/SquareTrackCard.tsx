@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 
-interface SquareTrackCardProps {
+export interface SquareTrackCardProps {
   id: string;
   title: string;
   artist: string;
