@@ -70,7 +70,7 @@ export const PlayerBar: FC<PlayerBarProps> = ({
   if (!track) return null;
 
   return (
-    <div id="sc-player-bar" className={s.bar} data-testid="player-bar">
+    <div id="sc-player-bar" className={s.bar} data-testid="sc-player-bar">
       {/* ── MOBILE: mini progress bar ── */}
       <div className={s.miniProgress} style={{ width: `${(duration ? (currentTime / duration) : 0) * 100}%` }} />
 
@@ -115,16 +115,17 @@ export const PlayerBar: FC<PlayerBarProps> = ({
       {/* ── CENTER: transport controls + seek bar ── */}
       <div className={s.center}>
         <div className={s.controls}>
-          <button id="sc-btn-shuffle" onClick={onToggleShuffle} className={`${s.ctrlBtn} ${isShuffle ? s.active : ''}`} aria-label="Toggle shuffle">
+          <button id="sc-btn-shuffle" data-testid="sc-btn-shuffle" onClick={onToggleShuffle} className={`${s.ctrlBtn} ${isShuffle ? s.active : ''}`} aria-label="Toggle shuffle">
             <Shuffle size={16} fill="currentColor" color={isShuffle ? '#f97316' : 'currentColor'} />
           </button>
 
-          <button id="sc-btn-prev" onClick={onPrev} className={s.ctrlBtn} aria-label="Previous track">
+          <button id="sc-btn-prev" data-testid="sc-btn-prev" onClick={onPrev} className={s.ctrlBtn} aria-label="Previous track">
             <SkipBack size={16} fill="currentColor" />
           </button>
 
           <button
             id="sc-btn-play-pause"
+            data-testid="sc-btn-play-pause"
             onClick={onPlayPause}
             className={s.playPauseBtn}
             aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -135,11 +136,11 @@ export const PlayerBar: FC<PlayerBarProps> = ({
             }
           </button>
 
-          <button id="sc-btn-next" onClick={onNext} className={s.ctrlBtn} aria-label="Next track">
+          <button id="sc-btn-next" data-testid="sc-btn-next" onClick={onNext} className={s.ctrlBtn} aria-label="Next track">
             <SkipForward size={16} fill="currentColor" />
           </button>
 
-          <button id="sc-btn-repeat" onClick={onCycleRepeat} className={`${s.ctrlBtn} ${repeatMode !== 'none' ? s.active : ''}`} aria-label="Cycle repeat mode">
+          <button id="sc-btn-repeat" data-testid="sc-btn-repeat" onClick={onCycleRepeat} className={`${s.ctrlBtn} ${repeatMode !== 'none' ? s.active : ''}`} aria-label="Cycle repeat mode">
             {repeatMode === 'one' ? (
               <Repeat1 size={16} color="#f97316" />
             ) : (
@@ -150,7 +151,7 @@ export const PlayerBar: FC<PlayerBarProps> = ({
 
         {/* Seek bar row — hidden on mobile */}
         <div className={s.seekRow}>
-          <span id="sc-time-display" className={s.time}>{formatTime(currentTime)}</span>
+          <span id="sc-time-display" data-testid="sc-time-display" className={s.time}>{formatTime(currentTime)}</span>
           <div className={s.seekWrap}>
             <SeekBar
               currentTime={currentTime}
@@ -178,11 +179,11 @@ export const PlayerBar: FC<PlayerBarProps> = ({
           />
         </div>
 
-        <button id="sc-btn-queue" onClick={onToggleQueue} className={`${s.iconBtn} ${isQueueOpen ? s.active : ''}`} aria-label="Toggle queue sidebar">
+        <button id="sc-btn-queue" data-testid="sc-btn-queue" onClick={onToggleQueue} className={`${s.iconBtn} ${isQueueOpen ? s.active : ''}`} aria-label="Toggle queue sidebar">
           <ListMusic size={16} color={isQueueOpen ? '#f97316' : 'currentColor'} />
         </button>
 
-        <button id="sc-btn-expand" onClick={onExpand} className={s.iconBtn} aria-label="Expand player">
+        <button id="sc-btn-expand" data-testid="sc-btn-expand" onClick={onExpand} className={s.iconBtn} aria-label="Expand player">
           <Maximize2 size={16} />
         </button>
       </div>

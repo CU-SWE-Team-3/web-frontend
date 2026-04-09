@@ -1,0 +1,52 @@
+[33mThe plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the [1mresolve.tsconfigPaths[22m option. You can remove the plugin and set [1mresolve.tsconfigPaths: true[22m in your Vite config instead.[39m
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mC:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend[39m
+
+TypeError: ws.play is not a function
+    at C:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend/src/features/tracks/ui/WaveformPlayer.tsx:174:14
+    at file:///C:/Users/lenovo/OneDrive/Desktop/Test%20SW/web-frontend/node_modules/zustand/esm/vanilla.mjs:9:39
+    at Set.forEach (<anonymous>)
+    at setState (file:///C:/Users/lenovo/OneDrive/Desktop/Test%20SW/web-frontend/node_modules/zustand/esm/vanilla.mjs:9:17)
+    at Object.play (C:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend/src/features/player/model/playerStore.ts:78:7)
+    at togglePlay (C:/Users/lenovo/OneDrive/Desktop/Test SW/web-frontend/src/features/tracks/ui/WaveformPlayer.tsx:211:13)
+    at HTMLUnknownElement.callCallback (C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\node_modules\jsdom\lib\generated\idl\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:360:16)
+    at invokeEventListeners (C:\Users\lenovo\OneDrive\Desktop\Test SW\web-frontend\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:296:3)
+ [32m✓[39m src/features/tracks/ui/__tests__/WaveformPlayer.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 122[2mms[22m[39m
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯[39m[1m[41m Uncaught Exception [49m[22m[31m⎯⎯⎯⎯⎯[39m
+[31m[1mTypeError[22m: ws.play is not a function[39m
+[36m [2m❯[22m src/features/tracks/ui/WaveformPlayer.tsx:[2m174:14[22m[39m
+    [90m172|[39m       [35mif[39m (isThisTrack) {
+    [90m173|[39m         [35mif[39m (state[33m.[39misPlaying [33m&&[39m [33m![39mws[33m.[39m[34misPlaying[39m()) {
+    [90m174|[39m           ws[33m.[39m[34mplay[39m()[33m;[39m
+    [90m   |[39m              [31m^[39m
+    [90m175|[39m         } [35melse[39m [35mif[39m ([33m![39mstate[33m.[39misPlaying [33m&&[39m ws[33m.[39m[34misPlaying[39m()) {
+    [90m176|[39m           ws[33m.[39m[34mpause[39m()[33m;[39m
+[90m [2m❯[22m ../../Test%20SW/web-frontend/node_modules/zustand/esm/vanilla.mjs:[2m9:39[22m[39m
+[90m [2m❯[22m setState ../../Test%20SW/web-frontend/node_modules/zustand/esm/vanilla.mjs:[2m9:17[22m[39m
+[90m [2m❯[22m Object.play src/features/player/model/playerStore.ts:[2m78:7[22m[39m
+[90m [2m❯[22m togglePlay src/features/tracks/ui/WaveformPlayer.tsx:[2m211:13[22m[39m
+[90m [2m❯[22m HTMLUnknownElement.callCallback node_modules/react-dom/cjs/react-dom.development.js:[2m4164:14[22m[39m
+[90m [2m❯[22m HTMLUnknownElement.callTheUserObjectsOperation node_modules/jsdom/lib/generated/idl/EventListener.js:[2m26:30[22m[39m
+[90m [2m❯[22m innerInvokeEventListeners node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:[2m360:16[22m[39m
+[90m [2m❯[22m invokeEventListeners node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:[2m296:3[22m[39m
+
+[31mThis error originated in "[1msrc/features/tracks/ui/__tests__/WaveformPlayer.test.tsx[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.[39m
+[31mThe latest test that might've caused the error is "[1mcalls play logic when play button is clicked[22m". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.[39m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 05:05:41
+[2m   Duration [22m 3.76s[2m (transform 1.30s, setup 187ms, import 1.64s, tests 122ms, environment 1.59s)[22m
+

@@ -47,7 +47,7 @@ export const SeekBar: FC<SeekBarProps> = ({ currentTime, duration, buffered, onS
   }, [currentTime, duration, onSeek]);
 
   return (
-    <div id="sc-seekbar" className={s.root}>
+    <div id="sc-seekbar" data-testid="sc-seekbar" className={s.root}>
       <div
         ref={trackRef}
         className={s.track}
@@ -68,7 +68,7 @@ export const SeekBar: FC<SeekBarProps> = ({ currentTime, duration, buffered, onS
       </div>
 
       {hoverX !== null && (
-        <div id="sc-seekbar-tooltip" className={s.tooltip} style={{ left: hoverX }}>
+        <div id="sc-seekbar-tooltip" data-testid="sc-seekbar-tooltip" className={s.tooltip} style={{ left: hoverX }}>
           {formatTime(hoverTime)}
         </div>
       )}

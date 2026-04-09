@@ -90,6 +90,7 @@ export const WaveformDisplay: FC<WaveformDisplayProps> = ({
   return (
     <div
       id="sc-waveform"
+      data-testid="sc-waveform"
       ref={containerRef}
       className={s.root}
       onMouseMove={handleMouseMove}

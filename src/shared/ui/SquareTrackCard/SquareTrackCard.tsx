@@ -7,6 +7,7 @@ interface SquareTrackCardProps {
   artist: string;
   artworkUrl: string | null;
   onPlay: () => void;
+  titlePrefixNode?: React.ReactNode;
 }
 
 export const SquareTrackCard = ({
@@ -14,7 +15,8 @@ export const SquareTrackCard = ({
   title,
   artist,
   artworkUrl,
-  onPlay
+  onPlay,
+  titlePrefixNode
 }: SquareTrackCardProps) => {
   const [hovered, setHovered] = useState(false);
 
@@ -55,13 +57,16 @@ export const SquareTrackCard = ({
       </div>
 
       <div className="flex flex-col">
-        <Link 
-          href={`/track/${id}`} 
-          className="text-[14px] text-white font-medium truncate hover:text-[#f50] transition-colors"
-          title={title}
-        >
-          {title}
-        </Link>
+        <div className="flex items-center gap-1">
+          {titlePrefixNode}
+          <Link 
+            href={`/track/${id}`} 
+            className="text-[14px] text-white font-medium truncate hover:text-[#f50] transition-colors"
+            title={title}
+          >
+            {title}
+          </Link>
+        </div>
         <span 
           className="text-[12px] text-[#999] truncate"
           title={artist}

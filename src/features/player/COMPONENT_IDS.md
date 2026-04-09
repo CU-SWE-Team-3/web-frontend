@@ -1,242 +1,95 @@
-# Module 5 — Component ID Reference
+# UI Component Test IDs Reference (Modules 4, 5, & 6)
 
-**Purpose:** This document is the single source of truth for all `id` attributes used in Module 5: Playback & Streaming Engine. Use these IDs to write end-to-end or integration tests, locate elements in the DOM, and validate QA automation scripts.
-
----
-
-## Quick Reference Table
-
-| Element ID | Component | File | Purpose |
-|---|---|---|---|
-| `sc-player-bar` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Root container of the persistent bottom player bar |
-| `sc-btn-play-pause` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Toggle play / pause. `aria-label` = `"Play"` or `"Pause"` |
-| `sc-btn-prev` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Skip to previous track |
-| `sc-btn-next` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Skip to next track |
-| `sc-time-display` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Current playback time text (`m:ss`) |
-| `sc-btn-expand` | `PlayerBar` | `src/shared/ui/PlayerBar/PlayerBar.tsx` | Expand player to full-screen view |
-| `sc-seekbar` | `SeekBar` | `src/features/playback-engine/components/player/SeekBar.tsx` | Seek / scrub container. Role = `slider` |
-| `sc-seekbar-tooltip` | `SeekBar` | `src/features/playback-engine/components/player/SeekBar.tsx` | Hover timestamp tooltip. Only in DOM while hovering |
-| `sc-volume-control` | `VolumeControl` | `src/features/playback-engine/components/player/VolumeControl.tsx` | Volume section wrapper |
-| `sc-btn-mute` | `VolumeControl` | `src/features/playback-engine/components/player/VolumeControl.tsx` | Toggle mute. `aria-label` = `"Mute"` or `"Unmute"` |
-| `sc-volume-slider` | `VolumeControl` | `src/features/playback-engine/components/player/VolumeControl.tsx` | Range input `0`–`1`. `type="range"` |
-| `sc-waveform` | `WaveformDisplay` | `src/features/playback-engine/components/player/WaveformDisplay.tsx` | Waveform canvas container. Role = `slider` |
-| `sc-playback-guard` | `PlaybackStateGuard` | `src/features/playback-engine/components/playback/PlaybackStateGuard.tsx` | Wrapper div. `data-state` = `"playable"` \| `"preview"` \| `"blocked"` |
-| `sc-preview-banner` | `PreviewBanner` | `src/features/playback-engine/components/playback/PreviewBanner.tsx` | Orange banner shown in preview state |
-| `sc-preview-timer` | `PreviewBanner` | `src/features/playback-engine/components/playback/PreviewBanner.tsx` | Countdown text e.g. `"0:25 remaining"` |
-| `sc-preview-cta` | `PreviewBanner` | `src/features/playback-engine/components/playback/PreviewBanner.tsx` | CTA button. Text = `"Sign In"` or `"Go Pro"` |
-| `sc-blocked-overlay` | `BlockedOverlay` | `src/features/playback-engine/components/playback/BlockedOverlay.tsx` | Full overlay rendered when state = blocked |
-| `sc-blocked-cta` | `BlockedOverlay` | `src/features/playback-engine/components/playback/BlockedOverlay.tsx` | CTA button. Text = `"Learn More"` or `"Go Pro"` |
-| `sc-recently-played` | `RecentlyPlayed` | `src/features/playback-engine/components/history/RecentlyPlayed.tsx` | Recently played section root |
-| `sc-btn-clear-recent` | `RecentlyPlayed` | `src/features/playback-engine/components/history/RecentlyPlayed.tsx` | Button to clear recently played. Only rendered when list is non-empty |
-| `sc-recent-item-{n}` | `RecentlyPlayed` | `src/features/playback-engine/components/history/RecentlyPlayed.tsx` | Individual item. `n` = 0-based index (max 9) |
-| `sc-listening-history` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Full history panel root |
-| `sc-history-sort` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Sort `<select>`. Options: `recent`, `oldest`, `title`, `artist` |
-| `sc-history-filter` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Filter `<select>`. Options: `all`, `today`, `week`, `month` |
-| `sc-history-item-{n}` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Individual history row. `n` = 0-based index of displayed page |
-| `sc-history-delete-{n}` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Delete button per row. `n` matches its row index |
-| `sc-history-load-more` | `ListeningHistory` | `src/features/playback-engine/components/history/ListeningHistory.tsx` | Load more button. Only in DOM when more items exist |
+**Purpose:** This document is the single source of truth for all `data-testid` attributes implemented across Modules 4 (Tracks & Uploads), 5 (Playback Engine), and 6 (Engagement & Social). Automation and QA teams must use these IDs to write robust end-to-end (E2E) tests, assert UI component states, and interact with the application.
 
 ---
 
-## Component-by-Component Detail
+## Module 4: Tracks & Audio Management
 
-### `PlayerBar` — `#sc-player-bar`
+**Components:** `EditTrackModal.tsx`, `TrackForm.tsx`, `AudioUploader.tsx`
 
-**File:** `src/shared/ui/PlayerBar/PlayerBar.tsx`  
-**SCSS Module:** `src/shared/ui/PlayerBar/PlayerBar.module.scss`
-
-```
-#sc-player-bar
-  ├── [thumbnail img]
-  ├── [.trackTitle / .trackArtist]
-  ├── [like button]
-  ├── #sc-btn-prev
-  ├── #sc-btn-play-pause       ← aria-label="Play" | "Pause"
-  ├── #sc-btn-next
-  ├── #sc-time-display         ← text: "m:ss"
-  ├── #sc-seekbar              ← SeekBar component
-  ├── [duration text]
-  ├── [add-to-playlist button]
-  ├── #sc-volume-control       ← VolumeControl component
-  └── #sc-btn-expand
-```
-
-**Responsive behaviour:**
-- `< 640px` — only thumbnail + play/pause + title visible
-- `< 768px` — right section (volume, expand) hidden; seek row hidden
-- `≥ 768px` — full layout
+| Data Test ID | Dom Type | Target Purpose |
+|---|---|---|
+| `edit-track-modal` | `<div>` | Root background wrapper of the track edit modal |
+| `edit-track-modal-panel` | `<div>` | Floating central panel within the dialog |
+| `edit-track-title-input` | `<input>` | Plain text input for track title modifications |
+| `edit-track-permalink-input` | `<input>` | Field controlling the custom URL string |
+| `edit-track-genre-input` | `<input>` | Input containing the dropdown selector for genre |
+| `edit-track-tags-input` | `<input>` | Form space for comma-separated tags |
+| `edit-track-description-input`| `<textarea>`| Block text entry for detailed track descriptions |
+| `edit-track-privacy-public` | `<input>` | Radio toggle for public visibility |
+| `edit-track-privacy-private` | `<input>` | Radio toggle for private/hidden visibility |
+| `edit-track-cancel-button` | `<button>` | Quits without committing backend modifications |
+| `edit-track-save-button` | `<button>` | Initiates GraphQL/REST `onSave` network payload |
+| `track-form` | `<div>` | High-level wrapper tracking component mode (create/edit) |
+| `track-form-title-input` | `<input>` | Base title target mapped in standard track uploads |
+| `track-form-genre-select` | `<select>` | Standard dropdown variation for genre constraints |
+| `track-form-submit-button` | `<button>` | Submission point for uploading binaries/forms |
+| `audio-uploader` | `<div>` | Visual dropzone frame encapsulating drag-and-drop |
+| `audio-uploader-input` | `<input>` | The hidden native `type="file"` used by test automation |
 
 ---
 
-### `SeekBar` — `#sc-seekbar`
+## Module 5: Playback & Streaming Engine
 
-**File:** `src/features/playback-engine/components/player/SeekBar.tsx`
+**Components:** `PlayerBar.tsx`, `SeekBar.tsx`, `VolumeControl.tsx`, `WaveformDisplay.tsx`, `PlaybackStateGuard.tsx`, `RecentlyPlayed.tsx`
 
-```
-#sc-seekbar
-  ├── [.track] (click target, role="slider")
-  │   ├── [.buffered]     ← grey fill
-  │   ├── [.played]       ← orange #FF5500 fill
-  │   └── [.thumb]        ← white dot (opacity 0 until hover)
-  └── #sc-seekbar-tooltip  ← only in DOM while hovering; text: "m:ss"
-```
-
-**Keyboard:** `ArrowLeft` − 5 s, `ArrowRight` + 5 s
-
----
-
-### `VolumeControl` — `#sc-volume-control`
-
-**File:** `src/features/playback-engine/components/player/VolumeControl.tsx`
-
-```
-#sc-volume-control
-  ├── #sc-btn-mute    ← aria-label="Mute"|"Unmute"; icon changes with level
-  └── #sc-volume-slider  ← type="range" min=0 max=1 step=0.01
-```
-
-Icon states:
-- `VolumeX` when `isMuted === true` or `volume === 0`
-- `Volume1` when `0 < volume < 0.5`
-- `Volume2` when `volume ≥ 0.5`
-
----
-
-### `WaveformDisplay` — `#sc-waveform`
-
-**File:** `src/features/playback-engine/components/player/WaveformDisplay.tsx`
-
-- Canvas element inside the wrapper div
-- Click anywhere to seek
-- Role = `slider`; `aria-valuenow` = `currentTime`; `aria-valuemax` = `duration`
-- Colors: played = `#FF5500`, unplayed = `#333333`, hovered-unplayed = `#FF7733`
+| Data Test ID | Dom Type | Target Purpose |
+|---|---|---|
+| `sc-player-bar` | `<div>` | Persistent global web player anchored at the viewport bottom |
+| `sc-btn-play-pause` | `<button>`| Play / Pause audio stream toggle |
+| `sc-btn-prev` | `<button>`| Seek to chapter start or previous array queue item |
+| `sc-btn-next` | `<button>`| Advance strictly to the next logical chronological queue element |
+| `sc-btn-shuffle` | `<button>`| Activate randomized execution of the playback cache |
+| `sc-btn-repeat` | `<button>`| Switch through cycle states (`none`, `one`, `all`) |
+| `sc-time-display` | `<span>` | Reflects current running audio millisecond (`m:ss`) |
+| `sc-btn-queue` | `<button>`| Expand/collapse the right-aligned playlist drawer |
+| `sc-btn-expand` | `<button>`| Shifts the player component into a modular fullscreen state |
+| `sc-seekbar` | `<div>` | Wrapper intercepting complex coordinate scrub interactions |
+| `sc-seekbar-tooltip` | `<div>` | Follows mouse hover coordinates over `sc-seekbar` |
+| `sc-volume-control` | `<div>` | Outer encapsulating structure for sound modifications |
+| `sc-btn-mute` | `<button>`| Binary un-mute or complete mute silencer |
+| `sc-volume-slider` | `<input>` | A normalized `type="range"` slider mapping floating values |
+| `sc-waveform` | `<div>` | Container anchoring absolute-positioned canvas sound visuals |
+| `sc-playback-guard` | `<div>` | Security gate interceptor preventing free tier unauthorized listening |
+| `sc-preview-banner` | `<div>` | Promotional top-layer toast showing partial snippet mode |
+| `sc-preview-timer` | `<span>` | High-precision descending clock rendering seconds remaining |
+| `sc-preview-cta` | `<button>`| Route interceptor bouncing the user to subscribe pages |
+| `sc-blocked-overlay` | `<div>` | Pitch-black regional geo-blocking blocking all interactivity |
+| `sc-blocked-cta` | `<button>`| Documentation link for DMCA/Geo takedown policies |
+| `sc-recently-played` | `<div>` | Root component managing local-storage cache iterations |
+| `sc-btn-clear-recent` | `<button>`| System sweep flushing local playback history tokens |
+| `sc-recent-item-{n}` | `<button>`| Single graphical element (e.g. `sc-recent-item-3`) |
+| `sc-listening-history` | `<div>` | Paginated infinite-scroll or load-more heavy container |
+| `sc-history-sort` | `<select>`| Controls rendering orientation via Timestamp arrays |
+| `sc-history-filter` | `<select>`| Scopes the display subset against Date matching |
+| `sc-history-item-{n}` | `<div>` | High-density row (e.g. `sc-history-item-12`) |
+| `sc-history-delete-{n}` | `<button>`| Trash icon specifically tearing down its parent sibling `item-{n}` |
+| `sc-history-load-more` | `<button>`| Explicit CTA loading the next pagination fragment chunk |
 
 ---
 
-### `PlaybackStateGuard` — `#sc-playback-guard`
+## Module 6: Engagement & Social Interactions
 
-**File:** `src/features/playback-engine/components/playback/PlaybackStateGuard.tsx`
+**Components:** `EngagementListModal.tsx`, `TrackCard.tsx`, `WaveformPlayer.tsx`, `CommentInput.tsx`
 
-| `data-state` | What renders |
-|---|---|
-| `"playable"` | `children` only |
-| `"preview"` | `children` + `#sc-preview-banner` (absolute positioned at bottom) |
-| `"blocked"` | `#sc-blocked-overlay` only (no children) |
-
----
-
-### `PreviewBanner` — `#sc-preview-banner`
-
-**File:** `src/features/playback-engine/components/playback/PreviewBanner.tsx`
-
-```
-#sc-preview-banner
-  ├── [message text]       ← "Sign in for full access" | "Upgrade to listen"
-  ├── #sc-preview-timer    ← "m:ss remaining"
-  └── #sc-preview-cta      ← "Sign In" | "Go Pro"
-```
-
----
-
-### `BlockedOverlay` — `#sc-blocked-overlay`
-
-**File:** `src/features/playback-engine/components/playback/BlockedOverlay.tsx`
-
-```
-#sc-blocked-overlay
-  ├── [blurred artwork backdrop]   ← only if artworkUrl provided
-  ├── [dark scrim]
-  └── [content]
-      ├── [lock icon]
-      ├── [message text]           ← "Not available in your region" | "Go Pro to unlock"
-      └── #sc-blocked-cta          ← "Learn More" | "Go Pro"
-```
-
-**Message logic:** If `region` prop is provided → region-blocked message. Otherwise → tier-upgrade message.
-
----
-
-### `RecentlyPlayed` — `#sc-recently-played`
-
-**File:** `src/features/playback-engine/components/history/RecentlyPlayed.tsx`
-
-```
-#sc-recently-played
-  ├── [h2 title]
-  ├── #sc-btn-clear-recent   ← only rendered when tracks.length > 0
-  └── [horizontal scroll list]
-      ├── #sc-recent-item-0
-      ├── #sc-recent-item-1
-      └── ... (max 9)
-```
-
-Each item is a `<button>` with thumbnail, title, artist. Calls `onPlay(track)` on click.
-
----
-
-### `ListeningHistory` — `#sc-listening-history`
-
-**File:** `src/features/playback-engine/components/history/ListeningHistory.tsx`
-
-```
-#sc-listening-history
-  ├── [h2 title]
-  ├── #sc-history-sort      ← <select>
-  ├── #sc-history-filter    ← <select>
-  ├── [list]
-  │   ├── #sc-history-item-0
-  │   │   └── #sc-history-delete-0
-  │   ├── #sc-history-item-1
-  │   │   └── #sc-history-delete-1
-  │   └── ...
-  └── #sc-history-load-more  ← only when more items exist
-```
-
-**Sort options:** `recent` | `oldest` | `title` | `artist`  
-**Filter options:** `all` | `today` | `week` | `month`  
-**Pagination:** Default `pageSize = 20`. Each click shows 20 more.
-
----
-
-## State & Data Flow
-
-```
-usePlayerStore (Zustand)
-  └── usePlayer() hook
-        └── PlayerBar
-              ├── SeekBar
-              └── VolumeControl
-
-useHistoryStore (Zustand)
-  └── useHistory() hook
-        ├── RecentlyPlayed
-        └── ListeningHistory
-
-usePlaybackState() hook
-  └── PlaybackStateGuard
-        ├── PreviewBanner (preview state)
-        └── BlockedOverlay (blocked state)
-```
-
----
-
-## Test Commands
-
-```bash
-# Run all Module 5 tests
-npx vitest run src/__tests__/components/PlayerBar.test.tsx
-npx vitest run src/__tests__/components/SeekBar.test.tsx
-npx vitest run src/__tests__/components/VolumeControl.test.tsx
-npx vitest run src/__tests__/components/WaveformDisplay.test.tsx
-npx vitest run src/__tests__/components/PlaybackStateGuard.test.tsx
-npx vitest run src/__tests__/components/PreviewBanner.test.tsx
-npx vitest run src/__tests__/components/BlockedOverlay.test.tsx
-npx vitest run src/__tests__/components/RecentlyPlayed.test.tsx
-npx vitest run src/__tests__/components/ListeningHistory.test.tsx
-npx vitest run src/__tests__/hooks/usePlayer.test.ts
-npx vitest run src/__tests__/hooks/usePlaybackState.test.ts
-npx vitest run src/__tests__/hooks/useHistory.test.ts
-
-# Or run everything at once
-npx vitest run src/__tests__
-```
+| Data Test ID | Dom Type | Target Purpose |
+|---|---|---|
+| `track-card-{id}` | `<div>` | Base feed element uniquely bound to Database ID mappings |
+| `track-card-repost-{id}` | `<button>`| Rapid optimistic update hook interacting with the feed relay |
+| `engagement-list-modal` | `<div>` | Base Dialog managing internal scroll lists for active interactions |
+| `engagement-list-content` | `<div>` | Primary body housing arrays of mapped likers or reposter users |
+| `engagement-list-loading` | `<div>` | Fallback component simulating initial network queries |
+| `engagement-list-empty` | `<div>` | Fallback empty state resolving against `0` value arrays |
+| `engagement-list-items` | `<div>` | Array mapping execution wrapper confirming the list resolves |
+| `engagement-item-{id}` | `<div>` | Micro-component projecting individual account avatars |
+| `waveform-player` | `<div>` | Mega component controlling standalone audio instances on Track pages |
+| `track-play-button` | `<button>`| Primary play button communicating to global `AudioContext` bindings |
+| `comment-marker-{id}` | `<div>` | Timed-stamped relative graphical injection on `WaveSurfer.js` spans |
+| `comment-tooltip` | `<div>` | Display hover states exposing message nodes string content |
+| `waveform-current-time` | `<span>` | `WaveSurfer.js` instance output showing play progress |
+| `waveform-duration` | `<span>` | `WaveSurfer.js` end computation boundary value string |
+| `comment-input` | `<div>` | Persistent injection container tracking realtime timestamp data |
+| `comment-text-input` | `<input>` | The mutable text variable controlled strictly by React State |
+| `comment-timestamp-badge` | `<span>` | Floating badge capturing the millisecond integer at interaction frame |
+| `comment-submit-button` | `<button>`| Final dispatch pipeline sending the mutation out locally |

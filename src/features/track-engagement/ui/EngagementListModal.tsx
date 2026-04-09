@@ -36,29 +36,34 @@ export const EngagementListModal = ({
 
   return (
     <AppModal
+      data-testid="engagement-list-modal"
       open={isOpen}
       onOpenChange={onClose}
       title={title}
       size="sm"
       className={s.modal}
     >
-      <div className={s.content}>
+      <div data-testid="engagement-list-content" className={s.content}>
         {isLoading ? (
-          <div className={s.loadingArea}>
+          <div data-testid="engagement-list-loading" className={s.loadingArea}>
             <div className={s.spinner} />
             <span>Loading {type}...</span>
           </div>
         ) : !users || users.length === 0 ? (
-          <EmptyState
-            title={`No ${type} yet`}
-            description={`When people ${type === 'likes' ? 'like' : 'repost'} this track, they will appear here.`}
-            icon={emptyIcon}
-            className={s.empty}
-          />
+          <div data-testid="engagement-list-empty">
+            <EmptyState
+              title={`No ${type} yet`}
+              description={`When people ${type === 'likes' ? 'like' : 'repost'} this track, they will appear here.`}
+              icon={emptyIcon}
+              className={s.empty}
+            />
+          </div>
         ) : (
-          <div className={s.list}>
+          <div data-testid="engagement-list-items" className={s.list}>
             {users.map((user: any) => (
-              <EngagementUserItem key={user.id} user={user} />
+              <div data-testid={`engagement-item-${user.id}`} key={user.id}>
+                <EngagementUserItem user={user} />
+              </div>
             ))}
           </div>
         )}

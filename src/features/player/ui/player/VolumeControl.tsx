@@ -27,9 +27,10 @@ export const VolumeControl: FC<VolumeControlProps> = ({
         : Volume2;
 
   return (
-    <div id="sc-volume-control" className={s.wrap}>
+    <div id="sc-volume-control" data-testid="sc-volume-control" className={s.wrap}>
       <button
         id="sc-btn-mute"
+        data-testid="sc-btn-mute"
         onClick={onToggleMute}
         className={s.muteBtn}
         aria-label={isMuted ? 'Unmute' : 'Mute'}
@@ -38,6 +39,7 @@ export const VolumeControl: FC<VolumeControlProps> = ({
       </button>
       <input
         id="sc-volume-slider"
+        data-testid="sc-volume-slider"
         type="range"
         min={0}
         max={1}
