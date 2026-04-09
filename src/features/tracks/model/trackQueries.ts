@@ -47,6 +47,7 @@ export function useTracks() {
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const pendingTracks = usePendingTracksStore((s) => s.pendingTracks);
   const removeResolvedPendingTracks = usePendingTracksStore((s) => s.removeResolvedPendingTracks);
+  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: TRACKS_QUERY_KEY,
@@ -61,6 +62,15 @@ export function useTracks() {
     if (!query.isFetched) return;
     removeResolvedPendingTracks((query.data ?? []).map((track) => track.id));
   }, [query.data, query.isFetched, removeResolvedPendingTracks]);
+
+  // Seed individual track cache entries so /tracks/{id} pages can use them
+  useEffect(() => {
+    if (query.data) {
+      for (const track of query.data) {
+        queryClient.setQueryData([...TRACKS_QUERY_KEY, track.id], track);
+      }
+    }
+  }, [query.data, queryClient]);
 
   const data = useMemo(
     () => mergeTracksWithPending(query.data ?? [], pendingTracks),
@@ -169,6 +179,7 @@ export function useUserTracks(username: string) {
   const user = useAuthStore((s) => s.user);
   const pendingTracks = usePendingTracksStore((s) => s.pendingTracks);
   const removeResolvedPendingTracks = usePendingTracksStore((s) => s.removeResolvedPendingTracks);
+  const queryClient = useQueryClient();
   const ownTrackView = isOwnTrackView(username, user);
 
   const query = useQuery({
@@ -184,6 +195,16 @@ export function useUserTracks(username: string) {
     if (!query.isFetched) return;
     removeResolvedPendingTracks((query.data ?? []).map((track) => track.id));
   }, [query.data, query.isFetched, removeResolvedPendingTracks]);
+
+  // Seed individual track cache entries so /tracks/{id} detail pages work
+  // even when the backend GET /tracks/:id endpoint fails (returns 500).
+  useEffect(() => {
+    if (query.data) {
+      for (const track of query.data) {
+        queryClient.setQueryData([...TRACKS_QUERY_KEY, track.id], track);
+      }
+    }
+  }, [query.data, queryClient]);
 
   const data = useMemo(() => {
     if (!ownTrackView) {
