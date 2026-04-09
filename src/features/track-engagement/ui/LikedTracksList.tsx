@@ -2,8 +2,12 @@ import React from "react";
 import { useLikedTracks } from "../model/useLikedTracks";
 import { TrackCard } from "./TrackCard";
 
-export const LikedTracksList = () => {
-  const { data: tracks, isLoading } = useLikedTracks();
+interface LikedTracksListProps {
+  userId?: string;
+}
+
+export const LikedTracksList = ({ userId }: LikedTracksListProps) => {
+  const { data: tracks, isLoading } = useLikedTracks(userId);
 
   if (isLoading) {
     return (

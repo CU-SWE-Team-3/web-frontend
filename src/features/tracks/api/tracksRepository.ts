@@ -313,23 +313,63 @@ export const tracksRepository = {
       if (t) {
         return mapApiTrack(t);
       }
-    } catch (err) {
-      console.warn('[tracksRepository] API fetch for track failed, falling back to my-tracks:', err);
-      
-      // Fallback: the backend might hide "Processing" or "Private" tracks from the main GET /tracks/:id route.
-      // We check if it is one of the logged-in user's own tracks.
+    } catch (err: any) {
+      console.warn('[tracksRepository] Primary /tracks/:id fetch failed:', err?.response?.status, err?.message);
+    }
+
+    // ── Fallback 1: check the logged-in user's own tracks ──
+    try {
+      const fallbackResponse = await apiClient.get('/tracks/my-tracks');
+      const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
+      if (Array.isArray(apiTracks)) {
+        const foundTrack = apiTracks.find((t: any) => (t._id || t.id) === id);
+        if (foundTrack) {
+          console.log('[tracksRepository] Track found in my-tracks fallback');
+          return mapApiTrack(foundTrack);
+        }
+      }
+    } catch (fallbackErr) {
+      console.warn('[tracksRepository] my-tracks fallback failed:', fallbackErr);
+    }
+
+    // ── Fallback 2: try alternative single-track endpoints ──
+    const altEndpoints = [
+      `/tracks/${id}/details`,
+      `/tracks/track/${id}`,
+    ];
+    for (const endpoint of altEndpoints) {
       try {
-        const fallbackResponse = await apiClient.get('/tracks/my-tracks');
-        const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
-        if (Array.isArray(apiTracks)) {
-          const foundTrack = apiTracks.find((t: any) => (t._id || t.id) === id);
-          if (foundTrack) {
-            console.log('[tracksRepository] Track successfully found in my-tracks fallback!');
-            return mapApiTrack(foundTrack);
+        const res = await apiClient.get(endpoint);
+        const t = res.data?.data?.track || res.data?.data || res.data;
+        if (t && (t._id || t.id)) {
+          console.log(`[tracksRepository] Track found via ${endpoint}`);
+          return mapApiTrack(t);
+        }
+      } catch {
+        // silently try next
+      }
+    }
+
+    // ── Fallback 3: search all users' tracks for the given ID ──
+    // This covers the case where the backend's /tracks/:id returns 500 for
+    // valid tracks owned by other users.
+    const userTrackEndpoints = [
+      `/users/tracks?limit=200`,
+      `/tracks?limit=200`,
+    ];
+    for (const endpoint of userTrackEndpoints) {
+      try {
+        const res = await apiClient.get(endpoint);
+        const list = res.data?.data || res.data?.tracks || res.data || [];
+        if (Array.isArray(list)) {
+          const found = list.find((t: any) => (t._id || t.id) === id);
+          if (found) {
+            console.log(`[tracksRepository] Track found via bulk ${endpoint}`);
+            return mapApiTrack(found);
           }
         }
-      } catch (fallbackErr) {
-        console.warn('[tracksRepository] Fallback to my-tracks also failed:', fallbackErr);
+      } catch {
+        // silently try next
       }
     }
 
