@@ -35,8 +35,8 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
 }) => (
   <div data-testid="track-card" className={[s.card, className].filter(Boolean).join(' ')}>
     <div className={s.coverWrap}>
-      {coverUrl ? (
-        <img data-testid="track-card-artwork" className={s.coverImg} src={coverUrl} alt={title} />
+      {coverUrl && coverUrl !== 'undefined' && coverUrl !== 'null' ? (
+        <img data-testid="track-card-artwork" className={s.coverImg} src={coverUrl} alt={title} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
       ) : (
         <div className={s.coverImg} style={{ background: 'var(--sc-bg-dark-elevated)' }} />
       )}

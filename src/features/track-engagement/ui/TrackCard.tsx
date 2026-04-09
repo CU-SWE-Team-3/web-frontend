@@ -53,14 +53,14 @@ export const TrackCard = ({ track }: TrackCardProps) => {
   };
 
   const handlePlay = () => {
-    // Map TrackNode to Track
     const playerTrack = {
       id: track.id,
       title: track.title,
       artist: track.artist,
       artworkUrl: track.artworkUrl || '',
-      hlsUrl: (track as any).hlsUrl || '', // Fallback since TrackNode misses hlsUrl right now
-      duration: 0,
+      streamUrl: track.streamUrl || track.hlsUrl || '',
+      hlsUrl: track.hlsUrl || track.streamUrl || '',
+      duration: track.duration || 0,
     };
     
     // Add to queue if not present, then play
@@ -90,13 +90,13 @@ export const TrackCard = ({ track }: TrackCardProps) => {
 
   return (
     <div data-testid={`track-card-${track.id}`} className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
-      {/* Artwork */}
-      <Link href={`/track/${track.id}/likes`} className="w-[160px] h-[160px] flex-shrink-0 bg-[#222] transition-opacity hover:opacity-80">
-        {track.artworkUrl ? (
+      <Link href={`/tracks/${track.id}`} className="w-[160px] h-[160px] flex-shrink-0 bg-[#222] transition-opacity hover:opacity-80">
+        {track.artworkUrl && track.artworkUrl !== 'undefined' && track.artworkUrl !== 'null' ? (
           <img 
             src={track.artworkUrl} 
             alt={track.title} 
             className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-tr from-[#333] to-[#111]" />
@@ -116,9 +116,9 @@ export const TrackCard = ({ track }: TrackCardProps) => {
             </button>
             <div className="flex flex-col">
               <span className="text-[#999] text-[13px]">{track.artist}</span>
-              <span className="text-white text-[16px] font-medium leading-snug">
+              <Link href={`/tracks/${track.id}`} className="text-white text-[16px] font-medium leading-snug hover:underline">
                 {track.title}
-              </span>
+              </Link>
             </div>
           </div>
           <span className="text-[#999] text-[12px]">{track.createdAt}</span>
@@ -174,7 +174,7 @@ export const TrackCard = ({ track }: TrackCardProps) => {
           </div>
 
           <div className="flex items-center gap-4 text-[#999] text-[12px]">
-            <Link href={`/track/${track.id}/likes`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <Link href={`/tracks/${track.id}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <LikeIcon size={12} fill="currentColor" />
               {formatCount(likeCount)}
             </Link>
