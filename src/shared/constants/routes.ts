@@ -19,4 +19,6 @@ export const ROUTES = {
   LIBRARY: '/library',
   HISTORY: '/library?tab=history',
   LIBRARY_LIKES: '/library?tab=likes',
+  SEARCH: '/search',
+  TRENDING: '/trending',
 } as const

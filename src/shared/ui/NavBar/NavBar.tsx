@@ -27,6 +27,12 @@ export const NavBar: FC<NavBarProps> = ({
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [internalSearch, setInternalSearch] = useState('');
+
+  const handleSearchSubmit = (query: string) => {
+    if (!query.trim()) return;
+    router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(query.trim())}`);
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -65,7 +71,11 @@ export const NavBar: FC<NavBarProps> = ({
 
     {/* Center: Search */}
     <div className={s.centerSection}>
-      <SearchBar value={searchValue} onChange={onSearchChange} />
+      <SearchBar
+        value={searchValue ?? internalSearch}
+        onChange={(v) => { setInternalSearch(v); onSearchChange?.(v); }}
+        onSubmit={handleSearchSubmit}
+      />
     </div>
 
     {/* Right: Actions */}
