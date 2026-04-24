@@ -24,6 +24,7 @@
     "react-dom": "^18",
     "react-google-recaptcha": "^3.1.0",
     "react-image-crop": "^11.0.10",
+    "recharts": "^3.8.1",
     "sass": "^1.74.1",
     "tailwind-merge": "^2.2.2",
     "wavesurfer.js": "^7.12.4",

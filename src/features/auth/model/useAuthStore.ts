@@ -80,7 +80,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           _id: "dev-mock-user",
           username: "Local Dev", 
           email: "dev@biobeats.local", 
-          avatarUrl: null 
+          avatarUrl: null,
+          role: "Admin"
         } as any, 
         isAuthenticated: true, 
         isInitialized: true 

@@ -19,4 +19,8 @@ export const ROUTES = {
   LIBRARY: '/library',
   HISTORY: '/library?tab=history',
   LIBRARY_LIKES: '/library?tab=likes',
+  ADMIN_DASHBOARD: '/admin',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_CONTENT: '/admin/content',
+  ADMIN_HEALTH: '/admin/health',
 } as const
