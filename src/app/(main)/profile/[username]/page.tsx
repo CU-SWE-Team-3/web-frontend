@@ -19,6 +19,9 @@ import { EditProfileModal } from '@/widgets/user-profile/EditProfileModal';
 import { ShareModal } from '@/widgets/user-profile/ShareModal';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { useQueryClient } from '@tanstack/react-query';
+import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
+import { PlaylistStreamCard } from '@/features/playlists/ui/PlaylistStreamCard';
+import type { Playlist } from '@/features/playlists/model/playlist';
 import s from './ProfilePage.module.scss';
 
 /* apiUrl is read inline from process.env.NEXT_PUBLIC_API_URL */
@@ -306,33 +309,32 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
       );
     }
 
-    /* ── Popular tracks / Albums / Playlists: NO reposts ── */
-    if (activeTab === 'Popular tracks' || activeTab === 'Albums' || activeTab === 'Playlists') {
-      if (activeTab === 'Popular tracks') {
-        if (isLoadingTracks) {
-          return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading tracks...</div>;
-        }
-        // Sort by plays/likes descending – show own tracks only
-        const sorted = [...userTracks].sort((a, b) =>
-          ((b as any).plays || (b as any).playCount || 0) - ((a as any).plays || (a as any).playCount || 0)
-        );
-        if (sorted.length === 0) {
-          return <div className={s.empty}><span className={s.emptyText}>No popular tracks yet</span></div>;
-        }
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {sorted.map(renderOwnTrackCard)}
-          </div>
-        );
+    /* ── Popular tracks: NO reposts ── */
+    if (activeTab === 'Popular tracks') {
+      if (isLoadingTracks) {
+        return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading tracks...</div>;
       }
-      // Albums / Playlists: empty states for now
+      const sorted = [...userTracks].sort((a, b) =>
+        ((b as any).plays || (b as any).playCount || 0) - ((a as any).plays || (a as any).playCount || 0)
+      );
+      if (sorted.length === 0) {
+        return <div className={s.empty}><span className={s.emptyText}>No popular tracks yet</span></div>;
+      }
       return (
-        <div className={s.empty}>
-          <span className={s.emptyText}>
-            {activeTab === 'Albums' ? 'No albums yet' : 'No playlists yet'}
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {sorted.map(renderOwnTrackCard)}
         </div>
       );
+    }
+
+    /* ── Albums tab ── */
+    if (activeTab === 'Albums') {
+      return <ProfilePlaylistGrid userId={targetId} releaseType="album" emptyText="No albums yet" />;
+    }
+
+    /* ── Playlists tab ── */
+    if (activeTab === 'Playlists') {
+      return <ProfilePlaylistGrid userId={targetId} releaseType="playlist" emptyText="No playlists yet" />;
     }
 
     /* ── All tab (default): own tracks + reposts merged by date ── */
@@ -457,5 +459,55 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
     </div>
   );
 };
+
+/* ═══════════════════════════════════════════════════════
+   Profile Playlist Grid — used by Albums and Playlists tabs
+   ═══════════════════════════════════════════════════════ */
+function ProfilePlaylistGrid({
+  userId,
+  releaseType,
+  emptyText,
+}: {
+  userId: string;
+  releaseType: string;
+  emptyText: string;
+}) {
+  const { data: playlists, isLoading } = useUserPlaylists(userId, releaseType);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              height: 200,
+              background: 'var(--sc-bg-dark-elevated)',
+              borderRadius: 4,
+              marginBottom: 16,
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (!playlists || playlists.length === 0) {
+    return (
+      <div className={s.empty}>
+        <span className={s.emptyText}>{emptyText}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {playlists.map((pl: Playlist) => (
+        <PlaylistStreamCard key={pl._id} playlist={pl} />
+      ))}
+    </div>
+  );
+}
 
 export default ProfilePage;

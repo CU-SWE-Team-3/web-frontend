@@ -12,6 +12,7 @@ import { useUnrepostTrack } from "@/features/track-engagement/model/useUnrepostT
 import { TrackShareModal } from "@/shared/ui/TrackShareModal/TrackShareModal";
 import { RepostToast } from "@/shared/ui/RepostToast/RepostToast";
 import { usePlayerStore } from "@/features/player/model/playerStore";
+import { AddToPlaylistModal } from "@/features/playlists";
 
 export default function StationPage() {
   const { trackId } = useParams<{ trackId: string }>();
@@ -26,6 +27,7 @@ export default function StationPage() {
 
   const [liked, setLiked] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const likeMutation = useLikeTrack();
   const unlikeMutation = useUnlikeTrack();
@@ -135,7 +137,7 @@ export default function StationPage() {
                }} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 004 4h12"/><line x1="12" y1="19" x2="12" y2="19"/></svg> Add to Next up
                </button>
-               <button data-testid="station-playlist-btn" onClick={() => showToast('Playlist feature coming soon')} style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-playlist-btn" onClick={() => setIsPlaylistModalOpen(true)} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><path d="M12 15h6v6h-6z" fill="currentColor" stroke="none"/></svg> Add to playlist
                </button>
             </div>
@@ -203,13 +205,11 @@ export default function StationPage() {
       )}
 
       {track && (
-        <TrackShareModal 
-          open={shareOpen} 
-          onClose={() => setShareOpen(false)} 
+        <AddToPlaylistModal 
+          open={isPlaylistModalOpen} 
+          onClose={() => setIsPlaylistModalOpen(false)} 
+          trackId={track.id} 
           trackTitle={track.title} 
-          trackArtist={track.artist || 'Station Artist'} 
-          trackUrl={typeof window !== 'undefined' ? window.location.href : ''} 
-          trackArtworkUrl={track.artworkUrl}
         />
       )}
     </div>
@@ -352,24 +352,12 @@ function StationTrackRow({ t, idx, isActive }: { t: any, idx: number, isActive: 
         </div>
       )}
 
-      {isPlaylistModalOpen && (
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.6)' }} onClick={() => setIsPlaylistModalOpen(false)} />
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: '#111', width: '100%', maxWidth: 440, borderRadius: 4, display: 'flex', flexDirection: 'column', boxShadow: '0 8px 32px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
-            <div style={{ padding: '24px 24px 0 24px' }}>
-              <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: '0 0 16px 0', borderBottom: '1px solid #333', paddingBottom: 16 }}>Create a playlist</h2>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', color: '#fff', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Playlist title <span style={{ color: '#f50' }}>*</span></label>
-                <input type="text" autoFocus style={{ width: '100%', background: '#222', border: '1px solid #444', borderRadius: 4, padding: '8px 12px', color: '#fff', fontSize: 14, outline: 'none' }} placeholder="New playlist" />
-              </div>
-            </div>
-            <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'flex-end', gap: 12, borderTop: '1px solid #333' }}>
-              <button onClick={() => setIsPlaylistModalOpen(false)} style={{ background: 'transparent', color: '#fff', border: 'none', padding: '8px 16px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Cancel</button>
-              <button onClick={() => setIsPlaylistModalOpen(false)} style={{ background: '#f50', color: '#fff', border: 'none', borderRadius: 3, padding: '8px 16px', fontSize: 14, cursor: 'pointer', fontWeight: 500 }}>Save</button>
-            </div>
-          </div>
-        </>
-      )}
+      <AddToPlaylistModal 
+        open={isPlaylistModalOpen} 
+        onClose={() => setIsPlaylistModalOpen(false)} 
+        trackId={t.id} 
+        trackTitle={t.title} 
+      />
     </>
   );
 }

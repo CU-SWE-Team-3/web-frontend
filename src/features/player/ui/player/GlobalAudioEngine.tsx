@@ -19,6 +19,7 @@ export const GlobalAudioEngine = () => {
   
   const {
     currentTrack,
+    contextTitle,
     isPlaying,
     volume,
     isMuted,
@@ -280,6 +281,7 @@ export const GlobalAudioEngine = () => {
               artist: currentTrack.artist,
               artworkUrl: currentTrack.artworkUrl,
             }}
+            contextTitle={contextTitle}
             isPlaying={isPlaying}
             currentTime={currentTime}
             duration={duration || audioRef.current?.duration || 0}

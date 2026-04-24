@@ -1,0 +1,475 @@
+/* EditPlaylistModal – SoundCloud-exact 3-tab design */
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  margin: -24px;
+  max-height: 80vh;
+  overflow: hidden;
+  background-color: #121212;
+}
+
+/* ─── Tabs ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #333333;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+
+.tab {
+  flex: none;
+  padding: 16px 20px;
+  font-size: var(--sc-font-size-lg);
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-regular);
+  color: var(--sc-gray-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color var(--sc-transition-fast);
+
+  &:hover {
+    color: #ffffff;
+  }
+}
+
+.tabActive {
+  color: #ffffff;
+  font-weight: 500;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; /* Overlap border-bottom */
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background-color: #ffffff;
+  }
+}
+
+/* ─── Basic Info Tab (two-column) ─── */
+.basicTab {
+  display: flex;
+  gap: 24px;
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Artwork column */
+.artworkCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  width: 240px;
+}
+
+.artworkBox {
+  width: 240px;
+  height: 240px;
+  border-radius: 0;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  background: #212121;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.artworkImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.artworkPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-gray-500);
+  background: var(--sc-bg-dark-elevated);
+}
+
+.artworkUploading {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.zoomSliderContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  margin-top: -4px;
+}
+
+.zoomBtn {
+  background: none;
+  border: none;
+  color: #999999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sliderTrack {
+  flex: 1;
+  height: 2px;
+  background: #333333;
+  position: relative;
+}
+
+.sliderHandle {
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 0; /* Default position */
+  transform: translateY(-50%);
+}
+
+.replaceImageBtn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 12px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 4px;
+
+  &:hover {
+    color: var(--sc-white);
+  }
+}
+
+/* Fields column */
+.fieldsCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #999999;
+  font-family: var(--sc-font-family);
+}
+
+.req {
+  color: #ff5500;
+}
+
+.input {
+  background: #212121;
+  border: 1px solid #333333;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  padding: 5px 10px;
+  height: 32px;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--sc-transition-fast);
+
+  &::placeholder {
+    color: #999999;
+  }
+
+  &:focus {
+    border-color: #666666;
+  }
+}
+
+.select {
+  @extend .input;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.textarea {
+  @extend .input;
+  resize: vertical;
+  min-height: 64px;
+  line-height: var(--sc-line-height-normal);
+}
+
+.inlineRow {
+  display: flex;
+  gap: 12px;
+}
+
+.permalinkRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.permalinkPrefix {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-gray-500);
+  font-family: var(--sc-font-family);
+  white-space: nowrap;
+  padding: 8px 4px 8px 0;
+}
+
+/* Privacy section */
+.privacySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.privacySectionLabel {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-bold);
+  color: var(--sc-gray-400);
+  font-family: var(--sc-font-family);
+}
+
+.radioOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio {
+  margin-top: 2px;
+  accent-color: var(--sc-primary);
+  cursor: pointer;
+}
+
+.radioMain {
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+  display: block;
+}
+
+.radioDesc {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  font-family: var(--sc-font-family);
+  display: block;
+}
+
+/* ─── Tracks Tab ─── */
+.tracksTab {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 50vh;
+}
+
+.tracksEmpty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: grab;
+  transition: background var(--sc-transition-fast);
+  touch-action: none;
+
+  &:hover {
+    background: var(--sc-bg-dark-elevated);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.trackThumb {
+  width: 30px;
+  height: 30px;
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--sc-bg-dark-hover);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.trackThumbEmpty {
+  width: 100%;
+  height: 100%;
+  background: var(--sc-bg-dark-hover);
+}
+
+.trackLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trackArtist {
+  color: var(--sc-gray-500);
+}
+
+.trackSep {
+  color: var(--sc-gray-500);
+}
+
+.trackName {
+  color: var(--sc-white);
+  font-weight: var(--sc-font-weight-medium);
+}
+
+.trackDuration {
+  font-size: var(--sc-font-size-sm);
+  color: var(--sc-gray-500);
+  font-family: var(--sc-font-family);
+  flex-shrink: 0;
+  min-width: 40px;
+  text-align: right;
+}
+
+.trackRemove {
+  background: none;
+  border: none;
+  color: var(--sc-gray-500);
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 4px;
+  transition: color var(--sc-transition-fast);
+
+  &:hover {
+    color: var(--sc-white);
+  }
+}
+
+/* ─── Metadata Tab ─── */
+.metadataTab {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ─── Footer ─── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid #333333;
+  flex-shrink: 0;
+  background-color: #121212;
+}
+
+.requiredNote {
+  font-size: 12px;
+  color: #999999;
+  font-family: var(--sc-font-family);
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+
+  &:hover {
+    color: #cccccc;
+  }
+}
+
+.saveBtn {
+  padding: 6px 15px;
+  border-radius: 3px;
+  border: none;
+  background: #ffffff;
+  color: #000000;
+  font-size: var(--sc-font-size-sm);
+  font-weight: 500;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+  text-align: center;
+
+  &:hover:not(:disabled) {
+    background: #e5e5e5;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
