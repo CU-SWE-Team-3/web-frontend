@@ -12,7 +12,7 @@ import { ROUTES } from '@/shared/constants/routes'
 // NOTE: confirmPassword is frontend-only validation — NOT sent to the API.
 // The spec requires only { token, newPassword }.
 
-const DEV_MOCK_MODE = true // TODO: Set to false when testing with real backend
+const DEV_MOCK_MODE = false // TODO: Set to false when testing with real backend
 
 const ResetPasswordForm = () => {
   const router = useRouter()

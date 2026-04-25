@@ -10,7 +10,7 @@ import { ROUTES } from '@/shared/constants/routes'
 // POST /auth/forgot-password  body: { email }
 // Always returns 200 (to prevent email enumeration) — no change needed here.
 
-const DEV_MOCK_MODE = true // TODO: Set to false when testing with real backend
+const DEV_MOCK_MODE = false // TODO: Set to false when testing with real backend
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
