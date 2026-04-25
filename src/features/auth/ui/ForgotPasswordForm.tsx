@@ -28,7 +28,7 @@ const ForgotPasswordForm = () => {
     setIsLoading(true)
     setError('')
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
       await axios.post(`${apiUrl}/auth/forgot-password`, { email }, { withCredentials: true })
       setSuccess(true)
     } catch {

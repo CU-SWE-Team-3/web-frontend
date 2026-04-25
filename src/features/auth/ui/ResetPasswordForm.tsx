@@ -48,7 +48,7 @@ const ResetPasswordForm = () => {
     setIsLoading(true)
     setErrors({})
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
       await axios.patch(
         `${apiUrl}/auth/reset-password`,
         { token, newPassword },   // <-- no confirmPassword in body per the spec
