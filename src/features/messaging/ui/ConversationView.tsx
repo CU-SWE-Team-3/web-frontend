@@ -143,11 +143,11 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
             {conversation.participant.displayName}
           </span>
           <button
-            className={s.chatActionLink}
+            className={`${s.chatActionLink} ${conversation.isBlocked ? s.blockedTextOrange : ''}`}
             onClick={handleBlock}
             data-testid="block-button"
           >
-            {conversation.isBlocked ? 'Unblock' : 'Block'}
+            {conversation.isBlocked ? 'Blocked' : 'Block'}
           </button>
           <button
             className={s.chatActionLink}
@@ -226,7 +226,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
       </div>
 
       {/* Composer */}
-      {!conversation.isBlockedBy ? (
+      {!(conversation.isBlocked || conversation.isBlockedBy) ? (
         <MessageComposer
           onSend={handleSend}
           onTyping={handleTyping}

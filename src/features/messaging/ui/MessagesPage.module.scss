@@ -236,6 +236,10 @@
   }
 }
 
+.blockedTextOrange {
+  color: var(--sc-primary, #ff5500) !important;
+}
+
 .chatActionRight {
   display: flex;
   align-items: center;

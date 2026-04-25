@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { searchUsers } from '../api/messagingApi';
+import { searchUsers, resolveUserByPermalink } from '../api/messagingApi';
 import type { MessageUser } from '../model/types';
 import { useStartConversation } from '../model/useStartConversation';
 import { CloseIcon } from '@/shared/ui/icons';
@@ -23,12 +23,18 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [selectedUser, setSelectedUser] = useState<MessageUser | null>(null);
   const [messageText, setMessageText] = useState('');
   const [searching, setSearching] = useState(false);
+  const [resolving, setResolving] = useState(false);
+
+  // Validation states
+  const [recipientError, setRecipientError] = useState<string | null>(null);
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   const startConversationMutation = useStartConversation();
 
   const handleSearch = useCallback(
     async (query: string) => {
       setSearchQuery(query);
+      setRecipientError(null); // Clear error on type
       if (!query.trim()) {
         setSearchResults([]);
         return;
@@ -50,16 +56,12 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
     setSelectedUser(user);
     setSearchQuery('');
     setSearchResults([]);
+    setRecipientError(null);
   };
 
-  const handleSend = () => {
-    if (!selectedUser || !messageText.trim()) return;
-
+  const executeSend = (userId: string, content: string) => {
     startConversationMutation.mutate(
-      {
-        userId: selectedUser._id,
-        content: messageText.trim(),
-      },
+      { userId, content },
       {
         onSuccess: (conversation) => {
           onCreated(conversation._id);
@@ -69,15 +71,51 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
     );
   };
 
+  const handleSend = async () => {
+    let hasError = false;
+
+    if (!selectedUser && !searchQuery.trim()) {
+      setRecipientError('Enter a recipient.');
+      hasError = true;
+    }
+    
+    if (!messageText.trim()) {
+      setMessageError('Enter a message.');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    if (selectedUser) {
+      executeSend(selectedUser._id, messageText.trim());
+    } else {
+      // Fallback: User typed a name but didn't select from the dropdown.
+      // Attempt to resolve by permalink/username.
+      setResolving(true);
+      const resolvedId = await resolveUserByPermalink(searchQuery.trim());
+      setResolving(false);
+
+      if (resolvedId) {
+        executeSend(resolvedId, messageText.trim());
+      } else {
+        setRecipientError("User not found. Please try a different username.");
+      }
+    }
+  };
+
   const handleReset = () => {
     setSearchQuery('');
     setSearchResults([]);
     setSelectedUser(null);
     setMessageText('');
+    setRecipientError(null);
+    setMessageError(null);
     onClose();
   };
 
   if (!open) return null;
+
+  const isSending = startConversationMutation.isPending || resolving;
 
   return (
     <div
@@ -90,7 +128,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
       <div className={s.modalContent}>
         {/* Header */}
         <div className={s.modalHeader}>
-          <h2 className={s.modalTitle}>New Message</h2>
+          <h2 className={s.modalTitle}>New message</h2>
           <button
             className={s.modalClose}
             onClick={handleReset}
@@ -105,7 +143,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
           {/* To field */}
           <div className={s.modalField}>
             <label className={s.modalLabel}>
-              To<span>*</span>
+              To<span style={{ color: '#ff1f44' }}>*</span>
             </label>
             {selectedUser ? (
               <div className={s.selectedUser}>
@@ -124,12 +162,17 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
               <>
                 <input
                   className={s.modalInput}
-                  placeholder="Search for a user..."
+                  style={recipientError ? { borderColor: '#ff1f44' } : undefined}
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   data-testid="user-search-input"
                 />
-                {(searchResults.length > 0 || searching) && (
+                {recipientError && (
+                  <div style={{ color: '#ff1f44', fontSize: 12, marginTop: 4 }}>
+                    {recipientError}
+                  </div>
+                )}
+                {(searchResults.length > 0 || searching) && !recipientError && (
                   <div className={s.userResults}>
                     {searching ? (
                       <div
@@ -166,14 +209,23 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
           {/* Message field */}
           <div className={s.modalField}>
             <label className={s.modalLabel}>
-              Write your message and add tracks or playlists<span>*</span>
+              Write your message and add tracks or playlists<span style={{ color: '#ff1f44' }}>*</span>
             </label>
             <textarea
               className={s.modalTextarea}
+              style={messageError ? { borderColor: '#ff1f44' } : undefined}
               value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
+              onChange={(e) => {
+                setMessageText(e.target.value);
+                setMessageError(null);
+              }}
               data-testid="new-conv-message-input"
             />
+            {messageError && (
+              <div style={{ color: '#ff1f44', fontSize: 12, marginTop: 4 }}>
+                {messageError}
+              </div>
+            )}
           </div>
         </div>
 
@@ -182,14 +234,11 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
           <button
             className={s.sendBtn}
             onClick={handleSend}
-            disabled={
-              !selectedUser ||
-              !messageText.trim() ||
-              startConversationMutation.isPending
-            }
+            disabled={isSending}
+            style={{ opacity: isSending ? 0.7 : 1 }}
             data-testid="new-conv-send-button"
           >
-            Send
+            {isSending ? 'Sending...' : 'Send'}
           </button>
         </div>
       </div>
