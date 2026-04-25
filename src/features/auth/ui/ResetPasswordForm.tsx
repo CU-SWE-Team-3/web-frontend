@@ -12,6 +12,8 @@ import { ROUTES } from '@/shared/constants/routes'
 // NOTE: confirmPassword is frontend-only validation — NOT sent to the API.
 // The spec requires only { token, newPassword }.
 
+const DEV_MOCK_MODE = true // TODO: Set to false when testing with real backend
+
 const ResetPasswordForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,6 +50,13 @@ const ResetPasswordForm = () => {
     setIsLoading(true)
     setErrors({})
     try {
+      if (DEV_MOCK_MODE) {
+        // Simulate a 1-second network delay then succeed
+        await new Promise((res) => setTimeout(res, 1000))
+        setSuccess(true)
+        return
+      }
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
       await axios.patch(
         `${apiUrl}/auth/reset-password`,
