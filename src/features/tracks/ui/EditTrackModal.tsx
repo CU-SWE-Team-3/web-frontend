@@ -165,7 +165,7 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
               {/* Title */}
               <div style={{ marginBottom: 20 }}>
                 <label style={lbl}>Title <span style={{ color: "#f50" }}>*</span></label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={inp} />
+                <input data-testid="edit-track-title-input" type="text" value={title} onChange={(e) => setTitle(e.target.value)} style={inp} />
               </div>
 
               {/* Permalink */}
@@ -173,7 +173,7 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
                 <label style={lbl}>Permalink <span style={{ color: "#f50" }}>*</span></label>
                 <div style={{ display: "flex" }}>
                   <span style={{ padding: "8px 10px", fontSize: 12, background: "#222", borderBottom: "1px solid #444", color: "#666", whiteSpace: "nowrap" }}>biobeats.com/you/</span>
-                  <input type="text" value={permalink} onChange={(e) => setPermalink(e.target.value)} style={{ ...inp, flex: 1 }} />
+                  <input data-testid="edit-track-permalink-input" type="text" value={permalink} onChange={(e) => setPermalink(e.target.value)} style={{ ...inp, flex: 1 }} />
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
                 <label style={lbl}>Genre</label>
                 <div style={{ ...inp, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", padding: 0 }}
                   onClick={() => setGenreOpen(!genreOpen)}>
-                  <input type="text" value={genreOpen ? genreSearch : genre}
+                  <input data-testid="edit-track-genre-input" type="text" value={genreOpen ? genreSearch : genre}
                     placeholder="Add or search for genre"
                     onChange={(e) => { setGenreSearch(e.target.value); if (!genreOpen) setGenreOpen(true); }}
                     onClick={(e) => { e.stopPropagation(); setGenreOpen(true); }}
@@ -207,13 +207,13 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
               {/* Additional tags */}
               <div style={{ marginBottom: 20 }}>
                 <label style={lbl}>Additional tags</label>
-                <input type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Add tags to describe the genre and mood of your track" style={inp} />
+                <input data-testid="edit-track-tags-input" type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="Add tags to describe the genre and mood of your track" style={inp} />
               </div>
 
               {/* Description */}
               <div style={{ marginBottom: 20 }}>
                 <label style={{ ...lbl, fontWeight: 700 }}>Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                <textarea data-testid="edit-track-description-input" value={description} onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your track" rows={3}
                   style={{ ...inp, resize: "vertical", minHeight: 70, lineHeight: "1.5" }} />
               </div>
@@ -235,14 +235,14 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
                 <label style={{ ...lbl, fontWeight: 700 }}>Privacy:</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                    <input type="radio" name="edit-privacy" checked={visibility === "Public"} onChange={() => setVisibility("Public")} style={{ marginTop: 3, accentColor: "#f50" }} />
+                    <input data-testid="edit-track-privacy-public" type="radio" name="edit-privacy" checked={visibility === "Public"} onChange={() => setVisibility("Public")} style={{ marginTop: 3, accentColor: "#f50" }} />
                     <div>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Public</span>
                       <p style={{ fontSize: 11, color: "#777", marginTop: 2 }}>Anyone will be able to listen to this track.</p>
                     </div>
                   </label>
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-                    <input type="radio" name="edit-privacy" checked={visibility === "Private"} onChange={() => setVisibility("Private")} style={{ marginTop: 3, accentColor: "#f50" }} />
+                    <input data-testid="edit-track-privacy-private" type="radio" name="edit-privacy" checked={visibility === "Private"} onChange={() => setVisibility("Private")} style={{ marginTop: 3, accentColor: "#f50" }} />
                     <div>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Private</span>
                     </div>
@@ -324,8 +324,8 @@ export default function EditTrackModal({ track, open, onClose, onSave, isSaving 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <span style={{ fontSize: 11, color: "#f50" }}>* Required fields</span>
             <div style={{ display: "flex", gap: 12 }}>
-              <button onClick={onClose} style={{ padding: "8px 20px", fontSize: 13, color: "#ccc", background: "transparent", border: "none", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleSave} disabled={isSaving || !title.trim()} style={{
+              <button data-testid="edit-track-cancel-button" onClick={onClose} style={{ padding: "8px 20px", fontSize: 13, color: "#ccc", background: "transparent", border: "none", cursor: "pointer" }}>Cancel</button>
+              <button data-testid="edit-track-save-button" onClick={handleSave} disabled={isSaving || !title.trim()} style={{
                 padding: "8px 24px", fontSize: 13, fontWeight: 600, color: "#fff",
                 background: isSaving || !title.trim() ? "#333" : "#444",
                 border: "1px solid #555", borderRadius: 3,

@@ -15,7 +15,10 @@ import { ROUTES } from '@/shared/constants/routes'
 const ResetPasswordForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get('token') ?? ''
+  // URLSearchParams automatically converts '+' to space (' '). 
+  // Base64 tokens from the backend often contain '+' which get mangled. 
+  // We restore the '+' by replacing spaces.
+  const token = searchParams.get('token')?.replace(/ /g, '+') ?? ''
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')

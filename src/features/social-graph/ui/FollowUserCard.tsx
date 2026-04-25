@@ -69,7 +69,7 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
           {/* Hover Button */}
           <div 
             className={`absolute bottom-[-25px] left-1/2 -translate-x-1/2 transition-all duration-200 w-full flex justify-center 
-              ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-4"}`}
+              ${isHovered ? "opacity-100 visible translate-y-0" : "opacity-100 visible translate-y-0 lg:opacity-0 lg:invisible lg:translate-y-4"}`}
           >
             <AppButton
               data-testid="follow-card-btn"

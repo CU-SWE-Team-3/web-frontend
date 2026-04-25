@@ -11,6 +11,8 @@ import { useUnlikeTrack } from "../model/useUnlikeTrack";
 import { useRepostTrack } from "../model/useRepostTrack";
 import { useUnrepostTrack } from "../model/useUnrepostTrack";
 import { LikeIcon } from "@/shared/ui/icons";
+import WaveformPlayer from "@/features/tracks/ui/WaveformPlayer";
+import { Suspense } from "react";
 
 interface TrackCardProps {
   track: TrackNode;
@@ -53,14 +55,14 @@ export const TrackCard = ({ track }: TrackCardProps) => {
   };
 
   const handlePlay = () => {
-    // Map TrackNode to Track
     const playerTrack = {
       id: track.id,
       title: track.title,
       artist: track.artist,
       artworkUrl: track.artworkUrl || '',
-      hlsUrl: (track as any).hlsUrl || '', // Fallback since TrackNode misses hlsUrl right now
-      duration: 0,
+      streamUrl: track.streamUrl || track.hlsUrl || '',
+      hlsUrl: track.hlsUrl || track.streamUrl || '',
+      duration: track.duration || 0,
     };
     
     // Add to queue if not present, then play
@@ -82,21 +84,17 @@ export const TrackCard = ({ track }: TrackCardProps) => {
     }
   };
 
-  // Generate random heights for the fake waveform, seeded simply by rendering index
-  // We memoize it so it doesn't flicker on re-renders (like when pressing 'Like')
-  const [waveformBars] = useState(() => 
-    Array.from({ length: 150 }).map(() => Math.floor(Math.random() * 80) + 10)
-  );
+
 
   return (
     <div data-testid={`track-card-${track.id}`} className="flex gap-4 p-2 relative group w-full mb-6 max-w-[850px]">
-      {/* Artwork */}
-      <Link href={`/track/${track.id}/likes`} className="w-[160px] h-[160px] flex-shrink-0 bg-[#222] transition-opacity hover:opacity-80">
-        {track.artworkUrl ? (
+      <Link href={`/tracks/${track.id}`} className="w-[160px] h-[160px] flex-shrink-0 bg-[#222] transition-opacity hover:opacity-80">
+        {track.artworkUrl && track.artworkUrl !== 'undefined' && track.artworkUrl !== 'null' ? (
           <img 
             src={track.artworkUrl} 
             alt={track.title} 
             className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-tr from-[#333] to-[#111]" />
@@ -116,23 +114,28 @@ export const TrackCard = ({ track }: TrackCardProps) => {
             </button>
             <div className="flex flex-col">
               <span className="text-[#999] text-[13px]">{track.artist}</span>
-              <span className="text-white text-[16px] font-medium leading-snug">
+              <Link href={`/tracks/${track.id}`} className="text-white text-[16px] font-medium leading-snug hover:underline">
                 {track.title}
-              </span>
+              </Link>
             </div>
           </div>
           <span className="text-[#999] text-[12px]">{track.createdAt}</span>
         </div>
 
-        <div className="h-[60px] w-full mt-4 flex items-end gap-[1px] relative pt-2">
-          {waveformBars.map((h, i) => (
-            <div 
-              key={i} 
-              className="flex-1 bg-[#888] rounded-t-sm opacity-70" 
-              style={{ height: `${h}%` }}
-            />
-          ))}
-          <div className="absolute bottom-0 right-0 bg-[#111]/80 px-1 py-[1px] text-[10px] text-white">
+        <div className="h-[60px] w-full mt-4 relative">
+          {(track.hlsUrl || track.streamUrl) ? (
+            <Suspense fallback={<div className="h-[60px] w-full bg-[#111]" />}>
+              <WaveformPlayer 
+                audioUrl={track.hlsUrl || track.streamUrl} 
+                hidePlayButton 
+              />
+            </Suspense>
+          ) : (
+            <div className="h-[60px] w-full bg-[#111] flex items-center justify-center text-[10px] text-[#555]">
+              No audio available
+            </div>
+          )}
+          <div className="absolute bottom-2 right-0 bg-[#000]/60 px-1 py-[1px] text-[10px] text-white z-10 rounded-sm">
             {track.durationFormatted}
           </div>
         </div>
@@ -174,7 +177,7 @@ export const TrackCard = ({ track }: TrackCardProps) => {
           </div>
 
           <div className="flex items-center gap-4 text-[#999] text-[12px]">
-            <Link href={`/track/${track.id}/likes`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+            <Link href={`/tracks/${track.id}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
               <LikeIcon size={12} fill="currentColor" />
               {formatCount(likeCount)}
             </Link>

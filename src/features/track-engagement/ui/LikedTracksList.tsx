@@ -1,26 +1,26 @@
-import React from "react";
 import { useLikedTracks } from "../model/useLikedTracks";
-import { TrackCard } from "./TrackCard";
+import { usePlayerStore } from "@/features/player/model/playerStore";
+import { SquareTrackCard } from "@/shared/ui";
+import { Heart } from "lucide-react";
 
-export const LikedTracksList = () => {
-  const { data: tracks, isLoading } = useLikedTracks();
+interface LikedTracksListProps {
+  userId?: string;
+}
+
+export const LikedTracksList = ({ userId }: LikedTracksListProps) => {
+  const { data: tracks, isLoading } = useLikedTracks(userId);
+  const play = usePlayerStore((s) => s.play);
+  const queue = usePlayerStore((s) => s.queue);
+  const setQueue = usePlayerStore((s) => s.setQueue);
 
   if (isLoading) {
     return (
-      <div data-testid="liked-tracks-skeleton" className="flex flex-col gap-6 pt-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="w-full max-w-[850px] h-[160px] flex gap-4 animate-pulse">
-            <div className="w-[160px] h-[160px] bg-[#222]" />
-            <div className="flex-1 flex flex-col justify-between py-2">
-              <div className="flex gap-4">
-                <div className="w-[40px] h-[40px] bg-[#222] rounded-full" />
-                <div className="flex flex-col gap-2 flex-1">
-                  <div className="w-1/4 h-4 bg-[#222] rounded" />
-                  <div className="w-1/2 h-5 bg-[#222] rounded" />
-                </div>
-              </div>
-              <div className="w-full h-[60px] bg-[#222] mt-4" />
-            </div>
+      <div data-testid="liked-tracks-skeleton" className="flex flex-wrap gap-8 pt-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="w-[160px] h-48 animate-pulse">
+            <div className="w-[160px] h-[160px] bg-[#222] rounded-sm mb-2" />
+            <div className="w-full h-4 bg-[#222] rounded mb-1" />
+            <div className="w-1/2 h-3 bg-[#222] rounded" />
           </div>
         ))}
       </div>
@@ -35,14 +35,43 @@ export const LikedTracksList = () => {
     );
   }
 
+  const handlePlay = (track: any) => {
+    const playerTrack = {
+      id: track.id,
+      title: track.title,
+      artist: track.artist,
+      artworkUrl: track.artworkUrl || "",
+      streamUrl: track.streamUrl || track.hlsUrl || "",
+      hlsUrl: track.hlsUrl || track.streamUrl || "",
+      duration: track.duration || 0,
+    };
+
+    if (!queue.some((t) => t.id === playerTrack.id)) {
+      setQueue([...queue, playerTrack]);
+    }
+    play(playerTrack);
+  };
+
   return (
     <div data-testid="liked-tracks-list" className="flex flex-col pt-4">
-      <div className="text-[14px] text-[#999] mb-6">
-        Hear the tracks you've liked
+      <div className="text-[14px] text-[#999] mb-6 font-medium">
+        Hear the tracks you've liked:
       </div>
-      {tracks.map((track) => (
-        <TrackCard key={track.id} track={track} />
-      ))}
+      <div className="flex flex-wrap gap-x-8 gap-y-10">
+        {tracks.map((track) => (
+          <SquareTrackCard
+            key={track.id}
+            id={track.id}
+            title={track.title}
+            artist={track.artist}
+            artworkUrl={track.artworkUrl}
+            onPlay={() => handlePlay(track)}
+            titlePrefixNode={
+              <Heart size={14} className="fill-[#999] text-[#999]" />
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 };

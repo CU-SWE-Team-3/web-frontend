@@ -21,4 +21,5 @@ export const ROUTES = {
   LIBRARY_LIKES: '/library?tab=likes',
   SEARCH: '/search',
   TRENDING: '/trending',
+  MESSAGES: '/messages',
 } as const

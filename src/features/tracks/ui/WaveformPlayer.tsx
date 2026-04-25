@@ -158,7 +158,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return () => { ws.destroy(); };
   }, [audioUrl, waveform]);
 
-  // Sync wave playback and scrubbing with the global PlayerBar
+  // 1. Sync Play/Pause and scrubbing (Track-specific)
   useEffect(() => {
     if (!trackMeta) return;
 
@@ -168,7 +168,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
       const isThisTrack = state.currentTrack?.id === trackMeta.id;
 
-      // 1. Sync Play/Pause
+      // Sync Play/Pause
       if (isThisTrack) {
         if (state.isPlaying && !ws.isPlaying()) {
           ws.play();
@@ -176,7 +176,6 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
           ws.pause();
         }
       } else {
-        // If another track starts playing globally, stop this waveform
         if (ws.isPlaying()) {
           ws.stop();
           setIsPlaying(false);
@@ -184,10 +183,9 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         }
       }
 
-      // 2. Sync Global Player scrubbing -> Waveform visual playhead
+      // Sync Global Player scrubbing -> Waveform visual playhead
       if (isThisTrack && typeof state.currentTime === 'number') {
         const wsTime = ws.getCurrentTime();
-        // If the difference is > 0.5s, the user scrubbed the global player bar. Update waveform!
         if (Math.abs(wsTime - state.currentTime) > 0.5) {
           const dur = ws.getDuration();
           if (dur > 0) {
@@ -195,11 +193,17 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
           }
         }
       }
-
-      // 3. Sync Volume
-      ws.setVolume(state.isMuted ? 0 : state.volume);
     });
   }, [trackMeta]);
+
+  // 2. Sync Global Volume (Universal)
+  useEffect(() => {
+    return usePlayerStore.subscribe((state) => {
+      const ws = wavesurferRef.current;
+      if (!ws) return;
+      ws.setVolume(state.isMuted ? 0 : state.volume);
+    });
+  }, []);
 
   const togglePlay = () => {
     if (wavesurferRef.current) {
@@ -419,4 +423,5 @@ function bufferToWaveBlob(abuffer: AudioBuffer) {
   return new Blob([buffer], { type: "audio/wav" });
 }
 
+export { WaveformPlayer };
 export default WaveformPlayer;

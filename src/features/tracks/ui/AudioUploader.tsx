@@ -17,6 +17,7 @@ const AudioUploader: React.FC<AudioUploaderProps> = ({
         Audio File
       </label>
       <input
+        data-testid="audio-uploader-input"
         type="file"
         accept=".mp3,.wav,audio/mpeg,audio/wav"
         onChange={(event) => {

@@ -12,11 +12,11 @@ export interface RecentlyPlayedProps {
 }
 
 export const RecentlyPlayed: FC<RecentlyPlayedProps> = ({ tracks, onPlay, onClear }) => (
-  <div id="sc-recently-played" className={s.root}>
+  <div id="sc-recently-played" data-testid="sc-recently-played" className={s.root}>
     <div className={s.header}>
       <h2 className={s.title}>Recently Played</h2>
       {tracks.length > 0 && (
-        <button id="sc-btn-clear-recent" onClick={onClear} className={s.clearBtn}>
+        <button id="sc-btn-clear-recent" data-testid="sc-btn-clear-recent" onClick={onClear} className={s.clearBtn}>
           <X size={12} />
           Clear history
         </button>
@@ -31,6 +31,7 @@ export const RecentlyPlayed: FC<RecentlyPlayedProps> = ({ tracks, onPlay, onClea
           <button
             key={track.id}
             id={`sc-recent-item-${index}`}
+            data-testid={`sc-recent-item-${index}`}
             onClick={() => onPlay(track)}
             className={s.item}
           >

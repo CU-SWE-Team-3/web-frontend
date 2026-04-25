@@ -53,7 +53,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
   const hasMore   = displayCount < filtered.length;
 
   return (
-    <div id="sc-listening-history" className={s.root}>
+    <div id="sc-listening-history" data-testid="sc-listening-history" className={s.root}>
       <div className={s.header}>
         <h2 className={s.title}>Listening History</h2>
         <div className={s.controls}>
@@ -62,6 +62,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
             <label htmlFor="sc-history-sort" className="sr-only">Sort by</label>
             <select
               id="sc-history-sort"
+              data-testid="sc-history-sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
               className={s.select}
@@ -79,6 +80,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
             <label htmlFor="sc-history-filter" className="sr-only">Filter by</label>
             <select
               id="sc-history-filter"
+              data-testid="sc-history-filter"
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value as FilterOption)}
               className={s.select}
@@ -101,6 +103,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
             <div
               key={entry.id}
               id={`sc-history-item-${index}`}
+              data-testid={`sc-history-item-${index}`}
               className={s.row}
               onClick={() => onPlay?.(entry)}
               role="button"
@@ -118,6 +121,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
               <span className={s.duration}>{formatTime(entry.durationPlayed)}</span>
               <button
                 id={`sc-history-delete-${index}`}
+                data-testid={`sc-history-delete-${index}`}
                 className={s.deleteBtn}
                 onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }}
                 aria-label={`Delete ${entry.track.title} from history`}
@@ -132,6 +136,7 @@ export const ListeningHistory: FC<ListeningHistoryProps> = ({
       {hasMore && (
         <button
           id="sc-history-load-more"
+          data-testid="sc-history-load-more"
           className={s.loadMore}
           onClick={() => setDisplay((prev) => prev + pageSize)}
         >

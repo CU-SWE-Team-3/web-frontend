@@ -37,6 +37,6 @@ describe('useLikeTrack', () => {
     });
 
     expect(likeTrack).toHaveBeenCalledWith('track-123');
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: LIKED_TRACKS_QUERY_KEY });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: LIKED_TRACKS_QUERY_KEY, refetchType: 'all' });
   });
 });

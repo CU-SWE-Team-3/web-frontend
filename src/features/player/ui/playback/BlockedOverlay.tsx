@@ -22,7 +22,7 @@ export const BlockedOverlay: FC<BlockedOverlayProps> = ({
   const ctaText = isRegionBlock ? 'Learn More' : 'Go Pro';
 
   return (
-    <div id="sc-blocked-overlay" className={s.overlay}>
+    <div id="sc-blocked-overlay" data-testid="sc-blocked-overlay" className={s.overlay}>
       {artworkUrl && (
         <div className={s.backdrop} style={{ backgroundImage: `url(${artworkUrl})` }} />
       )}
@@ -32,7 +32,7 @@ export const BlockedOverlay: FC<BlockedOverlayProps> = ({
           <Lock size={24} color="var(--sc-gray-500)" />
         </div>
         <p className={s.label}>{message}</p>
-        <button id="sc-blocked-cta" onClick={onCtaClick} className={s.cta}>
+        <button id="sc-blocked-cta" data-testid="sc-blocked-cta" onClick={onCtaClick} className={s.cta}>
           {ctaText}
         </button>
       </div>
