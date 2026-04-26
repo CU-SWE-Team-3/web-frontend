@@ -48,3 +48,64 @@ export interface AuthResponse {
   accessToken: string
   refreshToken: string
 }
+
+// ─── Notifications ──────────────────────────────────────────────────────────
+export type NotificationType =
+  | 'LIKE'
+  | 'REPOST'
+  | 'COMMENT'
+  | 'FOLLOW'
+  | 'MESSAGE'
+  | 'NEW_TRACK'
+  | 'NEW_PLAYLIST'
+  | 'MENTION'
+  | 'SYSTEM'
+
+export interface NotificationActor {
+  _id: string
+  displayName: string
+  avatarUrl: string | null
+  permalink?: string
+  isPremium?: boolean
+}
+
+export interface NotificationTarget {
+  _id: string
+  title: string
+  permalink: string
+  artworkUrl?: string | null
+}
+
+export interface Notification {
+  _id: string
+  recipient: string
+  actors: NotificationActor[]
+  actorCount: number
+  type: NotificationType
+  target: NotificationTarget | null
+  targetModel: 'Track' | 'Playlist' | 'User' | 'Comment' | 'Message'
+  contentSnippet: string | null
+  isRead: boolean
+  actionLink: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NotificationPreferences {
+  pushEnabled: boolean
+  allowLikes: boolean
+  allowReposts: boolean
+  allowComments: boolean
+  allowFollows: boolean
+  allowMessages: boolean
+  allowNewTracks: boolean
+}
+
+export interface NotificationFeedResponse {
+  notifications: Notification[]
+  pagination: {
+    total: number
+    page: number
+    totalPages: number
+  }
+}

@@ -1,10 +1,12 @@
 'use client';
 
-import { type FC, useState, useRef, useEffect } from 'react';
+import { type FC, useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
+import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
 import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
@@ -28,7 +30,11 @@ export const NavBar: FC<NavBarProps> = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on click outside
+  // Notification state
+  const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen } = useNotificationStore();
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close user dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -48,6 +54,10 @@ export const NavBar: FC<NavBarProps> = ({
     useAuthStore.getState().setUser(null as any);
     router.push(ROUTES.LOGIN);
   };
+
+  const handleBellClick = useCallback(() => {
+    setNotifDropdownOpen(!isDropdownOpen);
+  }, [isDropdownOpen, setNotifDropdownOpen]);
 
   return (
   <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
@@ -134,7 +144,45 @@ export const NavBar: FC<NavBarProps> = ({
             )}
           </div>
 
-          <button className={s.iconBtn} data-testid="navbar-notifications-button"><NotificationIcon size={18} /></button>
+          {/* ── Notification Bell with Dropdown ── */}
+          <div ref={notifRef} className={s.dropdownWrapper}>
+            <button
+              className={s.iconBtn}
+              onClick={handleBellClick}
+              data-testid="navbar-notifications-button"
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              style={{ position: 'relative' }}
+            >
+              <NotificationIcon size={18} />
+              {unreadCount > 0 && (
+                <span
+                  data-testid="notification-unread-badge"
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -6,
+                    minWidth: 16,
+                    height: 16,
+                    padding: '0 4px',
+                    borderRadius: 'var(--sc-radius-full, 9999px)',
+                    background: 'var(--sc-danger, #cf0000)',
+                    color: 'var(--sc-white, #fff)',
+                    fontFamily: 'var(--sc-font-family)',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                  }}
+                >
+                  {unreadCount >= 10 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <NotificationDropdown />
+          </div>
+
           <button className={s.iconBtn} data-testid="navbar-messages-button"><MessageIcon size={18} /></button>
           <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
