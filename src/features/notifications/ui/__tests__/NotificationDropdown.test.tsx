@@ -49,6 +49,7 @@ describe('NotificationDropdown', () => {
       isDropdownOpen: true, // Open by default for tests
       currentPage: 1,
       totalPages: 1,
+      fetchNotifications: vi.fn(),
     })
   })
 
@@ -100,11 +101,13 @@ describe('NotificationDropdown', () => {
     expect(link).toHaveAttribute('href', '/settings?tab=notifications')
   })
 
-  it('should show "View all notifications" footer when notifications exist', () => {
-    useNotificationStore.setState({
-      notifications: [mockNotification()],
-      isDropdownOpen: true,
-    })
+  it('should render "View all notifications" link pointing to /notifications', () => {
+    render(<NotificationDropdown />)
+    const link = screen.getByTestId('notification-dropdown-view-all')
+    expect(link).toHaveAttribute('href', '/notifications')
+  })
+
+  it('should show "View all notifications" footer always', () => {
     render(<NotificationDropdown />)
     expect(screen.getByTestId('notification-dropdown-view-all')).toBeInTheDocument()
   })
@@ -142,5 +145,15 @@ describe('NotificationDropdown', () => {
     })
     render(<NotificationDropdown />)
     expect(screen.getByText('Fan One and 2 others liked your track')).toBeInTheDocument()
+  })
+
+  it('should show Follow back button for FOLLOW type notifications', () => {
+    useNotificationStore.setState({
+      notifications: [mockNotification({ _id: 'n1', type: 'FOLLOW', actors: [{ _id: 'follower1', displayName: 'Jane', avatarUrl: null }] })],
+      isDropdownOpen: true,
+    })
+    render(<NotificationDropdown />)
+    expect(screen.getByTestId('notification-follow-btn-follower1')).toBeInTheDocument()
+    expect(screen.getByTestId('notification-follow-btn-follower1')).toHaveTextContent('Follow back')
   })
 })
