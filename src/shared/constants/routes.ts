@@ -22,4 +22,5 @@ export const ROUTES = {
   SEARCH: '/search',
   TRENDING: '/trending',
   MESSAGES: '/messages',
+  NOTIFICATIONS: '/settings?tab=notifications',
 } as const
