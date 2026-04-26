@@ -20,4 +20,5 @@ export const ROUTES = {
   HISTORY: '/library?tab=history',
   LIBRARY_LIKES: '/library?tab=likes',
   MESSAGES: '/messages',
+  NOTIFICATIONS: '/settings?tab=notifications',
 } as const

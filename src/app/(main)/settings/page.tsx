@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { BlockedUsersList } from '@/features/social-graph';
+import { NotificationSettingsTab } from '@/features/notifications';
 import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
 
 /* ─── Tabs ─── */
@@ -111,7 +112,7 @@ function SettingsContent() {
       case 'privacy': return <PrivacyTab />;
       case 'account': return <PlaceholderTab name="Account" />;
       case 'content': return <PlaceholderTab name="Content" />;
-      case 'notifications': return <PlaceholderTab name="Notifications" />;
+      case 'notifications': return <NotificationSettingsTab />;
       case 'advertising': return <PlaceholderTab name="Advertising" />;
       case '2fa': return <PlaceholderTab name="2FA" />;
       default: return <PrivacyTab />;
