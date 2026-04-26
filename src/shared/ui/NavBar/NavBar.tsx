@@ -7,7 +7,8 @@ import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
-import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
+import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
+import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
 
@@ -183,13 +184,14 @@ export const NavBar: FC<NavBarProps> = ({
             <NotificationDropdown />
           </div>
 
-          <button className={s.iconBtn} data-testid="navbar-messages-button"><MessageIcon size={18} /></button>
+          <MessageDropdown buttonClassName={s.iconBtn} />
           <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
       ) : (
         <>
           <Link href={ROUTES.LOGIN} className={s.ghostBtn} data-testid="navbar-signin-button">Sign in</Link>
           <Link href={ROUTES.REGISTER} className={s.primaryBtn} data-testid="navbar-create-account-button">Create account</Link>
+          <MessageDropdown buttonClassName={s.iconBtn} />
           <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
       )}
