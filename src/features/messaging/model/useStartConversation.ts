@@ -7,14 +7,15 @@ interface StartConversationVars {
   userId: string;
   content: string;
   sharedTrack?: SharedTrackPreview | null;
+  attachment?: { type: 'track' | 'playlist'; id: string };
 }
 
 export const useStartConversation = () => {
   const queryClient = useQueryClient();
 
   return useMutation<Conversation, Error, StartConversationVars>({
-    mutationFn: ({ userId, content, sharedTrack }) =>
-      startConversation(userId, content, sharedTrack),
+    mutationFn: ({ userId, content, sharedTrack, attachment }) =>
+      startConversation(userId, content, sharedTrack, attachment),
     onSuccess: (newConv) => {
       // Optimistically update the local cache so the conversation can be opened immediately (helpful for offline mocks)
       queryClient.setQueryData<Conversation[]>([...CONVERSATIONS_QUERY_KEY], (old = []) => {

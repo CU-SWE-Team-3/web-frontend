@@ -68,11 +68,13 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation._id]);
 
-  const handleSend = (content: string) => {
+  const handleSend = (content: string, attachment?: { type: 'track' | 'playlist'; id: string }) => {
     emitStopTyping(conversation.participant._id);
     sendMessageMutation.mutate({
       conversationId: conversation._id,
+      receiverId: conversation.participant._id,
       content,
+      sharedTrack: attachment?.type === 'track' ? { trackId: attachment.id } as any : undefined,
     });
   };
 

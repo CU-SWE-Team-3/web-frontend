@@ -80,12 +80,12 @@ export const getMessages = async (
 
 /** POST /messages */
 export const sendMessage = async (
-  conversationId: string,
+  receiverId: string,
   content: string,
   sharedTrack?: any
 ): Promise<Message> => {
   const payload: SendMessagePayload = {
-    receiverId: conversationId,
+    receiverId,
     content,
   };
 
@@ -127,13 +127,14 @@ export const sendMessageToUser = async (
 export const startConversation = async (
   userId: string,
   content: string,
-  sharedTrack?: any
+  sharedTrack?: any,
+  attachment?: { type: 'track' | 'playlist'; id: string }
 ): Promise<Conversation> => {
   const msg = await sendMessageToUser(
     userId,
     content,
-    sharedTrack ? 'track' : undefined,
-    sharedTrack?.trackId
+    attachment?.type || (sharedTrack ? 'track' : undefined),
+    attachment?.id || sharedTrack?.trackId
   );
   
   const conversations = await getConversations();
@@ -218,15 +219,15 @@ export const unblockUser = async (userId: string): Promise<void> => {
 
 // ─── User Search ─────────────────────────────────────────────────────────────
 
-/** GET /users/search?q=... */
+/** GET /search?q=...&type=users */
 export const searchUsers = async (query: string): Promise<MessageUser[]> => {
   if (!query.trim()) return [];
 
-  const { data: res } = await apiClient.get<{ success: boolean; data: { users: MessageUser[] } }>(
-    '/users/search',
-    { params: { q: query } }
+  const { data: res } = await apiClient.get<{ success?: boolean; data: { users?: MessageUser[] } }>(
+    '/search',
+    { params: { q: query, type: 'users' } }
   );
-  return res.data.users || [];
+  return res.data?.users || [];
 };
 
 /** GET /profile/{permalink} - used as fallback to resolve recipient by username */
