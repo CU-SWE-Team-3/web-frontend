@@ -5,23 +5,32 @@ import { useNotificationPreferencesStore } from '../model/useNotificationPrefere
 import s from './NotificationSettingsTab.module.scss'
 
 // ─── Activity rows config ──────────────────────────────────────────────────────
-const ACTIVITY_ROWS = [
-  { key: 'newFollower', label: 'New follower', channels: ['email', 'devices'] as const },
-  { key: 'repostOfYourPost', label: 'Repost of your post', channels: ['email', 'devices'] as const },
-  { key: 'newPostByFollowedUser', label: 'New post by followed user', channels: ['email', 'devices'] as const },
-  { key: 'likesAndPlaysOnYourPost', label: 'Likes and plays on your post', channels: ['email', 'devices'] as const },
-  { key: 'commentOnYourPost', label: 'Comment on your post', channels: ['email', 'devices'] as const },
-  { key: 'recommendedContent', label: 'Recommended Content', channels: ['email', 'devices'] as const },
-  { key: 'newMessage', label: 'New message', channels: ['email', 'devicesSelect'] as const, hasInfo: true },
-] as const
+const ACTIVITY_ROWS: ReadonlyArray<{
+  key: string
+  label: string
+  channels: ReadonlyArray<'email' | 'devices' | 'devicesSelect'>
+  hasInfo?: boolean
+}> = [
+  { key: 'newFollower', label: 'New follower', channels: ['email', 'devices'] },
+  { key: 'repostOfYourPost', label: 'Repost of your post', channels: ['email', 'devices'] },
+  { key: 'newPostByFollowedUser', label: 'New post by followed user', channels: ['email', 'devices'] },
+  { key: 'likesAndPlaysOnYourPost', label: 'Likes and plays on your post', channels: ['email', 'devices'] },
+  { key: 'commentOnYourPost', label: 'Comment on your post', channels: ['email', 'devices'] },
+  { key: 'recommendedContent', label: 'Recommended Content', channels: ['email', 'devices'] },
+  { key: 'newMessage', label: 'New message', channels: ['email', 'devicesSelect'], hasInfo: true },
+]
 
 // ─── Updates rows config ───────────────────────────────────────────────────────
-const UPDATE_ROWS = [
-  { key: 'featureUpdatesAndEducation', label: 'BioBeats Feature Updates & Education', channels: ['email', 'devices'] as const },
-  { key: 'surveysAndFeedback', label: 'Surveys and feedback', channels: ['email', 'devices'] as const },
-  { key: 'promotionalAndPartnershipContent', label: 'Promotional & Partnership Content', channels: ['email', 'devices'] as const },
-  { key: 'soundCloudNewsletter', label: 'BioBeats newsletter', channels: ['email'] as const },
-] as const
+const UPDATE_ROWS: ReadonlyArray<{
+  key: string
+  label: string
+  channels: ReadonlyArray<'email' | 'devices'>
+}> = [
+  { key: 'featureUpdatesAndEducation', label: 'BioBeats Feature Updates & Education', channels: ['email', 'devices'] },
+  { key: 'surveysAndFeedback', label: 'Surveys and feedback', channels: ['email', 'devices'] },
+  { key: 'promotionalAndPartnershipContent', label: 'Promotional & Partnership Content', channels: ['email', 'devices'] },
+  { key: 'soundCloudNewsletter', label: 'BioBeats newsletter', channels: ['email'] },
+]
 
 export const NotificationSettingsTab: FC = () => {
   const {
@@ -165,7 +174,7 @@ export const NotificationSettingsTab: FC = () => {
                   <input
                     type="checkbox"
                     checked={updateValue?.devices ?? false}
-                    onChange={(e) => toggleUpdate(row.key, 'devices', e.target.checked)}
+                    onChange={(e) => toggleActivity(row.key, 'devices', e.target.checked)}
                     data-testid={`notification-pref-${row.key}-devices`}
                   />
                 </div>

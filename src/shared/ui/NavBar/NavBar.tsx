@@ -5,11 +5,8 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
-<<<<<<< HEAD
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
-=======
->>>>>>> origin/main
 import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
 import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
 import s from './NavBar.module.scss';
@@ -148,8 +145,7 @@ export const NavBar: FC<NavBarProps> = ({
             )}
           </div>
 
-<<<<<<< HEAD
-          {/* ── Notification Bell with Dropdown ── */}
+          {/* ── Notification Bell with Dropdown (M10) ── */}
           <div ref={notifRef} className={s.dropdownWrapper}>
             <button
               className={s.iconBtn}
@@ -188,9 +184,7 @@ export const NavBar: FC<NavBarProps> = ({
             <NotificationDropdown />
           </div>
 
-=======
-          <button className={s.iconBtn} data-testid="navbar-notifications-button"><NotificationIcon size={18} /></button>
->>>>>>> origin/main
+          {/* ── Message Dropdown (M9) ── */}
           <MessageDropdown buttonClassName={s.iconBtn} />
           <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
         </>
