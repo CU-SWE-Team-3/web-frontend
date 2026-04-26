@@ -13,6 +13,9 @@ import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack
 
 export const GlobalAudioEngine = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   
   const {
     currentTrack,
@@ -43,6 +46,31 @@ export const GlobalAudioEngine = () => {
   } = usePlayerStore();
 
   const [hasStarted, setHasStarted] = useState(false);
+
+  // Initialize Web Audio API nodes
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (audioContextRef.current) return; // Only init once
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioContextClass();
+      const gain = ctx.createGain();
+      const source = ctx.createMediaElementSource(audioRef.current);
+
+      source.connect(gain);
+      gain.connect(ctx.destination);
+
+      audioContextRef.current = ctx;
+      gainNodeRef.current = gain;
+      sourceNodeRef.current = source;
+
+      // Initial gain sync
+      gain.gain.value = isMuted ? 0 : volume;
+    } catch (err) {
+      console.warn('Web Audio API not supported or failed to init:', err);
+    }
+  }, []);
 
   const { data: likedTracks } = useLikedTracks();
   const likeMutation = useLikeTrack();
@@ -78,11 +106,17 @@ export const GlobalAudioEngine = () => {
     return () => window.removeEventListener('playerbar-restart', handleRestart);
   }, [playbackSource, setCurrentTime]);
 
-  // 1. Sync Audio Element with Zustand State
+  // 1. Sync Audio Element & Gain Node with Zustand State
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.volume = isMuted ? 0 : volume;
-  }, [volume, isMuted]);
+    // 1a. Standard fallback (works on desktop)
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+    // 1b. Web Audio Gain (works on mobile/iOS)
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted, currentTrack]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -99,6 +133,11 @@ export const GlobalAudioEngine = () => {
         alert("Not available in your region or tier");
         pause();
         return;
+      }
+
+      // Resume context on play to satisfy browser policy
+      if (audioContextRef.current?.state === 'suspended') {
+        audioContextRef.current.resume();
       }
 
       audioRef.current.play().catch(e => {
@@ -227,6 +266,7 @@ export const GlobalAudioEngine = () => {
         onLoadedMetadata={handleLoadedMetadata}
         onProgress={handleProgress}
         onEnded={handleEnded}
+        crossOrigin="anonymous"
         className="hidden"
       />
       

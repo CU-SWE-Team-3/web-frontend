@@ -76,6 +76,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
 }) => {
   const { isAuthenticated } = useAuthStore();
   const play = usePlayerStore((s) => s.play);
+  const addToQueue = usePlayerStore((s) => s.addToQueue);
   const [liked, setLiked] = useState(initialLiked);
   const [likeCountLocal, setLikeCountLocal] = useState(initialLiked ? Math.max(1, initialLikeCount) : initialLikeCount);
   const [reposted, setReposted] = useState(initialReposted);
@@ -351,6 +352,13 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                   <button 
                     onClick={() => { 
                       setIsMoreMenuOpen(false); 
+                      addToQueue({
+                        id: track.id,
+                        title: track.title,
+                        artist: userFullName || username,
+                        artworkUrl: track.artworkUrl || '/placeholder.png',
+                        hlsUrl: track.streamUrl || track.hlsUrl,
+                      });
                       setNextUpToastVisible(true); 
                       setTimeout(() => setNextUpToastVisible(false), 3000); 
                     }}

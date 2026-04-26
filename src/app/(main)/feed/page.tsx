@@ -391,6 +391,7 @@ function SidebarTrackRow({
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(initLiked ?? false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const addToQueue = usePlayerStore(state => state.addToQueue);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -480,7 +481,19 @@ function SidebarTrackRow({
                 <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>} label="Share" />
                 <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>} label="Copy Link" />
                 <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4 4-4 4M19 14H5M5 6h14"/></svg>} label="Add to Next up" />
+                <DropdownItem 
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4 4-4 4M19 14H5M5 6h14"/></svg>} 
+                  label="Add to Next up" 
+                  onClick={() => {
+                    addToQueue({
+                      id: title + artist, // Fallback if no id, though title+artist is better than nothing
+                      title,
+                      artist,
+                      artworkUrl: artwork || '',
+                    });
+                    setMenuOpen(false);
+                  }}
+                />
                 <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>} label="Add to Playlist" />
                 <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} label="Station" />
               </div>
@@ -492,7 +505,7 @@ function SidebarTrackRow({
   );
 }
 
-function DropdownItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function DropdownItem({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick?: () => void }) {
   const [bg, setBg] = useState('transparent');
   return (
     <button
@@ -503,7 +516,10 @@ function DropdownItem({ icon, label }: { icon: React.ReactNode; label: string })
       }}
       onMouseEnter={() => setBg('rgba(255,255,255,0.06)')}
       onMouseLeave={() => setBg('transparent')}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
     >
       <span style={{ color: '#aaa', display: 'flex' }}>{icon}</span>
       {label}

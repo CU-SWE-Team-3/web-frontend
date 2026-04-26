@@ -1,10 +1,11 @@
 'use client';
 
-import { type FC } from 'react';
+import { type FC, useState } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward,
   Heart, ListPlus, Maximize2,
-  Shuffle, Repeat, Repeat1, ListMusic
+  Shuffle, Repeat, Repeat1, ListMusic,
+  MoreHorizontal
 } from 'lucide-react';
 import { SeekBar } from '@/features/player/ui/player/SeekBar';
 import { VolumeControl } from '@/features/player/ui/player/VolumeControl';
@@ -67,6 +68,8 @@ export const PlayerBar: FC<PlayerBarProps> = ({
   onCycleRepeat,
   onToggleQueue,
 }) => {
+  const [showMobileOptions, setShowMobileOptions] = useState(false);
+
   if (!track) return null;
 
   return (
@@ -98,8 +101,12 @@ export const PlayerBar: FC<PlayerBarProps> = ({
         </button>
       </div>
 
-      {/* ── MOBILE: Play/Pause Button ── */}
+      {/* ── MOBILE: Play/Pause/Queue/Options Buttons ── */}
       <div className={s.mobilePlayContainer}>
+        <button onClick={onPrev} className={s.mobileIconBtn} aria-label="Previous">
+          <SkipBack size={18} fill="white" />
+        </button>
+
         <button
           onClick={onPlayPause}
           className={s.playPauseBtn}
@@ -110,6 +117,61 @@ export const PlayerBar: FC<PlayerBarProps> = ({
             : <Play  size={16} fill="white" style={{ marginLeft: 2 }} />
           }
         </button>
+
+        <button onClick={onNext} className={s.mobileIconBtn} aria-label="Next">
+          <SkipForward size={18} fill="white" />
+        </button>
+
+        <button
+          onClick={onToggleQueue}
+          className={`${s.mobileIconBtn} ${isQueueOpen ? s.active : ''}`}
+          aria-label="Toggle queue"
+        >
+          <ListMusic size={18} color={isQueueOpen ? '#ff5500' : 'white'} />
+        </button>
+
+        <div className={s.mobileOptionsWrapper}>
+          <button
+            onClick={() => setShowMobileOptions(!showMobileOptions)}
+            className={`${s.mobileIconBtn} ${showMobileOptions ? s.active : ''}`}
+            aria-label="More controls"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+
+          {showMobileOptions && (
+            <div className={s.mobileOptionsPopup}>
+              <div className={s.popupItem}>
+                <Shuffle
+                  size={18}
+                  onClick={onToggleShuffle}
+                  color={isShuffle ? '#ff5500' : '#ccc'}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span onClick={onToggleShuffle}>Shuffle</span>
+              </div>
+              <div className={s.popupItem}>
+                <div onClick={onCycleRepeat} style={{ cursor: 'pointer' }}>
+                  {repeatMode === 'one' ? (
+                    <Repeat1 size={18} color="#ff5500" />
+                  ) : (
+                    <Repeat size={18} color={repeatMode === 'all' ? '#ff5500' : '#ccc'} />
+                  )}
+                </div>
+                <span onClick={onCycleRepeat}>Repeat</span>
+              </div>
+              <div className={s.popupDivider} />
+              <div className={s.popupVolume}>
+                <VolumeControl
+                  volume={volume}
+                  isMuted={isMuted}
+                  onVolumeChange={onVolumeChange ?? (() => {})}
+                  onToggleMute={onToggleMute ?? (() => {})}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── CENTER: transport controls + seek bar ── */}

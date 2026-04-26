@@ -11,6 +11,7 @@ import { useRepostTrack } from "@/features/track-engagement/model/useRepostTrack
 import { useUnrepostTrack } from "@/features/track-engagement/model/useUnrepostTrack";
 import { TrackShareModal } from "@/shared/ui/TrackShareModal/TrackShareModal";
 import { RepostToast } from "@/shared/ui/RepostToast/RepostToast";
+import { usePlayerStore } from "@/features/player/model/playerStore";
 
 export default function StationPage() {
   const { trackId } = useParams<{ trackId: string }>();
@@ -18,6 +19,7 @@ export default function StationPage() {
   const track = trackQuery.data ?? null;
   const tracksQuery = useTracks();
   const suggestedQuery = useSuggestedUsers();
+  const addToQueue = usePlayerStore(state => state.addToQueue);
 
   const allTracks = tracksQuery.data || [];
   const suggestedArtists = suggestedQuery.data || [];
@@ -119,10 +121,21 @@ export default function StationPage() {
                <button data-testid="station-share-btn" onClick={() => setShareOpen(true)} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> Share
                </button>
-               <button data-testid="station-nextup-btn" onClick={() => showToast('Added to Next up')} style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-nextup-btn" onClick={() => {
+                 if (track) {
+                   addToQueue({
+                     id: track.id,
+                     title: track.title,
+                     artist: track.artist || 'Station Artist',
+                     artworkUrl: track.artworkUrl || '',
+                     hlsUrl: track.streamUrl || track.hlsUrl || ''
+                   });
+                   showToast('Added to Next up');
+                 }
+               }} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 004 4h12"/><line x1="12" y1="19" x2="12" y2="19"/></svg> Add to Next up
                </button>
-               <button data-testid="station-playlist-btn" onClick={() => showToast('Add to playlist opened')} style={btnBase} className="hover:border-[#555]">
+               <button data-testid="station-playlist-btn" onClick={() => showToast('Playlist feature coming soon')} style={btnBase} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><path d="M12 15h6v6h-6z" fill="currentColor" stroke="none"/></svg> Add to playlist
                </button>
             </div>
@@ -211,6 +224,7 @@ function StationTrackRow({ t, idx, isActive }: { t: any, idx: number, isActive: 
   const [copyToastVisible, setCopyToastVisible] = useState(false);
   const [nextUpToastVisible, setNextUpToastVisible] = useState(false);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const addToQueue = usePlayerStore(state => state.addToQueue);
 
   const likeMutation = useLikeTrack();
   const unlikeMutation = useUnlikeTrack();
@@ -289,7 +303,18 @@ function StationTrackRow({ t, idx, isActive }: { t: any, idx: number, isActive: 
                   <>
                     <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setMoreOpen(false); }} />
                     <div className="absolute top-8 right-0 w-[160px] bg-[#222] border border-[#333] shadow-lg rounded-[4px] z-50 flex flex-col py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => { setNextUpToastVisible(true); setTimeout(() => setNextUpToastVisible(false), 3000); setMoreOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">
+                      <button onClick={() => { 
+                        addToQueue({
+                          id: t.id,
+                          title: t.title,
+                          artist: t.artist || 'Unknown Artist',
+                          artworkUrl: t.artworkUrl || '',
+                          hlsUrl: t.streamUrl || t.hlsUrl || ''
+                        });
+                        setNextUpToastVisible(true); 
+                        setTimeout(() => setNextUpToastVisible(false), 3000); 
+                        setMoreOpen(false); 
+                      }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 004 4h12"/><line x1="12" y1="19" x2="12" y2="19"/></svg> Add to Next up
                       </button>
                       <button onClick={() => { setIsPlaylistModalOpen(true); setMoreOpen(false); }} className="flex items-center gap-3 px-4 py-2 text-[12px] text-[#ccc] hover:bg-[#333] hover:text-white transition-colors w-full text-left">

@@ -11,6 +11,7 @@
   z-index: 9999;
   padding: 0 var(--sc-space-4);
   font-family: var(--sc-font-family);
+  user-select: none;
 
   @media (min-width: 768px) {
     height: 56px;
@@ -215,10 +216,100 @@
 .mobilePlayContainer {
   display: flex;
   align-items: center;
-  margin-left: var(--sc-space-3);
+  gap: var(--sc-space-3);
+  margin-left: auto;
 
   @media (min-width: 640px) {
     display: none;
+  }
+}
+
+.mobileIconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sc-radius-md);
+  color: var(--sc-white);
+  transition: all 0.2s ease;
+
+  &.active {
+    color: var(--sc-primary);
+  }
+}
+
+.mobileOptionsWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mobileOptionsPopup {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: 180px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: var(--sc-radius-lg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  animation: popupSlideUp 0.2s ease-out;
+
+  /* Small triangle arrow */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 12px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1a1a1a transparent transparent transparent;
+  }
+}
+
+@keyframes popupSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.popupItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--sc-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  span {
+    flex: 1;
+  }
+
+  &:hover {
+    color: var(--sc-primary);
+  }
+}
+
+.popupDivider {
+  height: 1px;
+  background: #333;
+  margin: 4px 0;
+}
+
+.popupVolume {
+  padding-top: 4px;
+
+  /* Customize VolumeControl for mobile popup if needed */
+  :global(#sc-volume-slider) {
+    width: 100%;
   }
 }
 
@@ -259,3 +350,4 @@
   &:hover { color: var(--sc-white); }
   &:focus-visible { outline: none; box-shadow: var(--sc-shadow-focus); }
 }
+

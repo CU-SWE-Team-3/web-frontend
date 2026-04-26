@@ -1,0 +1,290 @@
+.helpCenterWrapper {
+  font-family: var(--sc-font-sans, "Inter", "Roboto", "Arial", sans-serif);
+  background: #ffffff !important;
+  color: #333333 !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.helpCenterWrapper h1,
+.helpCenterWrapper h2,
+.helpCenterWrapper h3,
+.helpCenterWrapper h4,
+.helpCenterWrapper p,
+.helpCenterWrapper li {
+  color: #333333 !important;
+}
+
+.topBar {
+  background: #ffffff;
+  color: #333;
+  font-size: 14px;
+  padding: 8px 0;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+
+.topBar a {
+  color: #ff5500;
+  text-decoration: none;
+}
+
+.topBar a:hover {
+  text-decoration: underline;
+}
+
+.header {
+  background: #ff5500;
+  color: #fff;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.breadcrumbs {
+  font-size: 12px;
+  margin-bottom: 24px;
+  opacity: 0.9;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.searchContainer {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 16px 16px 16px 44px;
+  border-radius: 30px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.layoutContainer {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  flex: 1;
+  width: 100%;
+}
+
+.mainContent {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.contentBody {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.contentBody p {
+  margin-bottom: 16px;
+}
+
+.contentBody strong {
+  font-weight: 600;
+}
+
+.contentBody ol {
+  margin-left: 20px;
+  margin-bottom: 24px;
+}
+
+.contentBody li {
+  margin-bottom: 16px;
+}
+
+.contentLinks {
+  margin-top: 24px;
+}
+
+.contentLink {
+  display: block;
+  color: #ff5500;
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.contentLink:hover {
+  text-decoration: underline;
+}
+
+.helpfulBox {
+  background: #fcfcfc;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.helpfulBox h4 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.helpfulButtons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.helpfulBtn {
+  border: 1px solid #ff5500;
+  color: #ff5500;
+  background: white;
+  padding: 6px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.helpfulBtn:hover {
+  background: #fff5f0;
+}
+
+.helpfulSub {
+  font-size: 12px;
+  color: #666;
+}
+
+.helpfulSub a {
+  color: #ff5500;
+  text-decoration: none;
+}
+
+.bottomArticles {
+  display: flex;
+  gap: 40px;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
+  padding-top: 40px;
+}
+
+.bottomArticlesColumn {
+  flex: 1;
+}
+
+.bottomArticlesColumn h4 {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.bottomArticlesColumn a {
+  display: block;
+  color: #ff5500;
+  text-decoration: none;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.sidebar {
+  width: 320px;
+  background: #f5f8fa;
+  padding: 30px;
+  border-radius: 4px;
+}
+
+.sidebarTitle {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.sidebar a {
+  display: block;
+  color: #ff5500;
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.sidebar a:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  background: #ff5500;
+  color: #000;
+  padding: 24px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 20px;
+}
+
+.footerLinks a {
+  color: #000;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  text-decoration: underline;
+}
+
+.footerIcons {
+  display: flex;
+  gap: 16px;
+}
+
+/* Nav component specifically for help center to replace main navbar */
+.helpNav {
+  background: #ff5500;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.helpLogo {
+  color: white;
+  font-weight: 800;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+.statusBtn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}

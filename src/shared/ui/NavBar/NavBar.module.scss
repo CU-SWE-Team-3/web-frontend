@@ -150,8 +150,8 @@
   align-items: center;
   transition: color 120ms ease;
 
-  &:hover {
-    color: var(--sc-text-primary);
+  @media (max-width: 500px) {
+    display: none;
   }
 }
 
