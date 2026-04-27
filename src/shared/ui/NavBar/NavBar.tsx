@@ -9,6 +9,8 @@ import { useNotificationStore } from '@/features/notifications/model/useNotifica
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
 import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
 import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
+import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
+import { PlanBadge } from '@/features/subscription/ui/PlanBadge/PlanBadge';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
 
@@ -83,7 +85,12 @@ export const NavBar: FC<NavBarProps> = ({
     <div className={s.rightSection}>
       {isAuthenticated ? (
         <>
-          <span className={s.tryProLink}>Try Artist Pro</span>
+          {useSubscriptionStore.getState().currentPlan !== 'Pro' && (
+            <Link href={ROUTES.PRICING} className={s.tryProLink} data-testid="navbar-try-pro">Try Pro</Link>
+          )}
+          {useSubscriptionStore.getState().currentPlan === 'Pro' && (
+            <PlanBadge plan="Pro" size="sm" />
+          )}
           <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
           <button className={s.navTextLink} onClick={onUpload} data-testid="navbar-upload-button">Upload</button>
           <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED} data-testid="navbar-user-avatar">

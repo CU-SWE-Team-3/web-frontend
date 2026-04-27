@@ -1,0 +1,101 @@
+.banner {
+  background: linear-gradient(135deg, #1a1108 0%, #2d1a0a 50%, #1a1108 100%);
+  border: 1px solid rgba(255, 85, 0, 0.25);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 85, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #f50;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.description {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.trackCount {
+  color: #f50;
+  font-weight: 600;
+}
+
+.upgradeButton {
+  background: #f50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.upgradeButton:hover {
+  background: #e04d00;
+}
+
+.upgradeButton:active {
+  transform: scale(0.97);
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.dismissButton:hover {
+  color: #999;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .upgradeButton {
+    width: 100%;
+  }
+}

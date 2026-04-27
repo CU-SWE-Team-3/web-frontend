@@ -21,4 +21,6 @@ export const ROUTES = {
   LIBRARY_LIKES: '/library?tab=likes',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/settings?tab=notifications',
+  PRICING: '/pricing',
+  CHECKOUT_SUCCESS: '/checkout/success',
 } as const

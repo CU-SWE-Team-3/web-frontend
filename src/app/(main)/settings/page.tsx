@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { BlockedUsersList } from '@/features/social-graph';
 import { NotificationSettingsTab } from '@/features/notifications';
+import { ManageSubscription } from '@/features/subscription/ui/ManageSubscription/ManageSubscription';
 import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
 
 /* ─── Tabs ─── */
 const TABS = [
   { key: 'account', label: 'Account' },
+  { key: 'subscription', label: 'Subscription' },
   { key: 'content', label: 'Content' },
   { key: 'notifications', label: 'Notifications' },
   { key: 'privacy', label: 'Privacy' },
@@ -111,6 +113,7 @@ function SettingsContent() {
     switch (activeTab) {
       case 'privacy': return <PrivacyTab />;
       case 'account': return <PlaceholderTab name="Account" />;
+      case 'subscription': return <ManageSubscription />;
       case 'content': return <PlaceholderTab name="Content" />;
       case 'notifications': return <NotificationSettingsTab />;
       case 'advertising': return <PlaceholderTab name="Advertising" />;

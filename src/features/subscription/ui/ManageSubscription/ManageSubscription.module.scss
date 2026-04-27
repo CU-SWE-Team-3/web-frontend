@@ -1,0 +1,213 @@
+.panel {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.planCard {
+  background: #222;
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.planInfo h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.planInfo p {
+  font-size: 13px;
+  color: #999;
+}
+
+.planPrice {
+  text-align: right;
+}
+
+.planPrice .amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.planPrice .period {
+  font-size: 13px;
+  color: #999;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.detailLabel {
+  color: #999;
+}
+
+.detailValue {
+  color: #fff;
+  font-weight: 500;
+}
+
+.detailValueWarning {
+  color: #f50;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.changePlanButton {
+  background: #f50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.changePlanButton:hover {
+  background: #e04d00;
+}
+
+.cancelButton {
+  background: none;
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background: rgba(244, 67, 54, 0.08);
+  border-color: rgba(244, 67, 54, 0.5);
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reactivateButton {
+  background: none;
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reactivateButton:hover {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+/* Free plan state */
+.freeState {
+  text-align: center;
+  padding: 32px 20px;
+}
+
+.freeState h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.freeState p {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.upgradeBtn {
+  background: #f50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.upgradeBtn:hover {
+  background: #e04d00;
+}
+
+.cancelWarning {
+  background: rgba(255, 85, 0, 0.06);
+  border: 1px solid rgba(255, 85, 0, 0.15);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cancelWarningIcon {
+  color: #f50;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cancelWarningText {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.5;
+}
