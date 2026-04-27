@@ -43,6 +43,8 @@ function GoogleCallbackContent() {
             avatarUrl: profile.avatarUrl,
             role: profile.role || 'listener',
             isVerified: true,
+            isPremium: profile.isPremium || false,
+            subscriptionPlan: profile.subscriptionPlan || 'Free' as const,
             createdAt: profile.createdAt || new Date().toISOString()
           }
           

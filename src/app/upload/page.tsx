@@ -11,6 +11,9 @@ import { useUploadTrack } from "../../features/tracks/model/trackQueries";
 import UploadSuccessModal from "../../features/tracks/ui/UploadSuccessModal";
 import UploadOptionsPanel from "../../features/tracks/ui/UploadOptionsPanel";
 import type { UploadOptionsData } from "../../features/tracks/ui/UploadOptionsPanel";
+import { useSubscriptionStore } from "../../features/subscription/model/useSubscriptionStore";
+import { UpgradePrompt } from "../../features/subscription/ui/UpgradePrompt/UpgradePrompt";
+import { CheckoutModal } from "../../features/subscription/ui/CheckoutModal/CheckoutModal";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ACCEPTED_AUDIO = ".mp3,.wav,.flac,.aiff,.ogg,.aac,.mp4,.m4a,.wma";
@@ -90,6 +93,14 @@ export default function UploadPage() {
 
   // Upload mutation (TanStack Query — auto-invalidates cache)
   const uploadMutation = useUploadTrack();
+
+  // ── Subscription paywall check ────────────────────────────────────────
+  const { canUploadMore, trackCount, uploadLimit, isCheckingUpload, checkUploadEligibility, currentPlan } = useSubscriptionStore();
+  const isAtLimit = !canUploadMore && currentPlan === 'Free';
+
+  useEffect(() => {
+    checkUploadEligibility();
+  }, [checkUploadEligibility]);
 
   // ── File handling ─────────────────────────────────────────────────────
   const validateFile = useCallback((f: File) => {
@@ -247,15 +258,26 @@ export default function UploadPage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {stage === "dropzone" && (
           <>
+            {/* Upload limit / upgrade prompt */}
+            {isAtLimit && (
+              <UpgradePrompt
+                trackCount={trackCount}
+                trackLimit={uploadLimit}
+                context="upload"
+                dismissible={false}
+              />
+            )}
+
             {/* Quota bar */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "#1a1a1a", borderRadius: 8, marginBottom: 32, border: "1px solid #333" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span style={{ fontSize: 13, color: "#ccc" }}>0% of uploads used</span>
-                <div style={{ width: 200, height: 4, background: "#333", borderRadius: 2 }}><div style={{ width: "0%", height: "100%", background: "#f50", borderRadius: 2 }} /></div>
-                <span style={{ fontSize: 13, color: "#999" }}>0 of 120 minutes</span>
+                <span style={{ fontSize: 13, color: "#ccc" }}>{currentPlan === 'Pro' ? 'Unlimited uploads' : `${trackCount} of ${uploadLimit} uploads used`}</span>
+                <div style={{ width: 200, height: 4, background: "#333", borderRadius: 2 }}><div style={{ width: currentPlan === 'Pro' ? '0%' : `${Math.min((trackCount / uploadLimit) * 100, 100)}%`, height: "100%", background: isAtLimit ? "#f44336" : "#f50", borderRadius: 2, transition: "width 300ms" }} /></div>
               </div>
-              <button style={{ padding: "8px 20px", fontSize: 12, fontWeight: 600, color: "#fff", background: "transparent", border: "1px solid #fff", borderRadius: 100, cursor: "pointer" }}>Get unlimited uploads</button>
+              {currentPlan === 'Free' && (
+                <button onClick={() => router.push(ROUTES.PRICING)} style={{ padding: "8px 20px", fontSize: 12, fontWeight: 600, color: "#fff", background: "transparent", border: "1px solid #fff", borderRadius: 100, cursor: "pointer" }}>Get unlimited uploads</button>
+              )}
             </div>
 
             <h1 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Upload your audio files.</h1>

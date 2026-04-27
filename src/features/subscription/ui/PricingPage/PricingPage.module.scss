@@ -1,0 +1,266 @@
+.pricingPage {
+  min-height: 100vh;
+  background: #111;
+  padding: 60px 24px 120px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.title {
+  font-size: 40px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: #999;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.planCard {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 36px 32px;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.planCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.planCardPro {
+  composes: planCard;
+  border-color: #f50;
+  background: linear-gradient(180deg, #1f1410 0%, #1a1a1a 40%);
+}
+
+.planCardPro:hover {
+  border-color: #ff6a1a;
+  box-shadow: 0 8px 32px rgba(255, 85, 0, 0.15);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: #f50;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.currentBadge {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: #333;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.planName {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.planTagline {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 24px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+
+.priceAmount {
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.pricePeriod {
+  font-size: 16px;
+  color: #999;
+}
+
+.freePriceLabel {
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 28px;
+}
+
+.ctaButton {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+  margin-bottom: 32px;
+}
+
+.ctaButton:active {
+  transform: scale(0.98);
+}
+
+.ctaButtonPro {
+  composes: ctaButton;
+  background: #f50;
+  color: #fff;
+}
+
+.ctaButtonPro:hover {
+  background: #e04d00;
+}
+
+.ctaButtonFree {
+  composes: ctaButton;
+  background: #333;
+  color: #fff;
+}
+
+.ctaButtonFree:hover {
+  background: #444;
+}
+
+.ctaButtonCurrent {
+  composes: ctaButton;
+  background: #222;
+  color: #666;
+  cursor: default;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.featureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.featureCheck {
+  color: #f50;
+}
+
+.featureDash {
+  color: #555;
+}
+
+.featureValue {
+  font-size: 13px;
+  color: #999;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Billing toggle */
+.billingToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.billingOption {
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.billingOptionActive {
+  composes: billingOption;
+  color: #fff;
+  border-color: #f50;
+  background: rgba(255, 85, 0, 0.08);
+}
+
+.saveBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f50;
+  background: rgba(255, 85, 0, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .plansGrid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .priceAmount,
+  .freePriceLabel {
+    font-size: 36px;
+  }
+}

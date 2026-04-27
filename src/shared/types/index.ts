@@ -1,6 +1,9 @@
 // ─── User ────────────────────────────────────────────────────────────────────
+export type SubscriptionPlan = 'Free' | 'Pro'
+
 export interface User {
   id: string
+  _id?: string
   email: string
   username: string
   displayName: string
@@ -9,6 +12,10 @@ export interface User {
   coverUrl?: string
   role: 'artist' | 'listener'
   isVerified: boolean
+  isPremium: boolean
+  subscriptionPlan: SubscriptionPlan
+  subscriptionExpiresAt?: string | null
+  cancelAtPeriodEnd?: boolean
   createdAt: string
 }
 
