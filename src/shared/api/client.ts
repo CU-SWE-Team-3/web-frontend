@@ -15,7 +15,7 @@ export const API_TIMEOUTS = {
 
 const apiClient = axios.create({
   // Replace this with your real backend URL when the backend team is ready
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },

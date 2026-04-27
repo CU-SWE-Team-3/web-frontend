@@ -51,24 +51,38 @@ function mapSuggestedArtist(raw: any): SuggestedArtist {
 
 export const feedRepository = {
   /**
-   * GET /network/feed
-   * Returns up to 20 public finished tracks from followed artists,
-   * sorted newest-first.
+   * GET /feed
+   * Returns the personalized chronological activity feed.
+   * Activities are grouped by BioBeats (e.g. "User X liked Track Y").
+   * For the current UI, we extract the target tracks from these activities.
    */
   async getFeed(): Promise<FeedTrack[]> {
     try {
-      const { data } = await apiClient.get('/network/feed', {
-        withCredentials: true,
-      })
+      const { data } = await apiClient.get('/feed')
 
-      const raw: any[] =
-        data?.data ?? data?.tracks ?? (Array.isArray(data) ? data : [])
+      // BioBeats v1.10 returns { status: "success", data: { feed: FeedActivity[] } }
+      const activities: any[] = data?.data?.feed ?? []
 
-      if (!Array.isArray(raw)) return []
+      if (!Array.isArray(activities)) return []
 
-      return raw.map(mapFeedTrack)
+      // Map activities to tracks. We only care about activities that have a track target.
+      // We also deduplicate tracks if the same track appears multiple times in the feed.
+      const tracks: FeedTrack[] = []
+      const seenIds = new Set<string>()
+
+      for (const act of activities) {
+        if (act.target && act.targetModel === 'Track') {
+          const track = mapFeedTrack(act.target)
+          if (!seenIds.has(track._id)) {
+            tracks.push(track)
+            seenIds.add(track._id)
+          }
+        }
+      }
+
+      return tracks
     } catch (err) {
-      console.warn('[feedRepository] GET /network/feed failed:', err)
+      console.warn('[feedRepository] GET /feed failed:', err)
       return []
     }
   },

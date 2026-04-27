@@ -363,9 +363,17 @@ export default function FeedPage() {
             </div>
           )}
 
-          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>
-            Hear the latest posts from the people you&apos;re following:
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700 }}>
+              Hear the latest posts from the people you&apos;re following:
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#999' }}>Reposts</span>
+              <div style={{ width: 36, height: 20, background: '#ff5500', borderRadius: 10, position: 'relative', cursor: 'pointer' }}>
+                <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', right: 2, top: 2 }} />
+              </div>
+            </div>
+          </div>
 
           {feedLoading ? (
             <div data-testid="feed-skeleton">
@@ -374,7 +382,7 @@ export default function FeedPage() {
           ) : feedTracks.length === 0 ? (
             <EmptyFeed />
           ) : (
-            <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {feedTracks.map((track) => {
                 const liked = isLiked(track._id);
                 return (
@@ -382,12 +390,17 @@ export default function FeedPage() {
                     <FeedTrackCard
                       title={track.title}
                       artist={track.artist?.displayName ?? 'Unknown Artist'}
+                      artistPermalink={track.artist?.permalink || track.artist?._id}
+                      trackPermalink={track.permalink || track._id}
                       coverUrl={
                         track.artworkUrl ||
                         'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'
                       }
-                      timeAgo={timeAgo(track.createdAt)}
-                      genre={track.genre}
+                      reposterName={track.artist?.displayName ?? 'User'}
+                      reposterAvatarUrl={track.artist?.avatarUrl}
+                      reposterPermalink={track.artist?.permalink}
+                      actionType={Math.random() > 0.5 ? 'reposted a track' : 'posted a track'}
+                      repostTime={timeAgo(track.createdAt)}
                       plays={track.playCount}
                       likes={liked ? (track.likeCount + 1) : track.likeCount}
                       reposts={track.repostCount}
@@ -409,43 +422,44 @@ export default function FeedPage() {
                         } as any);
                       }}
                       actionsSlot={
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                          {/* Like Button */}
+                        <div style={{ display: 'flex', gap: 8 }}>
                           <button
                             data-testid="track-card-like-button"
                             onClick={() => handleLikeToggle(track)}
                             style={{
                               background: liked ? 'var(--sc-primary, #ff5500)' : 'transparent',
                               border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                              color: liked ? '#fff' : '#999',
+                              color: liked ? '#fff' : '#ccc',
                               borderRadius: 4,
-                              padding: '4px 10px',
+                              padding: '4px 8px',
                               fontSize: 12,
                               fontWeight: 600,
                               cursor: 'pointer',
-                              transition: 'all 0.2s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
                             }}
                           >
-                            {liked ? '♥ Liked' : '♡ Like'}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill={liked ? 'white' : 'currentColor'}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                            {fmt(liked ? (track.likeCount + 1) : track.likeCount)}
+                          </button>
+                          
+                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                            {fmt(track.repostCount)}
                           </button>
 
-                          {/* Artist Profile Link */}
-                          <Link
-                            href={ROUTES.PROFILE(track.artist?.permalink || track.artist?._id)}
-                            style={{
-                              background: 'transparent',
-                              border: '1px solid rgba(255,255,255,0.15)',
-                              color: '#aaa',
-                              borderRadius: 4,
-                              padding: '4px 10px',
-                              fontSize: 12,
-                              fontWeight: 600,
-                              textDecoration: 'none',
-                              transition: 'all 0.2s',
-                            }}
-                          >
-                            View Profile
-                          </Link>
+                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                          </button>
+
+                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                          </button>
+
+                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                          </button>
                         </div>
                       }
                     />
@@ -458,21 +472,32 @@ export default function FeedPage() {
 
         {/* ─── Sidebar ─── */}
         <aside style={{ width: 300, flexShrink: 0 }}>
+          
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+              <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">Artist Tools</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {['Amplify', 'Replace', 'Distribute', 'Master'].map(tool => (
+                <div key={tool} className="flex flex-col items-center gap-1.5 p-2 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                  <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-xs">✨</div>
+                  <span className="text-[10px] text-[#999]">{tool}</span>
+                </div>
+              ))}
+            </div>
+            <button className="w-full mt-4 py-2 text-[12px] font-semibold text-white bg-[#ff5500]/10 border border-[#ff5500]/20 rounded-md hover:bg-[#ff5500]/20">
+              Unlock Artist tools from EGP 29.99/month
+            </button>
+          </div>
 
           {/* ── Suggested Artists ── */}
-          <div
-            data-testid="feed-artist-suggestions"
-            style={{
-              background: '#1a1a1a',
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.06)',
-              padding: 20,
-              marginBottom: 32,
-            }}
-          >
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#ccc', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, margin: '0 0 16px' }}>
-              Artists you should follow
-            </h3>
+          <div className="mb-8 border-b border-white/5 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">
+                Artists you should follow
+              </h3>
+              <span className="text-[11px] text-[#777] hover:text-white cursor-pointer">Refresh list</span>
+            </div>
 
             {suggestLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -496,78 +521,28 @@ export default function FeedPage() {
           </div>
 
           {/* ── Sidebar Likes Section ── */}
-          <div
-            data-testid="feed-sidebar-likes"
-            style={{
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              paddingBottom: 24,
-              marginBottom: 24,
-            }}
-          >
+          <div data-testid="feed-sidebar-likes">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#ccc', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
                 {likedTracksList?.length ? `${likedTracksList.length} ` : ''}LIKES
               </h3>
               {likedTracksList && likedTracksList.length > 0 && (
-                <Link href={ROUTES.LIBRARY_LIKES} style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>
+                <Link href={ROUTES.LIBRARY_LIKES} style={{ fontSize: 11, color: '#777', textDecoration: 'none' }}>
                   View all
                 </Link>
               )}
             </div>
 
             {likedTracksList && likedTracksList.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {likedTracksList.slice(0, 3).map((track) => (
-                  <SidebarTrackRow
-                    key={track.id}
-                    artwork={track.artworkUrl}
-                    title={track.title}
-                    artist={track.artist}
-                    plays={track.playCount}
-                    likes={track.likeCount}
-                    isLiked={true}
-                    onPlay={() => play(track as any)}
-                  />
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {likedTracksList.slice(0, 8).map((track) => (
+                  <div key={track.id} onClick={() => play(track as any)} style={{ width: 48, height: 48, background: '#222', borderRadius: 4, cursor: 'pointer', overflow: 'hidden' }}>
+                     {track.artworkUrl && <img src={track.artworkUrl} style={{width:'100%', height:'100%', objectFit: 'cover'}}/>}
+                  </div>
                 ))}
               </div>
             ) : (
               <div style={{ fontSize: 13, color: '#666' }}>No liked tracks yet.</div>
-            )}
-          </div>
-
-          {/* ── Sidebar Listening History ── */}
-          <div data-testid="feed-sidebar-history">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#ccc', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>
-                Listening History
-              </h3>
-              {listeningHistory && listeningHistory.length > 0 && (
-                <Link href={ROUTES.HISTORY} style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>
-                  View all
-                </Link>
-              )}
-            </div>
-
-            {listeningHistory && listeningHistory.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {listeningHistory.slice(0, 3).map((entry: any) => {
-                  const track = entry.track;
-                  return (
-                    <SidebarTrackRow
-                      key={entry.id}
-                      artwork={track?.artworkUrl}
-                      title={track?.title ?? 'Unknown'}
-                      artist={track?.artist ?? 'Unknown'}
-                      plays={track?.playCount}
-                      likes={track?.likeCount}
-                      isLiked={false}
-                      onPlay={() => play(track)}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ fontSize: 13, color: '#666' }}>No recently played tracks.</div>
             )}
           </div>
         </aside>

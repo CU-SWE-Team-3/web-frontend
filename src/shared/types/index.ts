@@ -1,52 +1,53 @@
 // ─── User ────────────────────────────────────────────────────────────────────
 export interface User {
-  id: string
-  email: string
-  username: string
-  displayName: string
-  permalink?: string
-  avatarUrl?: string
-  coverUrl?: string
-  role: 'artist' | 'listener'
-  isVerified: boolean
-  createdAt: string
+  _id: string;
+  email: string;
+  displayName: string;
+  permalink: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  role: 'Artist' | 'Listener' | 'Admin';
+  isEmailVerified: boolean;
+  isPremium: boolean;
+  followerCount: number;
+  followingCount: number;
+  createdAt: string;
 }
 
 // ─── API Wrapper ──────────────────────────────────────────────────────────────
 export interface ApiResponse<T> {
-  data: T
-  message: string
-  success: boolean
+  success: boolean;
+  status: 'success' | 'fail' | 'error';
+  message?: string;
+  results?: number;
+  data: T;
 }
 
 // ─── Auth Payloads ───────────────────────────────────────────────────────────
 export interface LoginPayload {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export interface RegisterPayload {
-  email: string
-  password: string
-  confirmPassword: string
-  captchaToken: string
+  email: string;
+  password: string;
+  displayName: string;
+  captchaToken: string;
 }
 
 export interface ForgotPasswordPayload {
-  email: string
+  email: string;
 }
 
 export interface ResetPasswordPayload {
-  token: string
-  newPassword: string
-  confirmPassword: string
+  token: string;
+  newPassword: string;
 }
 
 // ─── Auth Response ───────────────────────────────────────────────────────────
 export interface AuthResponse {
-  user: User
-  accessToken: string
-  refreshToken: string
+  user: User;
 }
 
 // ─── Notifications ──────────────────────────────────────────────────────────

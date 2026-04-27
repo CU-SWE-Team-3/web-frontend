@@ -20,7 +20,8 @@ export const ROUTES = {
   HISTORY: '/library?tab=history',
   LIBRARY_LIKES: '/library?tab=likes',
   SEARCH: '/search',
-  TRENDING: '/trending',
+  TRENDING: '/discover',
+  CHARTS: '/charts',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/settings?tab=notifications',
 } as const

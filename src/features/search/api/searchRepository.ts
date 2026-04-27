@@ -72,15 +72,15 @@ export const searchRepository = {
     if (!query || query.trim().length < 2) return empty
 
     try {
-      const { data } = await apiClient.get('/search', {
-        params: { q: query.trim(), type: 'all', limit },
-        withCredentials: true,
+      // BioBeats v1.10 uses /tracks/search for global full-text search
+      const { data } = await apiClient.get('/tracks/search', {
+        params: { q: query.trim(), limit },
       })
 
-      const payload = data?.data ?? data
+      // The BioBeats API returns { success: true, results: N, data: { tracks, users, playlists } }
+      const payload = data?.data;
 
-      // Shape A: combined object with separate arrays per type
-      if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+      if (payload && typeof payload === 'object') {
         return {
           tracks: Array.isArray(payload.tracks) ? payload.tracks.map(mapTrackResult) : [],
           users: Array.isArray(payload.users) ? payload.users.map(mapUserResult) : [],
@@ -88,27 +88,9 @@ export const searchRepository = {
         }
       }
 
-      // Shape B: flat array with discriminator field `type`
-      if (Array.isArray(payload)) {
-        const tracks: TrackResult[] = []
-        const users: UserResult[] = []
-        const playlists: PlaylistResult[] = []
-
-        for (const item of payload) {
-          if (item.type === 'track' || item.hlsUrl || item.duration !== undefined) {
-            tracks.push(mapTrackResult(item))
-          } else if (item.type === 'user' || item.followerCount !== undefined) {
-            users.push(mapUserResult(item))
-          } else if (item.type === 'playlist' || item.trackCount !== undefined) {
-            playlists.push(mapPlaylistResult(item))
-          }
-        }
-        return { tracks, users, playlists }
-      }
-
       return empty
     } catch (err) {
-      console.warn('[searchRepository] GET /search failed:', err)
+      console.warn('[searchRepository] GET /tracks/search failed:', err)
       return empty
     }
   },

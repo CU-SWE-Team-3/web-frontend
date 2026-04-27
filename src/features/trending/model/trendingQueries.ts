@@ -30,3 +30,17 @@ export function useTrending(genre?: string, limit = 50) {
     refetchOnWindowFocus: false,
   })
 }
+
+// ─── useEditorial ─────────────────────────────────────────────────────────────
+/**
+ * Fetches editorially curated buckets for the home page.
+ * Returns an array of buckets, each containing a list of tracks.
+ */
+export function useEditorial() {
+  return useQuery<any[], Error>({
+    queryKey: ['editorial'] as const,
+    queryFn: () => trendingRepository.getEditorialBuckets(),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false,
+  })
+}

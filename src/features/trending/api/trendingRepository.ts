@@ -55,21 +55,43 @@ export const trendingRepository = {
   async getTrending(genre?: string, limit = 50): Promise<TrendingTrack[]> {
     try {
       const params: Record<string, string | number> = { limit }
+      // The v1.10 API expects genre in the query for filtering
       if (genre && genre !== 'all') params.genre = genre
 
-      const { data } = await apiClient.get('/tracks/trending', {
+      const { data } = await apiClient.get('/discovery/trending', {
         params,
-        withCredentials: true,
       })
 
-      const raw: any[] =
-        data?.data ?? data?.tracks ?? (Array.isArray(data) ? data : [])
+      // Shape: { status: "success", data: { trending: [...] } }
+      const raw: any[] = data?.data?.trending ?? (Array.isArray(data?.data) ? data.data : []);
 
       if (!Array.isArray(raw)) return []
 
       return raw.map((item, i) => mapTrendingTrack(item, i))
     } catch (err) {
-      console.warn('[trendingRepository] GET /tracks/trending failed:', err)
+      console.warn('[trendingRepository] GET /discovery/trending failed:', err)
+      return []
+    }
+  },
+
+  /**
+   * GET /discovery/curated
+   * Returns curated "buckets" for the home page (e.g. "Trending Folk", "Fresh Finds").
+   */
+  async getEditorialBuckets(): Promise<any[]> {
+    try {
+      const { data } = await apiClient.get('/discovery/curated')
+      // Try to find the array of buckets in various possible locations in the response
+      const rawData = data?.data;
+      if (Array.isArray(rawData)) return rawData;
+      if (Array.isArray(rawData?.curated)) return rawData.curated;
+      if (Array.isArray(rawData?.editorial)) return rawData.editorial;
+      if (Array.isArray(rawData?.buckets)) return rawData.buckets;
+      
+      console.warn('[trendingRepository] Could not parse curated buckets array from response:', data);
+      return [];
+    } catch (err) {
+      console.warn('[trendingRepository] GET /discovery/curated failed:', err)
       return []
     }
   },
