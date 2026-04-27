@@ -4,10 +4,13 @@ import {
   useQueryClient,
   type UseMutationOptions,
 } from '@tanstack/react-query';
+import apiClient from '@/shared/api/client';
 import { playlistsRepository } from '../api/playlistsRepository';
+import { tracksRepository } from '@/features/tracks/api/tracksRepository';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import type {
   Playlist,
+  PlaylistCreator,
   CreatePlaylistInput,
   UpdatePlaylistInput,
 } from './playlist';
@@ -18,6 +21,191 @@ export const PLAYLISTS_QUERY_KEY = ['playlists'] as const;
 
 function playlistKeys(id: string) {
   return [...PLAYLISTS_QUERY_KEY, id] as const;
+}
+
+function getImageUrl(value: any): string {
+  if (!value || value === 'undefined' || value === 'null') return '';
+  if (typeof value === 'string') return value;
+  return (
+    value.artworkUrl ||
+    value.artwork_url ||
+    value.coverUrl ||
+    value.cover_url ||
+    value.imageUrl ||
+    value.image_url ||
+    value.thumbnailUrl ||
+    value.thumbnail_url ||
+    value.secureUrl ||
+    value.secure_url ||
+    value.publicUrl ||
+    value.public_url ||
+    value.fileUrl ||
+    value.file_url ||
+    value.downloadUrl ||
+    value.download_url ||
+    value.url ||
+    value.src ||
+    ''
+  );
+}
+
+function isUsableImageUrl(value: any): boolean {
+  const url = getImageUrl(value).trim();
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower !== 'undefined' &&
+    lower !== 'null' &&
+    !lower.includes('default-track-artwork') &&
+    !lower.includes('placeholder')
+  );
+}
+
+function getTrackId(track: any): string {
+  return typeof track === 'string' ? track : track?._id || track?.id || '';
+}
+
+function getTrackLookup(track: any): string {
+  return typeof track === 'string'
+    ? track
+    : track?.permalink || track?._id || track?.id || '';
+}
+
+function isMissingTrack(track: any): boolean {
+  return !track || track.__missing === true;
+}
+
+function getCurrentUserAsCreator(creatorId: string): PlaylistCreator | null {
+  const user = useAuthStore.getState().user as any;
+  if (!user) return null;
+
+  const ids = [user._id, user.id].filter(Boolean);
+  if (!ids.includes(creatorId)) return null;
+
+  return {
+    _id: user._id || user.id,
+    displayName: user.displayName || user.username || user.permalink || 'Unknown',
+    permalink: user.permalink || user.username || user._id || user.id,
+    avatarUrl: user.avatarUrl || null,
+    isPremium: user.isPremium,
+  };
+}
+
+async function resolveCreator(creator: Playlist['creator']): Promise<Playlist['creator']> {
+  if (!creator || typeof creator !== 'string') return creator;
+
+  const currentUserCreator = getCurrentUserAsCreator(creator);
+  if (currentUserCreator) return currentUserCreator;
+
+  try {
+    const response = await apiClient.get(`/profile/${creator}`, { withCredentials: true });
+    const user = response.data?.data?.user || response.data?.data || response.data;
+    if (user) {
+      return {
+        _id: user._id || user.id || creator,
+        displayName: user.displayName || user.username || user.permalink || creator,
+        permalink: user.permalink || user.username || creator,
+        avatarUrl: user.avatarUrl || null,
+        isPremium: user.isPremium,
+      };
+    }
+  } catch (err) {
+    console.warn(`[playlistQueries] Failed to resolve playlist creator ${creator}:`, err);
+  }
+
+  return creator;
+}
+
+async function normalizePlaylist(raw: Playlist): Promise<Playlist> {
+  const hasTracksArray = Array.isArray(raw.tracks);
+  const tracks = hasTracksArray
+    ? (raw.tracks || []).filter((track) => !isMissingTrack(track))
+    : [];
+  const rawTrackCount = raw.trackCount ?? (raw as any).track_count ?? 0;
+  const creator = await resolveCreator(raw.creator);
+
+  return {
+    ...raw,
+    creator,
+    tracks,
+    artworkUrl: getImageUrl(raw.artworkUrl || (raw as any).artwork_url || (raw as any).artwork),
+    isPrivate: raw.isPrivate ?? (raw as any).is_private ?? false,
+    trackCount: tracks.length > 0 ? tracks.length : rawTrackCount,
+    totalDuration: raw.totalDuration ?? (raw as any).total_duration ?? 0,
+    likeCount: raw.likeCount ?? (raw as any).like_count ?? 0,
+    repostCount: raw.repostCount ?? (raw as any).repost_count ?? 0,
+  };
+}
+
+async function verifyPlaylistTracks(
+  playlist: Playlist,
+  queryClient?: ReturnType<typeof useQueryClient>,
+): Promise<Playlist> {
+  const hydrated = await Promise.all(
+    (playlist.tracks || []).map(async (t) => {
+      const trackId = getTrackId(t);
+      const trackLookup = getTrackLookup(t);
+      if (!trackLookup) return null;
+
+      try {
+        const cached =
+          (trackId && queryClient ? queryClient.getQueryData(['tracks', trackId]) : null) ||
+          (queryClient ? queryClient.getQueryData(['tracks', trackLookup]) : null);
+        if (cached && (cached as any).hlsUrl) return mapTrackToSummary(cached);
+
+        const fresh = await tracksRepository.getTrackById(trackLookup);
+        return mapTrackToSummary(fresh);
+      } catch (err) {
+        console.warn(`[playlistQueries] Dropping missing playlist track ${trackLookup}:`, err);
+        return null;
+      }
+    }),
+  );
+
+  const tracks = hydrated.filter((track): track is NonNullable<typeof track> => Boolean(track));
+
+  return {
+    ...playlist,
+    tracks,
+    trackCount: tracks.length,
+    totalDuration: tracks.reduce((sum, track) => {
+      return sum + (typeof track === 'string' ? 0 : track.duration || 0);
+    }, 0),
+  };
+}
+
+function patchPlaylistTrackState(playlist: Playlist, trackIds: string[]): Playlist {
+  const previousTracksById = new Map(
+    (playlist.tracks || []).map((track) => {
+      const trackId = getTrackId(track);
+      return [trackId, track] as const;
+    }),
+  );
+
+  return {
+    ...playlist,
+    tracks: trackIds.map((trackId) => previousTracksById.get(trackId) || trackId) as any,
+    trackCount: trackIds.length,
+  };
+}
+
+function patchPlaylistQueryData(previous: unknown, playlistId: string, trackIds: string[]): unknown {
+  if (!previous) return previous;
+
+  if (Array.isArray(previous)) {
+    return previous.map((item) => {
+      if (item && typeof item === 'object' && (item as Playlist)._id === playlistId) {
+        return patchPlaylistTrackState(item as Playlist, trackIds);
+      }
+      return item;
+    });
+  }
+
+  if (typeof previous === 'object' && (previous as Playlist)._id === playlistId) {
+    return patchPlaylistTrackState(previous as Playlist, trackIds);
+  }
+
+  return previous;
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -33,7 +221,10 @@ export function usePlaylists(params?: {
 
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, 'list', params ?? {}],
-    queryFn: () => playlistsRepository.getPlaylists(params),
+    queryFn: async () => {
+      const playlists = await playlistsRepository.getPlaylists(params);
+      return Promise.all(playlists.map(normalizePlaylist));
+    },
     enabled: isInitialized,
     staleTime: 30_000,
   });
@@ -44,26 +235,97 @@ export function usePlaylists(params?: {
  */
 export function useUserPlaylists(userId?: string, releaseType?: string) {
   const isInitialized = useAuthStore((s) => s.isInitialized);
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, 'user', userId, releaseType],
-    queryFn: () =>
-      playlistsRepository.getPlaylists({
+    queryFn: async () => {
+      const playlists = await playlistsRepository.getPlaylists({
         creator: userId,
         releaseType,
-      }),
+      });
+      return Promise.all(playlists.map(async (playlist) => {
+        const normalized = await normalizePlaylist(playlist);
+
+        if ((normalized.trackCount || 0) <= 0 && normalized.tracks.length === 0) {
+          return normalized;
+        }
+
+        try {
+          const fullPlaylist = await playlistsRepository.getPlaylistById(normalized._id);
+          return verifyPlaylistTracks(await normalizePlaylist(fullPlaylist), queryClient);
+        } catch (err) {
+          console.warn(`[useUserPlaylists] Failed to verify playlist ${normalized._id}:`, err);
+          return normalized;
+        }
+      }));
+    },
     enabled: isInitialized && Boolean(userId),
     staleTime: 30_000,
   });
 }
 
 /**
+ * Convert a full Track object to a TrackSummary for playlist compatibility.
+ */
+function mapTrackToSummary(t: any): any {
+  if (typeof t === 'string') return t;
+  
+  // Robust mapping for playback URLs (same as in pages/cards)
+  // Aligned with latest YAML: artworkUrl and hlsUrl are the primary fields
+  const hls = t.hlsUrl || t.hls_url || t.audioUrl || t.audio_url || '';
+  const stream = t.streamUrl || t.stream_url || hls || '';
+  const artwork = getImageUrl(t.artworkUrl || t.artwork_url || t.artwork || t.coverUrl || t.cover_url || t.imageUrl || t.image_url || t.thumbnailUrl || t.thumbnail_url);
+  
+  let durationInSeconds = 0;
+  if (typeof t.duration === 'number') {
+    durationInSeconds = t.duration;
+  } else if (typeof t.duration === 'string' && t.duration.includes(':')) {
+    const [m, s] = t.duration.split(':').map(Number);
+    durationInSeconds = (m * 60) + (s || 0);
+  }
+
+  const trackId = t._id || t.id;
+
+  return {
+    _id: trackId,
+    id: trackId,
+    title: t.title || 'Untitled',
+    permalink: t.permalink || '',
+    artworkUrl: artwork,
+    duration: durationInSeconds,
+    playCount: t.playCount || 0,
+    likeCount: t.likeCount || 0,
+    repostCount: t.repostCount || 0,
+    commentCount: t.commentCount || t.comment_count || 0,
+    isPublic: t.isPublic ?? t.is_public ?? true,
+    hlsUrl: hls,
+    streamUrl: stream,
+    artist: t.artist || 'Unknown Artist',
+  };
+}
+
+/**
  * Fetch a single playlist by ID with populated tracks.
  */
 export function usePlaylist(id?: string, secretToken?: string) {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, id, secretToken],
-    queryFn: () => playlistsRepository.getPlaylistById(id!, secretToken),
+    queryFn: async () => {
+      const raw = await playlistsRepository.getPlaylistById(id!, secretToken);
+      
+      if (!raw) return null;
+
+      let playlist = await normalizePlaylist(raw);
+
+      if (!playlist.tracks) return playlist;
+
+      playlist = await verifyPlaylistTracks(playlist, queryClient);
+
+      return playlist;
+    },
     enabled: Boolean(id),
     staleTime: 30_000,
   });
@@ -153,44 +415,55 @@ export function useUpdatePlaylistTracks(
   options?: UseMutationOptions<
     Playlist,
     Error,
-    { id: string; trackIds: string[] }
+    { id: string; trackIds: string[] },
+    { previousQueries: [readonly unknown[], unknown][] }
   >,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    Playlist,
+    Error,
+    { id: string; trackIds: string[] },
+    { previousQueries: [readonly unknown[], unknown][] }
+  >({
     mutationFn: ({ id, trackIds }) =>
       playlistsRepository.updateTracks(id, trackIds),
+    ...options,
     onMutate: async ({ id, trackIds }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: playlistKeys(id) });
+      await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
 
       // Snapshot previous value for rollback
-      const previous = queryClient.getQueryData<Playlist>(playlistKeys(id));
+      const previousQueries = queryClient.getQueriesData({
+        queryKey: PLAYLISTS_QUERY_KEY,
+      });
 
-      // Optimistically update the cache
-      if (previous) {
-        queryClient.setQueryData<Playlist>(playlistKeys(id), {
-          ...previous,
-          tracks: trackIds as any, // Will become populated on next refetch
-          trackCount: trackIds.length,
+      // Optimistically update detail, list, and modal caches.
+      queryClient.setQueriesData({ queryKey: PLAYLISTS_QUERY_KEY }, (previous) =>
+        patchPlaylistQueryData(previous, id, trackIds),
+      );
+
+      return { previousQueries };
+    },
+    onError: (err, variables, onMutateResult, context) => {
+      // Rollback on error
+      if (onMutateResult?.previousQueries) {
+        onMutateResult.previousQueries.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
         });
       }
-
-      return { previous };
+      options?.onError?.(err, variables, onMutateResult, context);
     },
-    onError: (_err, { id }, context: any) => {
-      // Rollback on error
-      if (context?.previous) {
-        queryClient.setQueryData(playlistKeys(id), context.previous);
-      }
+    onSuccess: (data, variables, onMutateResult, context) => {
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
-    onSettled: (_data, _err, { id }) => {
+    onSettled: (data, err, variables, onMutateResult, context) => {
       // Always refetch after mutation
-      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      queryClient.invalidateQueries({ queryKey: playlistKeys(variables.id) });
       queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      options?.onSettled?.(data, err, variables, onMutateResult, context);
     },
-    ...options,
   });
 }
 
@@ -210,6 +483,78 @@ export function useUploadPlaylistArtwork(
       queryClient.setQueryData(playlistKeys(variables.id), data);
       queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
       options?.onSuccess?.(data, variables, onMutateResult, context);
+    },
+  });
+}
+
+/**
+ * Like a playlist.
+ */
+export function useLikePlaylist(
+  options?: UseMutationOptions<void, Error, string>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => playlistsRepository.likePlaylist(id),
+    ...options,
+    onSuccess: (data, id, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      options?.onSuccess?.(data, id, onMutateResult, context);
+    },
+  });
+}
+
+/**
+ * Unlike a playlist.
+ */
+export function useUnlikePlaylist(
+  options?: UseMutationOptions<void, Error, string>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => playlistsRepository.unlikePlaylist(id),
+    ...options,
+    onSuccess: (data, id, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      options?.onSuccess?.(data, id, onMutateResult, context);
+    },
+  });
+}
+
+/**
+ * Repost a playlist.
+ */
+export function useRepostPlaylist(
+  options?: UseMutationOptions<void, Error, string>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => playlistsRepository.repostPlaylist(id),
+    ...options,
+    onSuccess: (data, id, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      options?.onSuccess?.(data, id, onMutateResult, context);
+    },
+  });
+}
+
+/**
+ * Unrepost a playlist.
+ */
+export function useUnrepostPlaylist(
+  options?: UseMutationOptions<void, Error, string>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => playlistsRepository.unrepostPlaylist(id),
+    ...options,
+    onSuccess: (data, id, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      options?.onSuccess?.(data, id, onMutateResult, context);
     },
   });
 }

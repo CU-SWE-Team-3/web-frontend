@@ -6,6 +6,7 @@ import { PlayerBar } from '@/shared/ui/PlayerBar/PlayerBar';
 import { PlayerQueueSidebar } from './PlayerQueueSidebar';
 import { DEMO_TRACKS } from '../../model/mockTracks';
 
+import Hls from 'hls.js';
 import { useHistoryStore } from '../../model/historyStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
@@ -16,6 +17,7 @@ export const GlobalAudioEngine = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
   
   const {
     currentTrack,
@@ -119,11 +121,50 @@ export const GlobalAudioEngine = () => {
     }
   }, [volume, isMuted, currentTrack]);
 
+  // 2. Handle Source Loading (HLS vs Normal)
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || playbackSource === 'inline') return;
+
+    const url = currentTrack?.streamUrl || currentTrack?.hlsUrl;
+    if (!url) {
+      audio.src = '';
+      return;
+    }
+
+    const isHls = url.includes('.m3u8');
+
+    if (isHls) {
+      if (Hls.isSupported()) {
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+        }
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+        });
+        hls.loadSource(url);
+        hls.attachMedia(audio);
+        hlsRef.current = hls;
+      } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS (Safari)
+        audio.src = url;
+      }
+    } else {
+      // Normal progressive download
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      audio.src = url;
+    }
+  }, [currentTrack?.id, currentTrack?.streamUrl, currentTrack?.hlsUrl, playbackSource]);
+
+  // 3. Handle Play/Pause
   useEffect(() => {
     if (!audioRef.current) return;
     
     // Only control the hidden <audio> when source is 'global'
-    // When 'inline', WaveformPlayer handles the actual audio
     if (playbackSource === 'inline') {
       audioRef.current.pause();
       return;
@@ -141,10 +182,14 @@ export const GlobalAudioEngine = () => {
         audioContextRef.current.resume();
       }
 
-      audioRef.current.play().catch(e => {
-        console.warn("Autoplay prevented:", e);
-        pause();
-      });
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.warn("Autoplay prevented or interrupted:", e);
+          // Only pause state if it was a true failure, not an abort
+          if (e.name !== 'AbortError') pause();
+        });
+      }
       setHasStarted(true);
 
       // Add to local history store immediately
@@ -158,7 +203,7 @@ export const GlobalAudioEngine = () => {
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentTrack, playbackSource]);
+  }, [isPlaying, currentTrack?.id, playbackSource]);
 
   // 2. Audio Event Handlers
   const handleTimeUpdate = () => {

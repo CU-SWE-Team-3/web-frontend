@@ -329,12 +329,12 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
 
     /* ── Albums tab ── */
     if (activeTab === 'Albums') {
-      return <ProfilePlaylistGrid userId={targetId} releaseType="album" emptyText="No albums yet" />;
+      return <ProfilePlaylistGrid userId={targetId} releaseType="album" emptyText="No albums yet" isOwnProfile={isOwnProfile} />;
     }
 
     /* ── Playlists tab ── */
     if (activeTab === 'Playlists') {
-      return <ProfilePlaylistGrid userId={targetId} releaseType="playlist" emptyText="No playlists yet" />;
+      return <ProfilePlaylistGrid userId={targetId} releaseType="playlist" emptyText="No playlists yet" isOwnProfile={isOwnProfile} />;
     }
 
     /* ── All tab (default): own tracks + reposts merged by date ── */
@@ -467,10 +467,12 @@ function ProfilePlaylistGrid({
   userId,
   releaseType,
   emptyText,
+  isOwnProfile,
 }: {
   userId: string;
   releaseType: string;
   emptyText: string;
+  isOwnProfile?: boolean;
 }) {
   const { data: playlists, isLoading } = useUserPlaylists(userId, releaseType);
 
@@ -493,7 +495,11 @@ function ProfilePlaylistGrid({
     );
   }
 
-  if (!playlists || playlists.length === 0) {
+  const visiblePlaylists = isOwnProfile
+    ? playlists
+    : playlists?.filter((pl: Playlist) => !pl.isPrivate);
+
+  if (!visiblePlaylists || visiblePlaylists.length === 0) {
     return (
       <div className={s.empty}>
         <span className={s.emptyText}>{emptyText}</span>
@@ -503,7 +509,7 @@ function ProfilePlaylistGrid({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {playlists.map((pl: Playlist) => (
+      {visiblePlaylists.map((pl: Playlist) => (
         <PlaylistStreamCard key={pl._id} playlist={pl} />
       ))}
     </div>

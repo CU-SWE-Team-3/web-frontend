@@ -39,12 +39,64 @@ function getTrackTitle(track: TrackSummary | string): string {
 
 function getTrackArtist(track: TrackSummary | string): string {
   if (typeof track === 'string') return '';
-  return track.artist?.displayName || '';
+  const artist = track.artist;
+  if (!artist) return 'Unknown Artist';
+  if (typeof artist === 'string') return artist;
+  return artist.displayName || artist.permalink || (artist as any).username || 'Unknown Artist';
 }
 
 function getTrackArtwork(track: TrackSummary | string): string {
   if (typeof track === 'string') return '';
-  return track.artworkUrl || '';
+  
+  const t = track as any;
+  // Use artworkUrl as primary (aligned with YAML)
+  const artwork =
+    t.artworkUrl ||
+    t.artwork_url ||
+    t.artwork ||
+    t.coverUrl ||
+    t.cover_url ||
+    t.imageUrl ||
+    t.image_url ||
+    t.thumbnailUrl ||
+    t.thumbnail_url;
+  
+  if (artwork && artwork !== 'undefined' && artwork !== 'null' && typeof artwork === 'string') {
+    return artwork;
+  }
+
+  if (artwork && typeof artwork === 'object') {
+    const nestedArtwork =
+      artwork.artworkUrl ||
+      artwork.artwork_url ||
+      artwork.coverUrl ||
+      artwork.cover_url ||
+      artwork.imageUrl ||
+      artwork.image_url ||
+      artwork.thumbnailUrl ||
+      artwork.thumbnail_url ||
+      artwork.secureUrl ||
+      artwork.secure_url ||
+      artwork.publicUrl ||
+      artwork.public_url ||
+      artwork.fileUrl ||
+      artwork.file_url ||
+      artwork.downloadUrl ||
+      artwork.download_url ||
+      artwork.url ||
+      artwork.src;
+    if (nestedArtwork && nestedArtwork !== 'undefined' && nestedArtwork !== 'null') {
+      return nestedArtwork;
+    }
+  }
+  
+  // Fallback to artist avatar if artist is an object
+  const artist = track.artist;
+  if (artist && typeof artist !== 'string' && artist.avatarUrl) {
+    return artist.avatarUrl;
+  }
+  
+  return '';
 }
 
 function getTrackDuration(track: TrackSummary | string): number {
@@ -59,6 +111,7 @@ interface SortableTrackRowProps {
   index: number;
   isOwner: boolean;
   onRemove: (trackId: string) => void;
+  onPlay: (index: number) => void;
 }
 
 const SortableTrackRow: FC<SortableTrackRowProps> = ({
@@ -66,6 +119,7 @@ const SortableTrackRow: FC<SortableTrackRowProps> = ({
   index,
   isOwner,
   onRemove,
+  onPlay,
 }) => {
   const trackId = getTrackId(track);
   const {
@@ -89,7 +143,16 @@ const SortableTrackRow: FC<SortableTrackRowProps> = ({
       ref={setNodeRef}
       style={style}
       className={`${s.trackRow} ${isDragging ? s.trackRowDragging : ''}`}
+      onClick={() => onPlay(index)}
       data-testid={`playlist-track-${trackId}`}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPlay(index);
+        }
+      }}
     >
       {/* Drag Handle */}
       {isOwner && (
@@ -99,15 +162,14 @@ const SortableTrackRow: FC<SortableTrackRowProps> = ({
           {...listeners}
           data-testid={`playlist-track-drag-${trackId}`}
           aria-label="Drag to reorder"
+          type="button"
+          onClick={(e) => e.stopPropagation()}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 6h2v2H8zm6 0h2v2h-2zM8 11h2v2H8zm6 0h2v2h-2zM8 16h2v2H8zm6 0h2v2h-2z" />
           </svg>
         </button>
       )}
-
-      {/* Position Number */}
-      <span className={s.position}>{index + 1}</span>
 
       {/* Track Artwork */}
       <div className={s.trackArtwork}>
@@ -137,9 +199,13 @@ const SortableTrackRow: FC<SortableTrackRowProps> = ({
       {isOwner && (
         <button
           className={s.removeBtn}
-          onClick={() => onRemove(trackId)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(trackId);
+          }}
           data-testid={`playlist-track-remove-${trackId}`}
           aria-label="Remove track"
+          type="button"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -159,6 +225,7 @@ interface PlaylistTrackListProps {
   onReorder: (trackIds: string[]) => void;
   onRemove: (trackId: string) => void;
   onAddTracks: () => void;
+  onTrackPlay: (index: number) => void;
 }
 
 export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
@@ -168,6 +235,7 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
   onReorder,
   onRemove,
   onAddTracks,
+  onTrackPlay,
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -175,7 +243,7 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
   );
 
   const trackIds = useMemo(() => tracks.map(getTrackId), [tracks]);
-  const isAtLimit = trackCount >= 500;
+  const isAtLimit = tracks.length >= 500;
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -208,7 +276,7 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
             : 'This playlist doesn\'t have any tracks yet.'}
         </p>
         {isOwner && (
-          <button className={s.addTracksBtn} onClick={onAddTracks} data-testid="playlist-add-first-track">
+          <button className={s.addTracksBtn} onClick={onAddTracks} data-testid="playlist-add-first-track" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
@@ -219,18 +287,20 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
     );
   }
 
+  const displayTrackCount = tracks.length;
+
   return (
     <div className={s.trackList} data-testid="playlist-track-list">
       {/* Header */}
       <div className={s.listHeader}>
         <h2 className={s.listTitle}>
           Tracks
-          <span className={s.listCount}>{trackCount}</span>
+          <span className={s.listCount}>{displayTrackCount}</span>
         </h2>
         {isOwner && (
           <div className={s.listActions}>
             <span className={s.limitIndicator}>
-              {trackCount}/500
+              {displayTrackCount}/500
             </span>
             <button
               className={s.addTracksBtn}
@@ -238,6 +308,7 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
               disabled={isAtLimit}
               title={isAtLimit ? 'Track limit reached (500)' : 'Add tracks'}
               data-testid="playlist-add-tracks"
+              type="button"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -262,6 +333,7 @@ export const PlaylistTrackList: FC<PlaylistTrackListProps> = ({
               index={index}
               isOwner={isOwner}
               onRemove={onRemove}
+              onPlay={onTrackPlay}
             />
           ))}
         </SortableContext>

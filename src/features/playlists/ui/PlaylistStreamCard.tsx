@@ -4,10 +4,20 @@ import { type FC, useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/constants/routes';
 import { usePlayerStore } from '@/features/player/model/playerStore';
+import { playlistsRepository } from '../api/playlistsRepository';
+import { useTrack } from '@/features/tracks/model/trackQueries';
 import type { Playlist, TrackSummary } from '../model/playlist';
 import s from './PlaylistStreamCard.module.scss';
+import { useLikePlaylist, useUnlikePlaylist } from '../model/playlistQueries';
 
 const MAX_VISIBLE_TRACKS = 5;
+
+type TrackOrId = TrackSummary | string;
+
+function getTrackId(track: TrackOrId): string {
+  if (typeof track === 'string') return track;
+  return (track as any)._id || (track as any).id;
+}
 
 function getCreatorName(creator: Playlist['creator']): string {
   if (typeof creator === 'string') return '';
@@ -20,6 +30,7 @@ function getCreatorPermalink(creator: Playlist['creator']): string {
 }
 
 function timeAgo(dateStr: string): string {
+  if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'just now';
@@ -40,15 +51,30 @@ interface PlaylistStreamCardProps {
   className?: string;
 }
 
+/* ─── Track Item with Dynamic Loading ─── */
+interface StreamTrackItemProps {
+  track: TrackOrId;
+  index: number;
+}
+
+const StreamTrackItem: FC<StreamTrackItemProps> = ({ track: incomingTrack, index }) => {
+  const isStringId = typeof incomingTrack === 'string';
+  const { data: fetchedTrack } = useTrack(isStringId ? incomingTrack : undefined);
+  const track = isStringId ? fetchedTrack || incomingTrack : incomingTrack;
+  
+  const id = getTrackId(track as any);
+  const title = typeof track === 'string' ? 'Loading...' : track.title;
+  
+  // user only wants the name, no index or artist ID
+  return (
+    <div key={id} className={s.trackItem}>
+      <span className={s.trackTitle}>{title}</span>
+    </div>
+  );
+};
+
 /**
  * Full-width SoundCloud-style playlist card as seen on the Profile > Playlists tab.
- * Matches the production SoundCloud layout:
- *  - Play button (large, orange)
- *  - Creator name, playlist title, time ago
- *  - Waveform placeholder
- *  - Numbered track list (first 5)
- *  - "View N tracks" toggle
- *  - Action buttons row
  */
 export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
   playlist,
@@ -60,66 +86,117 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
   const [showAllTracks, setShowAllTracks] = useState(false);
   const playContext = usePlayerStore(s => s.playContext);
 
-  const tracks = (playlist.tracks || []) as (TrackSummary | string)[];
+  const tracks = (playlist.tracks || []) as TrackOrId[];
   const visibleTracks = showAllTracks ? tracks : tracks.slice(0, MAX_VISIBLE_TRACKS);
   const hasMoreTracks = tracks.length > MAX_VISIBLE_TRACKS;
   const creatorName = getCreatorName(playlist.creator);
   const creatorPermalink = getCreatorPermalink(playlist.creator);
 
-  const handlePlay = (e: React.MouseEvent) => {
+  const handlePlay = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (tracks.length === 0) return;
-    const resolvedTracks = tracks.filter(t => typeof t !== 'string').map((t: any) => ({
-      id: t._id || t.id,
-      title: t.title,
-      artist: t.artist?.displayName || t.artist || '',
-      artworkUrl: t.artworkUrl || playlist.artworkUrl || '',
-      duration: t.duration || 0,
-      streamUrl: t.streamUrl || t.hlsUrl || t.audioUrl || '',
-      hlsUrl: t.hlsUrl || t.audioUrl || '',
-    }));
-    
-    if (resolvedTracks.length === 0) return;
 
-    playContext(resolvedTracks, 0, {
-      type: playlist.releaseType === 'album' ? 'album' : 'playlist',
-      id: playlist._id,
-      title: playlist.title,
-    });
+    try {
+      // Fetch the full playlist so tracks have populated stream URLs
+      const fullPlaylist = await playlistsRepository.getPlaylistById(playlist._id);
+      const fullTracks = (fullPlaylist.tracks || []) as any[];
+
+      if (fullTracks.length === 0) return;
+
+      const resolvedTracks = fullTracks.map((t: any) => {
+        if (typeof t === 'string') {
+          return {
+            id: t,
+            title: 'Loading...',
+            artist: '',
+            artworkUrl: '',
+            duration: 0,
+            streamUrl: '',
+            hlsUrl: '',
+          };
+        }
+        const hls = t.hlsUrl || t.hls_url || t.audioUrl || t.audio_url || '';
+        const stream = t.streamUrl || t.stream_url || hls || '';
+        const artwork = t.artworkUrl || t.artwork_url || t.artwork || '';
+        const artistObj = t.artist;
+        let artistName = 'Unknown Artist';
+        if (typeof artistObj === 'string') {
+          artistName = artistObj;
+        } else if (artistObj) {
+          artistName = artistObj.displayName || artistObj.permalink || artistObj.username || 'Unknown Artist';
+        }
+
+        const trackId = t._id || t.id || (typeof t === 'string' ? t : '');
+
+        return {
+          id: trackId,
+          title: t.title || 'Untitled',
+          artist: artistName,
+          artworkUrl: artwork,
+          duration: t.duration || 0,
+          streamUrl: stream,
+          hlsUrl: hls,
+        };
+      });
+
+      const firstPlayableIndex = resolvedTracks.findIndex(t => t.streamUrl || t.hlsUrl);
+      const startIndex = firstPlayableIndex === -1 ? 0 : firstPlayableIndex;
+
+      playContext(resolvedTracks, startIndex, {
+        type: fullPlaylist.releaseType === 'album' ? 'album' : 'playlist',
+        id: fullPlaylist._id,
+        title: fullPlaylist.title,
+      });
+    } catch (err) {
+      console.error('[PlaylistStreamCard] Failed to fetch playlist for playback:', err);
+    }
+  };
+
+  const likeMutation = useLikePlaylist();
+  const unlikeMutation = useUnlikePlaylist();
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (playlist.isLiked) {
+      unlikeMutation.mutate(playlist._id);
+    } else {
+      likeMutation.mutate(playlist._id);
+    }
   };
 
   return (
     <div className={[s.card, className].filter(Boolean).join(' ')} data-testid={"playlist-stream-" + playlist._id}>
       <div className={s.top}>
-        <Link href={ROUTES.PLAYLIST(playlist._id)} className={s.artworkLink}>
-          <div className={s.artwork}>
-            {playlist.artworkUrl ? (
-              <img src={playlist.artworkUrl} alt={playlist.title} className={s.artworkImg} />
-            ) : (
-              <div className={s.artworkPlaceholder}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-                  <path d="M9 18V5l12-2v13M6 18a3 3 0 100-6 3 3 0 000 6zM18 16a3 3 0 100-6 3 3 0 000 6z" />
-                </svg>
-              </div>
-            )}
+        <div className={s.artworkContainer}>
+          <Link href={ROUTES.PLAYLIST(playlist._id)} className={s.artworkLink}>
+            <div className={s.artwork}>
+              {playlist.artworkUrl ? (
+                <img src={playlist.artworkUrl} alt={playlist.title} className={s.artworkImg} />
+              ) : (
+                <div className={s.artworkPlaceholder}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+                    <path d="M9 18V5l12-2v13M6 18a3 3 0 100-6 3 3 0 000 6zM18 16a3 3 0 100-6 3 3 0 000 6z" />
+                  </svg>
+                </div>
+              )}
 
-            {/* Private indicator */}
-            {playlist.isPrivate && (
-              <span className={s.privateBadge}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" />
-                </svg>
-              </span>
-            )}
-
-            {/* Play button */}
-            <div className={s.playBtn} onClick={handlePlay}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
-                <polygon points="6 3 20 12 6 21 6 3" />
-              </svg>
+              {playlist.isPrivate && (
+                <span className={s.privateBadge}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 17c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" />
+                  </svg>
+                </span>
+              )}
             </div>
-          </div>
-        </Link>
+          </Link>
+          <button className={s.playBtn} onClick={handlePlay} data-testid="stream-play-btn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </button>
+        </div>
 
         <div className={s.headerContent}>
           <div className={s.headerMeta}>
@@ -132,7 +209,6 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
             {playlist.title}
           </Link>
 
-          {/* Waveform placeholder */}
           <div className={s.waveform}>
             <div className={s.waveformBars}>
               {Array.from({ length: 60 }).map((_, i) => (
@@ -147,30 +223,15 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
         </div>
       </div>
 
-      {/* ─── Track List ─── */}
       {tracks.length > 0 && (
         <div className={s.trackList}>
-          {visibleTracks.map((track, idx) => {
-            const id = typeof track === 'string' ? track : track._id;
-            const title = typeof track === 'string' ? 'Loading...' : track.title;
-            const artistName = typeof track === 'string'
-              ? ''
-              : track.artist?.displayName || '';
-
-            return (
-              <div key={id} className={s.trackItem}>
-                <span className={s.trackNum}>{idx + 1}</span>
-                <span className={s.trackDot}>·</span>
-                {artistName && (
-                  <>
-                    <span className={s.trackArtist}>{artistName}</span>
-                    <span className={s.trackDot}>·</span>
-                  </>
-                )}
-                <span className={s.trackTitle}>{title}</span>
-              </div>
-            );
-          })}
+          {visibleTracks.map((track, idx) => (
+            <StreamTrackItem 
+              key={getTrackId(track)} 
+              track={track} 
+              index={idx} 
+            />
+          ))}
 
           {hasMoreTracks && !showAllTracks && (
             <button
@@ -184,7 +245,6 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
         </div>
       )}
 
-      {/* ─── Action Buttons ─── */}
       <div className={s.actions}>
         {onShare && (
           <button className={s.actionBtn} onClick={onShare} aria-label="Share">
@@ -209,8 +269,12 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
             </svg>
           </button>
         )}
-        <button className={s.actionBtn} aria-label="Like">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <button 
+          className={`${s.actionBtn} ${playlist.isLiked ? s.actionBtnActive : ''}`} 
+          onClick={handleLike} 
+          aria-label="Like"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={playlist.isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
           </svg>
         </button>

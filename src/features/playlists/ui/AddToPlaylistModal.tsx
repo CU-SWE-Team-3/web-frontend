@@ -206,6 +206,9 @@ export const AddToPlaylistModal: FC<AddToPlaylistModalProps> = ({
                 filtered.map((pl: Playlist) => {
                   const alreadyAdded = isTrackInPlaylist(pl);
                   const isSelected = selectedPlaylistId === pl._id;
+                  const displayTrackCount = Array.isArray(pl.tracks)
+                    ? pl.tracks.length
+                    : pl.trackCount || 0;
 
                   return (
                     <div
@@ -238,7 +241,7 @@ export const AddToPlaylistModal: FC<AddToPlaylistModalProps> = ({
                       {/* Info */}
                       <div className={s.rowInfo}>
                         <span className={s.rowTitle}>{pl.title}</span>
-                        <span className={s.rowCount}>{pl.trackCount}</span>
+                        <span className={s.rowCount}>{displayTrackCount}</span>
                       </div>
 
                       {/* Add button */}

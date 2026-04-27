@@ -16,6 +16,12 @@
 .artworkLink {
   flex-shrink: 0;
   text-decoration: none;
+  display: block;
+}
+
+.artworkContainer {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .artwork {
@@ -223,10 +229,14 @@
   }
 
   &:hover {
-    color: var(--sc-white);
     background: var(--sc-bg-dark-elevated);
     z-index: 1;
   }
+}
+
+.actionBtnActive {
+  color: #f50 !important;
+  border-color: #f50 !important;
 }
 
 /* ─── Responsive ─── */

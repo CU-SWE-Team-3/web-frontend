@@ -57,7 +57,7 @@ function getTrackId(t: TrackSummary | string): string {
 const SortableEditTrack: FC<SortableEditTrackProps> = ({ track, onRemove }) => {
   const id = getTrackId(track);
   const title = typeof track === 'string' ? 'Loading...' : track.title;
-  const artist = typeof track === 'string' ? '' : track.artist?.displayName || '';
+  const artist = typeof track === 'string' ? '' : (track.artist as any)?.displayName || '';
   const artwork = typeof track === 'string' ? '' : track.artworkUrl || '';
   const duration = typeof track === 'string' ? 0 : track.duration || 0;
 
@@ -106,6 +106,7 @@ interface EditPlaylistModalProps {
   onSave: (input: UpdatePlaylistInput) => void;
   onTracksChange: (trackIds: string[]) => void;
   onArtworkUpload: (file: File) => void;
+  onDelete?: () => void;
   isSaving?: boolean;
   isUploadingArtwork?: boolean;
 }
@@ -117,6 +118,7 @@ export const EditPlaylistModal: FC<EditPlaylistModalProps> = ({
   onSave,
   onTracksChange,
   onArtworkUpload,
+  onDelete,
   isSaving,
   isUploadingArtwork,
 }) => {
@@ -458,6 +460,18 @@ export const EditPlaylistModal: FC<EditPlaylistModalProps> = ({
         <div className={s.footer}>
           <span className={s.requiredNote}>
             <span className={s.req}>*</span> Required fields
+            {onDelete && (
+              <button
+                className={s.deleteLink}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDelete();
+                }}
+                data-testid="edit-modal-delete-btn"
+              >
+                Delete playlist
+              </button>
+            )}
           </span>
           <div className={s.footerActions}>
             <button className={s.cancelBtn} onClick={onClose}>Cancel</button>

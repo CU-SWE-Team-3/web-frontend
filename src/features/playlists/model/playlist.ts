@@ -29,7 +29,9 @@ export interface TrackSummary {
   repostCount: number;
   commentCount: number;
   isPublic: boolean;
-  artist: TrackArtist;
+  hlsUrl?: string;
+  streamUrl?: string;
+  artist: TrackArtist | string;
 }
 
 export interface Playlist {
@@ -55,6 +57,8 @@ export interface Playlist {
   playCount: number;
   likeCount: number;
   repostCount: number;
+  isLiked?: boolean;
+  isReposted?: boolean;
   createdAt: string;
   updatedAt: string;
 }

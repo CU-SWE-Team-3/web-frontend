@@ -1,40 +1,182 @@
-/* PlaylistDetailHeader Styles */
+/* PlaylistDetailHeader Styles - Match SoundCloud exact layout */
 
-.header {
+.headerContainer {
   display: flex;
-  gap: var(--sc-space-8);
-  padding: var(--sc-space-8) 0;
-  border-bottom: 1px solid var(--sc-border);
+  flex-direction: column;
+}
+
+/* ─── Top Hero Banner ─── */
+.heroBanner {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #787456, #595636);
+  padding: 30px;
+  min-height: 380px;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    gap: var(--sc-space-6);
+    flex-direction: column-reverse;
+    padding: 20px;
+    align-items: center;
+    gap: 30px;
+    min-height: auto;
   }
 }
 
-/* ─── Artwork ─── */
-.artwork {
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   position: relative;
-  width: 280px;
-  height: 280px;
-  border-radius: var(--sc-radius-lg);
-  overflow: hidden;
+}
+
+.heroTopRow {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.playBtn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #f50;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   flex-shrink: 0;
-  background: var(--sc-bg-dark-elevated);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    background-color: #ff661a;
+    transform: scale(1.05);
+  }
+
+  svg {
+    width: 28px;
+    height: 28px;
+    margin-left: 4px; /* Optical center alignment */
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.titleText {
+  background-color: #111;
+  color: white;
+  padding: 4px 8px;
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+.creatorLine {
+  display: flex;
+}
+
+.creatorLink {
+  background-color: #111;
+  color: #ccc;
+  padding: 4px 8px;
+  display: inline-block;
+  font-size: 16px;
+  text-decoration: none;
+
+  &:hover {
+    color: white;
+  }
+}
+
+.updatedDate {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  
+  @media (max-width: 768px) {
+    display: none; /* Hide on mobile to save space */
+  }
+}
+
+.statsCircle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
 
   @media (max-width: 768px) {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
+    display: none; /* Hide circle on smaller displays */
   }
+}
+
+.statsNumber {
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.statsLabel {
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.statsDuration {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* ─── Hero Right (Artwork) ─── */
+.heroRight {
+  flex-shrink: 0;
+  margin-left: 20px;
+  position: relative;
+  width: 320px;
+  height: 320px;
+
+  @media (max-width: 768px) {
+    width: 250px;
+    height: 250px;
+    margin-left: 0;
+  }
+}
+
+.artwork {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #222;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .artworkEditable {
   cursor: pointer;
-
-  &:hover .artworkOverlay {
-    opacity: 1;
-  }
 }
 
 .artworkImg {
@@ -50,31 +192,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sc-gray-500);
-  background: linear-gradient(135deg, var(--sc-bg-dark-elevated), var(--sc-bg-dark-surface));
+  background: linear-gradient(135deg, #333, #111);
+  color: #555;
 }
 
-.artworkOverlay {
+.replaceImageOverlay {
   position: absolute;
-  inset: 0;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111;
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: var(--sc-space-2);
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--sc-white);
-  font-size: var(--sc-font-size-sm);
-  font-family: var(--sc-font-family);
-  opacity: 0;
-  transition: opacity var(--sc-transition-normal);
+  align-items: center;
 }
 
 .artworkSpinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--sc-white);
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -83,206 +226,147 @@
   to { transform: rotate(360deg); }
 }
 
-/* ─── Info ─── */
-.info {
-  flex: 1;
-  min-width: 0;
+/* ─── Bottom Actions & Details ─── */
+.bottomSection {
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: var(--sc-space-3);
+  gap: 20px;
 }
 
-.topRow {
+/* Action Row */
+.actionRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--sc-space-2);
+  border-bottom: 1px solid var(--sc-border, #333);
+  padding-bottom: 15px;
 }
 
-.releaseTypeBadge {
+.mainActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: var(--sc-radius-full);
-  background: var(--sc-bg-dark-elevated);
-  border: 1px solid var(--sc-border);
-  color: var(--sc-gray-400);
-  font-size: var(--sc-font-size-xs);
-  font-family: var(--sc-font-family);
-  font-weight: var(--sc-font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--sc-border, #444);
+  background-color: #222; /* very dark gray for button */
+  color: #ccc;
+  font-size: 13px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: white;
+    border-color: #666;
+  }
 }
 
-.privateBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 10px;
-  border-radius: var(--sc-radius-full);
-  background: rgba(207, 0, 0, 0.15);
-  color: var(--sc-danger);
-  font-size: var(--sc-font-size-xs);
-  font-family: var(--sc-font-family);
-  font-weight: var(--sc-font-weight-medium);
+.actionBtnActive {
+  color: #f50 !important;
+  border-color: #f50 !important;
+  background-color: rgba(255, 85, 0, 0.05) !important;
+
+  &:hover {
+    background-color: rgba(255, 85, 0, 0.1) !important;
+  }
 }
 
-.title {
-  font-size: var(--sc-font-size-3xl);
-  font-weight: var(--sc-font-weight-bold);
-  color: var(--sc-white);
-  margin: 0;
-  line-height: var(--sc-line-height-tight);
-  font-family: var(--sc-font-family);
+.rightActions {
+  /* For likes/reposts counts later if needed */
 }
 
-/* ─── Creator ─── */
-.creator {
+/* Details Row */
+.detailsRow {
   display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
+  gap: 30px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
-.creatorAvatar {
-  width: 24px;
-  height: 24px;
+/* Sidebar Profile */
+.sidebar {
+  width: 120px; /* matching standard SC sidebar avatar */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sidebarAvatar {
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.creatorName {
-  font-size: var(--sc-font-size-md);
-  color: var(--sc-gray-400);
+.sidebarAvatarPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #333;
+}
+
+.sidebarCreatorName {
+  font-size: 14px;
+  color: white;
   text-decoration: none;
-  font-family: var(--sc-font-family);
-  transition: color var(--sc-transition-fast);
+  font-weight: 500;
 
   &:hover {
-    color: var(--sc-white);
+    text-decoration: underline;
   }
 }
 
-/* ─── Stats ─── */
-.stats {
+/* Main Content area */
+.mainContent {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
+  flex-direction: column;
+  gap: 15px;
+}
+
+.descriptionBox {
+  background-color: #222;
+  padding: 15px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tagsRow {
+  display: flex;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
-.stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--sc-font-size-sm);
-  color: var(--sc-gray-500);
-  font-family: var(--sc-font-family);
+.tagElement {
+  background-color: #333;
+  color: #ccc;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
-.statDot {
-  color: var(--sc-gray-500);
-  font-size: var(--sc-font-size-sm);
-}
-
-/* ─── Action Buttons ─── */
-.actionButtons {
-  display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
-  flex-wrap: wrap;
-}
-
-.shareBtn,
-.editBtn,
-.deleteBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--sc-radius-md);
-  font-size: var(--sc-font-size-sm);
-  font-family: var(--sc-font-family);
-  font-weight: var(--sc-font-weight-medium);
-  cursor: pointer;
-  transition: all var(--sc-transition-fast);
-  border: 1px solid var(--sc-border);
-  background: transparent;
-  color: var(--sc-gray-400);
-
-  &:hover {
-    color: var(--sc-white);
-    border-color: var(--sc-gray-500);
-    background: var(--sc-bg-dark-elevated);
-  }
-}
-
-.deleteBtn {
-  &:hover {
-    color: var(--sc-danger);
-    border-color: var(--sc-danger);
-    background: rgba(207, 0, 0, 0.1);
-  }
-}
-
-/* ─── Secret Link ─── */
-.secretLinkRow {
-  display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
-  padding: var(--sc-space-2) var(--sc-space-3);
-  background: var(--sc-bg-dark-elevated);
-  border-radius: var(--sc-radius-md);
-}
-
-.secretLabel {
-  font-size: var(--sc-font-size-sm);
-  color: var(--sc-gray-500);
-  font-family: var(--sc-font-family);
-}
-
-.copySecretBtn {
-  background: none;
-  border: none;
-  color: var(--sc-primary);
-  font-size: var(--sc-font-size-sm);
-  font-family: var(--sc-font-family);
-  cursor: pointer;
-  transition: color var(--sc-transition-fast);
-
-  &:hover {
-    color: var(--sc-primary-hover);
-  }
-}
-
-/* ─── Description ─── */
-.description {
-  font-size: var(--sc-font-size-md);
-  color: var(--sc-gray-400);
-  line-height: var(--sc-line-height-normal);
-  font-family: var(--sc-font-family);
-  margin: 0;
+.descriptionText {
+  color: #ccc;
+  font-size: 14px;
+  line-height: 1.5;
   white-space: pre-wrap;
-}
-
-/* ─── Meta Tags ─── */
-.metaRow {
-  display: flex;
-  align-items: center;
-  gap: var(--sc-space-2);
-  flex-wrap: wrap;
-}
-
-.metaTag {
-  display: inline-flex;
-  padding: 2px 8px;
-  border-radius: var(--sc-radius-full);
-  background: var(--sc-bg-dark-elevated);
-  color: var(--sc-gray-400);
-  font-size: var(--sc-font-size-xs);
-  font-family: var(--sc-font-family);
-}
-
-.metaDate {
-  font-size: var(--sc-font-size-xs);
-  color: var(--sc-gray-500);
-  font-family: var(--sc-font-family);
 }

@@ -79,26 +79,15 @@ export const playlistsRepository = {
   },
 
   /**
-   * PATCH /playlists/:id
+   * PUT /playlists/:id/tracks
    * Replace the entire tracks array (reorder, add, remove).
    */
   async updateTracks(
     id: string,
     trackIds: string[],
   ): Promise<Playlist> {
-    try {
-      const response = await apiClient.patch(`/playlists/${id}`, {
-        tracks: trackIds,
-      });
-      return response.data?.data?.playlist || response.data?.data;
-    } catch (err: any) {
-      if (err.response && err.response.status === 404) {
-        // Fallback to the old endpoint if PATCH doesn't accept tracks
-        const response2 = await apiClient.put(`/playlists/${id}/tracks`, { tracks: trackIds });
-        return response2.data?.data?.playlist || response2.data?.data;
-      }
-      throw err;
-    }
+    const response = await apiClient.put(`/playlists/${id}/tracks`, { tracks: trackIds });
+    return response.data?.data?.playlist || response.data?.data || response.data;
   },
 
   /**
@@ -113,8 +102,10 @@ export const playlistsRepository = {
       `/playlists/${id}/artwork`,
       formData,
       {
-        headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60_000,
+        headers: {
+          'Content-Type': undefined, // Let browser set multipart boundary
+        },
       },
     );
     return response.data?.data?.playlist || response.data?.data;
@@ -133,5 +124,37 @@ export const playlistsRepository = {
 
     const response = await apiClient.get(`/playlists/${id}/embed`, { params });
     return response.data?.data || response.data;
+  },
+
+  /**
+   * Interaction: LIKE
+   */
+  async likePlaylist(id: string): Promise<void> {
+    await apiClient.post(`/tracks/${id}/like`, { targetModel: 'Playlist' });
+  },
+
+  /**
+   * Interaction: UNLIKE
+   */
+  async unlikePlaylist(id: string): Promise<void> {
+    await apiClient.delete(`/tracks/${id}/like`, { 
+      data: { targetModel: 'Playlist' } 
+    });
+  },
+
+  /**
+   * Interaction: REPOST
+   */
+  async repostPlaylist(id: string): Promise<void> {
+    await apiClient.post(`/tracks/${id}/repost`, { targetModel: 'Playlist' });
+  },
+
+  /**
+   * Interaction: UNREPOST
+   */
+  async unrepostPlaylist(id: string): Promise<void> {
+    await apiClient.delete(`/tracks/${id}/repost`, { 
+      data: { targetModel: 'Playlist' } 
+    });
   },
 };

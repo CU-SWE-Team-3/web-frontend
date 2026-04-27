@@ -80,6 +80,11 @@
   padding: var(--sc-space-2) var(--sc-space-3);
   border-radius: var(--sc-radius-md);
   transition: background var(--sc-transition-fast);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 
   &:hover {
     background: var(--sc-bg-dark-elevated);

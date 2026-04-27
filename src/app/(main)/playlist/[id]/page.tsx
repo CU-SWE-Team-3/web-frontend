@@ -13,6 +13,7 @@ import {
   useUpdatePlaylistTracks,
   useUploadPlaylistArtwork,
 } from '@/features/playlists/model/playlistQueries';
+import { usePlayerStore } from '@/features/player/model/playerStore';
 import { PlaylistDetailHeader } from '@/features/playlists/ui/PlaylistDetailHeader';
 import { PlaylistTrackList } from '@/features/playlists/ui/PlaylistTrackList';
 import { EditPlaylistModal } from '@/features/playlists/ui/EditPlaylistModal';
@@ -26,6 +27,38 @@ import s from './PlaylistPage.module.scss';
 
 function getTrackId(track: TrackSummary | string): string {
   return typeof track === 'string' ? track : track._id;
+}
+
+function getTrackLookup(track: TrackSummary | string): string {
+  return typeof track === 'string'
+    ? track
+    : track.permalink || track._id;
+}
+
+function getImageUrl(value: any): string {
+  if (!value || value === 'undefined' || value === 'null') return '';
+  if (typeof value === 'string') return value;
+  return (
+    value.artworkUrl ||
+    value.artwork_url ||
+    value.coverUrl ||
+    value.cover_url ||
+    value.imageUrl ||
+    value.image_url ||
+    value.thumbnailUrl ||
+    value.thumbnail_url ||
+    value.secureUrl ||
+    value.secure_url ||
+    value.publicUrl ||
+    value.public_url ||
+    value.fileUrl ||
+    value.file_url ||
+    value.downloadUrl ||
+    value.download_url ||
+    value.url ||
+    value.src ||
+    ''
+  );
 }
 
 function isOwnerOfPlaylist(playlist: Playlist, userId?: string): boolean {
@@ -60,6 +93,7 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
   const deletePlaylist = useDeletePlaylist();
   const updateTracks = useUpdatePlaylistTracks();
   const uploadArtwork = useUploadPlaylistArtwork();
+  const playContext = usePlayerStore((s) => s.playContext);
 
   // Modal state
   const [editOpen, setEditOpen] = useState(false);
@@ -162,11 +196,70 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
         { id: playlist._id, file },
         {
           onSuccess: () => showToast('Artwork updated'),
-          onError: () => showToast('Failed to upload artwork', 'error'),
+          onError: (error: any) => {
+            const msg = error?.response?.data?.message || error.message || 'Failed to upload artwork';
+            showToast(msg, 'error');
+            console.error('[PlaylistPage] Artwork upload failed:', error);
+          }
         },
       );
     },
     [playlist, uploadArtwork],
+  );
+  
+  const handleTrackPlay = useCallback(
+    (index: number) => {
+      if (!playlist || playlist.tracks.length === 0) return;
+      
+      const resolvedTracks = playlist.tracks.map((t: any) => {
+        if (typeof t === 'string') {
+          return {
+            id: t,
+            title: 'Loading...',
+            artist: '',
+            artworkUrl: '',
+            duration: 0,
+            streamUrl: '',
+            hlsUrl: '',
+          };
+        }
+        
+        // Robust mapping for playback URLs
+        const hls = t.hlsUrl || t.hls_url || t.audioUrl || t.audio_url || '';
+        const stream = t.streamUrl || t.stream_url || hls || '';
+        
+        // Robust mapping for Metadata
+        const artwork = getImageUrl(t.artworkUrl || t.artwork_url || t.artwork || t.coverUrl || t.cover_url || t.imageUrl || t.image_url || t.thumbnailUrl || t.thumbnail_url);
+        const artistObj = t.artist;
+        let artistName = 'Unknown Artist';
+        if (typeof artistObj === 'string') {
+          artistName = artistObj;
+        } else if (artistObj) {
+          artistName = artistObj.displayName || artistObj.permalink || artistObj.username || 'Unknown Artist';
+        }
+
+        const trackId = t._id || t.id || (typeof t === 'string' ? t : '');
+
+        return {
+          id: trackId,
+          title: t.title || 'Untitled',
+          artist: artistName,
+          artworkUrl: artwork,
+          duration: t.duration || 0,
+          streamUrl: stream,
+          hlsUrl: hls,
+        };
+      });
+
+      console.log(`[PlaylistPage] Starting playback for index ${index}`, resolvedTracks[index]);
+
+      playContext(resolvedTracks, index, {
+        type: playlist.releaseType === 'album' ? 'album' : 'playlist',
+        id: playlist._id,
+        title: playlist.title,
+      });
+    },
+    [playlist, playContext]
   );
 
   // ─── Loading State ───────────────────────────────────────────────────────
@@ -243,16 +336,18 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
           onDelete={() => setDeleteOpen(true)}
           onShare={() => setShareOpen(true)}
           onArtworkUpload={handleArtworkUpload}
+          onPlay={() => handleTrackPlay(0)}
           isUploadingArtwork={uploadArtwork.isPending}
         />
 
         <PlaylistTrackList
           tracks={playlist.tracks}
           isOwner={isOwner}
-          trackCount={playlist.trackCount}
+          trackCount={playlist.tracks.length}
           onReorder={handleReorder}
           onRemove={handleRemoveTrack}
           onAddTracks={() => setPickerOpen(true)}
+          onTrackPlay={handleTrackPlay}
         />
       </div>
 
@@ -266,6 +361,10 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
             onSave={handleEdit}
             onTracksChange={handleReorder}
             onArtworkUpload={handleArtworkUpload}
+            onDelete={() => {
+              setEditOpen(false);
+              setDeleteOpen(true);
+            }}
             isSaving={updatePlaylist.isPending}
             isUploadingArtwork={uploadArtwork.isPending}
           />
@@ -283,7 +382,7 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
             onClose={() => setPickerOpen(false)}
             onAdd={handleAddTracks}
             existingTrackIds={existingTrackIds}
-            currentTrackCount={playlist.trackCount}
+            currentTrackCount={playlist.tracks.length}
           />
         </>
       )}
