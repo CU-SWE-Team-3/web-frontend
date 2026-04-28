@@ -15,7 +15,7 @@ export const API_TIMEOUTS = {
 
 const apiClient = axios.create({
   // Replace this with your real backend URL when the backend team is ready
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,10 +44,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        // localStorage.removeItem('accessToken')
-        // DEV BYPASS: Temporarily disable kicking users out on 401 errors
-        console.warn('API returned 401 Unauthorized but skipped redirect for Dev Bypass');
-        // window.location.href = '/login'
+        localStorage.removeItem('accessToken')
+        window.location.href = '/login'
       }
     }
     return Promise.reject(error)

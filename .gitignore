@@ -16,6 +16,7 @@
 .env*
 !.env.example
 !.env*.example
+!.env.production
 
 # Debug logs
 *.log

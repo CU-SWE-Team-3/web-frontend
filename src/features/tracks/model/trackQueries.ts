@@ -111,15 +111,15 @@ export function useUploadTrack(
     UseMutationOptions<
       Track,
       Error,
-      { payload: UploadTrackInput; onProgress?: (progress: number) => void; audioFile?: File }
+      { payload: UploadTrackInput; onProgress?: (progress: number) => void; audioFile?: File; artworkFile?: File }
     >,
 ) {
   const queryClient = useQueryClient();
   const upsertPendingTrack = usePendingTracksStore((s) => s.upsertPendingTrack);
 
   return useMutation({
-    mutationFn: ({ payload, onProgress, audioFile }) =>
-      tracksRepository.uploadTrack(payload, onProgress, audioFile),
+    mutationFn: ({ payload, onProgress, audioFile, artworkFile }) =>
+      tracksRepository.uploadTrack(payload, onProgress, audioFile, artworkFile),
     ...options,
     onSuccess: (data, variables, onMutateResult, context) => {
       upsertPendingTrack(data);

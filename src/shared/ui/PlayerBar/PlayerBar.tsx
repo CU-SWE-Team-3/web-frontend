@@ -19,6 +19,7 @@ export interface PlayerBarProps {
     artist: string;
     artworkUrl: string;
   } | null;
+  contextTitle?: string | null;
   isPlaying?: boolean;
   currentTime?: number;
   duration?: number;
@@ -45,6 +46,7 @@ export interface PlayerBarProps {
 
 export const PlayerBar: FC<PlayerBarProps> = ({
   track,
+  contextTitle,
   isPlaying   = false,
   currentTime = 0,
   duration    = 0,
@@ -85,6 +87,9 @@ export const PlayerBar: FC<PlayerBarProps> = ({
 
         {/* Desktop: stacked title + artist */}
         <div className={s.trackInfo}>
+          {contextTitle && (
+            <span className={s.contextTitle}>Playing from: {contextTitle}</span>
+          )}
           <span className={s.trackTitle}>{track.title}</span>
           <span className={s.trackArtist}>{track.artist}</span>
         </div>

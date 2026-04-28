@@ -44,6 +44,32 @@ function isCurrentUserIdentifier(username: string): boolean {
 /**
  * Map a raw API track object to the local Track interface.
  */
+function getImageUrl(value: any): string {
+  if (!value || value === "undefined" || value === "null") return "";
+  if (typeof value === "string") return value;
+  return (
+    value.artworkUrl ||
+    value.artwork_url ||
+    value.coverUrl ||
+    value.cover_url ||
+    value.imageUrl ||
+    value.image_url ||
+    value.thumbnailUrl ||
+    value.thumbnail_url ||
+    value.secureUrl ||
+    value.secure_url ||
+    value.publicUrl ||
+    value.public_url ||
+    value.fileUrl ||
+    value.file_url ||
+    value.downloadUrl ||
+    value.download_url ||
+    value.url ||
+    value.src ||
+    ""
+  );
+}
+
 function mapApiTrack(t: any, fallbackArtist?: string): Track {
   const durationValue = typeof t.duration === "number"
     ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
@@ -55,6 +81,11 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
   } else if (!artistName) {
     artistName = fallbackArtist || "Unknown Artist";
   }
+
+  // Aligned with latest YAML spec
+  const hls = t.hlsUrl || t.hls_url || "";
+  const stream = t.streamUrl || t.stream_url || t.audioUrl || t.audio_url || hls || "";
+  const artwork = getImageUrl(t.artworkUrl || t.artwork_url || t.artwork || t.coverUrl || t.cover_url || t.imageUrl || t.image_url || t.thumbnailUrl || t.thumbnail_url);
 
   return {
     id: t._id || t.id,
@@ -68,16 +99,16 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     visibility: t.isPublic === false ? "Private" as const : "Public" as const,
     status: (t.processingState === "Finished" || t.status === "Finished" ? "Finished" : "Processing") as "Finished" | "Processing",
     audioFileName: t.audioFileName || t.fileName || "",
-    artworkUrl: t.artworkUrl || "",
+    artworkUrl: artwork,
     waveform: t.waveform || makeWaveform(),
     duration: durationValue,
-    createdAt: t.createdAt || "",
-    streamUrl: t.hlsUrl || t.streamUrl || "",
-    hlsUrl: t.hlsUrl || "",
-    playCount: t.playCount || 0,
-    likeCount: t.likeCount || 0,
-    repostCount: t.repostCount || 0,
-    commentCount: t.commentCount || 0,
+    createdAt: t.createdAt || t.created_at || "",
+    streamUrl: stream,
+    hlsUrl: hls,
+    playCount: t.playCount || t.play_count || 0,
+    likeCount: t.likeCount || t.like_count || 0,
+    repostCount: t.repostCount || t.repost_count || 0,
+    commentCount: t.commentCount || t.comment_count || 0,
   };
 }
 
@@ -86,6 +117,7 @@ export const tracksRepository = {
     payload: UploadTrackInput,
     onProgress?: (progress: number) => void,
     audioFile?: File,
+    artworkFile?: File,
   ): Promise<Track> {
     // ── Try real API first ──
     if (audioFile) {
@@ -166,6 +198,30 @@ export const tracksRepository = {
           isPublic: payload.visibility === "Public"
         }, { timeout: API_TIMEOUTS.uploadMetadata });
 
+        let uploadedArtworkUrl =
+          payload.artworkUrl || "https://images.unsplash.com/photo-1458560871784-56d23406c091?w=420&h=420&fit=crop";
+
+        if (artworkFile) {
+          const artworkData = new FormData();
+          artworkData.append("artwork", artworkFile);
+
+          const artworkResponse = await apiClient.patch(
+            `/tracks/${trackId}/artwork`,
+            artworkData,
+            {
+              timeout: API_TIMEOUTS.uploadMetadata,
+              headers: {
+                "Content-Type": undefined,
+              },
+            },
+          );
+
+          uploadedArtworkUrl =
+            artworkResponse.data?.data?.artworkUrl ||
+            artworkResponse.data?.artworkUrl ||
+            uploadedArtworkUrl;
+        }
+
         const durationFormatted = `${Math.floor(durationInSeconds / 60)}:${Math.floor(durationInSeconds % 60).toString().padStart(2, "0")}`;
 
         const authState = useAuthStore.getState();
@@ -185,7 +241,7 @@ export const tracksRepository = {
           visibility: payload.visibility,
           status: "Processing",
           audioFileName: payload.fileName,
-          artworkUrl: payload.artworkUrl || "https://images.unsplash.com/photo-1458560871784-56d23406c091?w=420&h=420&fit=crop",
+          artworkUrl: uploadedArtworkUrl,
           waveform: makeWaveform(),
           duration: durationFormatted,
           createdAt: new Date().toISOString(),
@@ -304,17 +360,17 @@ export const tracksRepository = {
     }
   },
 
-  async getTrackById(id: string): Promise<Track> {
+  async getTrackById(identifier: string): Promise<Track> {
     // ── Try real API first ──
     try {
-      console.log('[tracksRepository] Fetching track from API by id/permalink:', id);
-      const response = await apiClient.get(`/tracks/${id}`);
+      console.log('[tracksRepository] Fetching track from API by permalink:', identifier);
+      const response = await apiClient.get(`/tracks/${identifier}`);
       const t = response.data?.data?.track || response.data?.data || response.data;
       if (t) {
         return mapApiTrack(t);
       }
     } catch (err: any) {
-      console.warn('[tracksRepository] Primary /tracks/:id fetch failed:', err?.response?.status, err?.message);
+      console.warn('[tracksRepository] Primary /tracks/:permalink fetch failed:', err?.response?.status, err?.message);
     }
 
     // ── Fallback 1: check the logged-in user's own tracks ──
@@ -322,7 +378,10 @@ export const tracksRepository = {
       const fallbackResponse = await apiClient.get('/tracks/my-tracks');
       const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
       if (Array.isArray(apiTracks)) {
-        const foundTrack = apiTracks.find((t: any) => (t._id || t.id) === id);
+        const foundTrack = apiTracks.find((t: any) =>
+          (t.permalink || t._id || t.id) === identifier ||
+          (t._id || t.id) === identifier,
+        );
         if (foundTrack) {
           console.log('[tracksRepository] Track found in my-tracks fallback');
           return mapApiTrack(foundTrack);
@@ -334,8 +393,8 @@ export const tracksRepository = {
 
     // ── Fallback 2: try alternative single-track endpoints ──
     const altEndpoints = [
-      `/tracks/${id}/details`,
-      `/tracks/track/${id}`,
+      `/tracks/${identifier}/details`,
+      `/tracks/track/${identifier}`,
     ];
     for (const endpoint of altEndpoints) {
       try {
@@ -350,8 +409,8 @@ export const tracksRepository = {
       }
     }
 
-    // ── Fallback 3: search all users' tracks for the given ID ──
-    // This covers the case where the backend's /tracks/:id returns 500 for
+    // ── Fallback 3: search all users' tracks for the given permalink/ID ──
+    // This covers the case where the backend's /tracks/:permalink returns 500 for
     // valid tracks owned by other users.
     const userTrackEndpoints = [
       `/users/tracks?limit=200`,
@@ -362,7 +421,10 @@ export const tracksRepository = {
         const res = await apiClient.get(endpoint);
         const list = res.data?.data || res.data?.tracks || res.data || [];
         if (Array.isArray(list)) {
-          const found = list.find((t: any) => (t._id || t.id) === id);
+          const found = list.find((t: any) =>
+            (t.permalink || t._id || t.id) === identifier ||
+            (t._id || t.id) === identifier,
+          );
           if (found) {
             console.log(`[tracksRepository] Track found via bulk ${endpoint}`);
             return mapApiTrack(found);

@@ -15,6 +15,7 @@ import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 import { useDeleteTrack } from '@/features/tracks/model/trackQueries';
+import { AddToPlaylistModal } from '@/features/playlists';
 
 const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
@@ -478,52 +479,12 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       )}
 
       {/* Playlist Modal */}
-      {isPlaylistModalOpen && (
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.6)' }} onClick={() => setIsPlaylistModalOpen(false)} />
-          <div style={{
-            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999,
-            background: '#111', width: '100%', maxWidth: 440, borderRadius: 4, display: 'flex', flexDirection: 'column',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.7)', overflow: 'hidden'
-          }}>
-            <div style={{ padding: '24px 24px 0 24px' }}>
-              <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: '0 0 16px 0', borderBottom: '1px solid #333', paddingBottom: 16 }}>Create a playlist</h2>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', color: '#fff', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Playlist title <span style={{ color: '#f50' }}>*</span></label>
-                <input type="text" autoFocus style={{
-                  width: '100%', background: '#222', border: '1px solid #444', borderRadius: 4, padding: '8px 12px', color: '#fff', fontSize: 14, outline: 'none'
-                }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: '#fff', fontSize: 14, fontWeight: 700 }}>
-                  Privacy:
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input type="radio" name="privacy" defaultChecked style={{ accentColor: '#f50' }} /> Public
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                    <input type="radio" name="privacy" style={{ accentColor: '#f50' }} /> Private
-                  </label>
-                </div>
-                <button 
-                  onClick={() => setIsPlaylistModalOpen(false)}
-                  style={{
-                  background: '#fff', color: '#000', border: 'none', borderRadius: 4, padding: '6px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer'
-                }}>Save</button>
-              </div>
-            </div>
-            
-            <div style={{ background: '#222', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {track.artworkUrl && <img src={track.artworkUrl} alt="" style={{ width: 30, height: 30, objectFit: 'cover' }} />}
-                <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{track.title}</span>
-              </div>
-              <button onClick={() => setIsPlaylistModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#999', cursor: 'pointer', fontSize: 16 }}>
-                ✕
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      <AddToPlaylistModal
+        open={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        trackId={track.id}
+        trackTitle={track.title}
+      />
     </div>
   );
 };
