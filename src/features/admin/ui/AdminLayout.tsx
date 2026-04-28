@@ -4,6 +4,7 @@ import { type FC, type ReactNode } from 'react'
 import { AdminGuard } from './AdminGuard'
 import { AdminSidebar } from './AdminSidebar'
 import { AdminToastProvider } from './components/AdminToast'
+import { useAdminSocketUpdates } from '../hooks/useAdminSocketUpdates'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -11,6 +12,8 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: FC<AdminLayoutProps> = ({ children, pageTitle }) => {
+  useAdminSocketUpdates()
+
   return (
     <AdminGuard>
       <div style={{

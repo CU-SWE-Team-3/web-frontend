@@ -235,3 +235,30 @@
   background: var(--sc-border, rgba(255,255,255,0.08));
   margin: 4px 0;
 }
+
+/* ─── Notification Dot ─── */
+.notifDot {
+  position: absolute;
+  top: -1px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc-primary, #f50);
+  pointer-events: none;
+}
+
+/* ─── More Dropdown (scrollable) ─── */
+.moreDropdown {
+  max-height: 420px;
+  overflow-y: auto;
+  width: 220px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--sc-gray-700);
+    border-radius: 2px;
+  }
+}

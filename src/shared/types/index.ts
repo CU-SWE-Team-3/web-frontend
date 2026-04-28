@@ -1,4 +1,4 @@
-// ─── User ────────────────────────────────────────────────────────────────────
+// User
 export interface User {
   id: string
   email: string
@@ -12,14 +12,14 @@ export interface User {
   createdAt: string
 }
 
-// ─── API Wrapper ──────────────────────────────────────────────────────────────
+// API Wrapper
 export interface ApiResponse<T> {
   data: T
   message: string
   success: boolean
 }
 
-// ─── Auth Payloads ───────────────────────────────────────────────────────────
+// Auth Payloads
 export interface LoginPayload {
   email: string
   password: string
@@ -42,14 +42,14 @@ export interface ResetPasswordPayload {
   confirmPassword: string
 }
 
-// ─── Auth Response ───────────────────────────────────────────────────────────
+// Auth Response
 export interface AuthResponse {
   user: User
   accessToken: string
   refreshToken: string
 }
 
-// ─── Admin ───────────────────────────────────────────────────────────────────
+// Admin
 export interface ReportData {
   _id: string
   reporter: string | { _id: string; displayName: string; permalink: string; avatarUrl?: string }
@@ -81,4 +81,65 @@ export interface TrackModerationResponse {
   success: boolean
   message: string
   data: { trackId: string; isPublic: boolean; moderationStatus: string }
+}
+
+// Notifications
+export type NotificationType =
+  | 'LIKE'
+  | 'REPOST'
+  | 'COMMENT'
+  | 'FOLLOW'
+  | 'MESSAGE'
+  | 'NEW_TRACK'
+  | 'NEW_PLAYLIST'
+  | 'MENTION'
+  | 'SYSTEM'
+
+export interface NotificationActor {
+  _id: string
+  displayName: string
+  avatarUrl: string | null
+  permalink?: string
+  isPremium?: boolean
+}
+
+export interface NotificationTarget {
+  _id: string
+  title: string
+  permalink: string
+  artworkUrl?: string | null
+}
+
+export interface Notification {
+  _id: string
+  recipient: string
+  actors: NotificationActor[]
+  actorCount: number
+  type: NotificationType
+  target: NotificationTarget | null
+  targetModel: 'Track' | 'Playlist' | 'User' | 'Comment' | 'Message'
+  contentSnippet: string | null
+  isRead: boolean
+  actionLink: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NotificationPreferences {
+  pushEnabled: boolean
+  allowLikes: boolean
+  allowReposts: boolean
+  allowComments: boolean
+  allowFollows: boolean
+  allowMessages: boolean
+  allowNewTracks: boolean
+}
+
+export interface NotificationFeedResponse {
+  notifications: Notification[]
+  pagination: {
+    total: number
+    page: number
+    totalPages: number
+  }
 }

@@ -24,4 +24,6 @@ export const ROUTES = {
   ADMIN_CONTENT: '/admin/content',
   ADMIN_HEALTH: '/admin/health',
   MESSAGES: '/messages',
+  NOTIFICATIONS: '/notifications',
+  STATIONS: '/stations',
 } as const
