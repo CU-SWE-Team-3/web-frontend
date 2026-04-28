@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { BlockedUsersList } from '@/features/social-graph';
-import { ChevronDownIcon, NotificationIcon, MessageIcon, MoreIcon } from '@/shared/ui/icons';
+import { NotificationSettingsTab } from '@/features/notifications';
+import { NavBar } from '@/shared/ui/NavBar/NavBar';
+import { ROUTES } from '@/shared/constants/routes';
 
 /* ─── Tabs ─── */
 const TABS = [
@@ -103,6 +105,7 @@ const PlaceholderTab = ({ name }: { name: string }) => (
 /* ─── Main Settings Page ─── */
 function SettingsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<TabKey>((tabParam as TabKey) || 'privacy');
 
@@ -111,7 +114,7 @@ function SettingsContent() {
       case 'privacy': return <PrivacyTab />;
       case 'account': return <PlaceholderTab name="Account" />;
       case 'content': return <PlaceholderTab name="Content" />;
-      case 'notifications': return <PlaceholderTab name="Notifications" />;
+      case 'notifications': return <NotificationSettingsTab />;
       case 'advertising': return <PlaceholderTab name="Advertising" />;
       case '2fa': return <PlaceholderTab name="2FA" />;
       default: return <PrivacyTab />;
@@ -120,42 +123,8 @@ function SettingsContent() {
 
   return (
     <div data-testid="settings-page" style={{ background: 'var(--sc-bg-base)', minHeight: '100vh', color: 'var(--sc-text-primary)', fontFamily: 'var(--sc-font-family)' }}>
-      {/* ===== TOP NAV ===== */}
-      <header data-testid="settings-nav" style={{
-        background: 'var(--sc-bg-base)', height: 46,
-        display: 'flex', alignItems: 'center', padding: '0 20px',
-        borderBottom: '1px solid var(--sc-border)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
-          <Link href="/" style={{ color: 'var(--sc-text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="white">
-              <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
-            </svg>
-          </Link>
-          <Link href="/" style={{ color: 'var(--sc-text-secondary)', fontSize: 14, textDecoration: 'none' }}>Home</Link>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 14, cursor: 'pointer' }}>Feed</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 14, cursor: 'pointer' }}>Library</span>
-        </div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
-          <input type="text" placeholder="Search" data-testid="settings-search-input" style={{
-            width: '100%', maxWidth: 460, height: 30,
-            background: 'var(--sc-bg-elevated)', border: 'none',
-            borderRadius: 'var(--sc-radius-md)', padding: '0 12px',
-            color: 'var(--sc-text-primary)', fontSize: 13,
-            fontFamily: 'var(--sc-font-family)', outline: 'none',
-          }} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-          <span style={{ color: 'var(--sc-primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Try Artist Pro</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 13, cursor: 'pointer' }}>For Artists</span>
-          <span style={{ color: 'var(--sc-text-secondary)', fontSize: 13, cursor: 'pointer' }}>Upload</span>
-          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--sc-gray-500)' }} />
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><ChevronDownIcon size={16} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><NotificationIcon size={18} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><MessageIcon size={18} /></button>
-          <button style={{ color: 'var(--sc-text-secondary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}><MoreIcon size={18} /></button>
-        </div>
-      </header>
+      {/* ===== SHARED NAVBAR ===== */}
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
       {/* ===== ANNOUNCEMENT BANNER ===== */}
       <div style={{
