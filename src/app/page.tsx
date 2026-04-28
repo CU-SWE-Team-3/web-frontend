@@ -5,11 +5,21 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import HeroSlider from '@/widgets/Register/HeroSlider'
 import { ROUTES } from '@/shared/constants/routes'
+import { useAuthStore } from '@/features/auth/model/useAuthStore'
+import { useEffect } from 'react'
 import { TrendingByGenre } from '@/features/trending'
 
 export default function HomePage() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const [searchQuery, setSearchQuery] = React.useState('');
-  const router = useRouter();
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Use the profile route directly with the dev mock username
+      router.push(ROUTES.PROFILE('Local Dev'))
+    }
+  }, [isAuthenticated, router])
 
   const handleSearch = (e: React.KeyboardEvent | React.MouseEvent) => {
     if ('key' in e && e.key !== 'Enter') return;
@@ -17,6 +27,8 @@ export default function HomePage() {
       router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  if (isAuthenticated) return null // Prevent flashing of landing page
 
   return (
     <div data-testid="landing-page" className="min-h-screen bg-[#111111] text-white">
