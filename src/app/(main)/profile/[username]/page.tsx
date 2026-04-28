@@ -219,8 +219,8 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
         key={`repost-${repost.id || track.id || track._id}`}
         track={{
           id: track._id || track.id,
-          permalink: track.permalink || track.id,
-          title: track.title,
+          permalink: track.permalink || track.id || track._id || '',
+          title: track.title || '',
           artist: track.artist?.displayName || track.artist || 'Unknown Artist',
           genre: track.genre || 'Electronic',
           tags: track.tags || [],
@@ -234,6 +234,10 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
           createdAt: track.createdAt || repost.repostedAt || '',
           streamUrl: track.streamUrl || track.hlsUrl || track.audioUrl || '',
           hlsUrl: track.hlsUrl || track.audioUrl || '',
+          playCount: track.playCount ?? 0,
+          likeCount: track.likeCount ?? 0,
+          repostCount: track.repostCount ?? 0,
+          commentCount: track.commentCount ?? 0,
         }}
         userFullName={track.artist?.displayName || track.artist || displayName}
         username={track.artist?.permalink || username}
