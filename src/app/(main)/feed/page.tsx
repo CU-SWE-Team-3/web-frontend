@@ -333,24 +333,20 @@ export default function FeedPage() {
 
   const isLiked = (id: string) => localLikedMap[id] ?? likedTrackIds.includes(id);
 
-  const handleLikeToggle = useCallback(
-    (track: FeedTrack) => {
-      if (!isAuthenticated) return;
-      const currently = isLiked(track._id);
-      setLocalLikedMap((prev) => ({ ...prev, [track._id]: !currently }));
-      if (currently) {
-        unlikeTrack(track._id, {
-          onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: true })),
-        });
-      } else {
-        likeTrack(track._id, {
-          onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: false })),
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, likedTrackIds, likeTrack, unlikeTrack],
-  );
+  const handleLikeToggle = (track: FeedTrack) => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    const currently = isLiked(track._id);
+    setLocalLikedMap((prev) => ({ ...prev, [track._id]: !currently }));
+    if (currently) {
+      unlikeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: true })),
+      });
+    } else {
+      likeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: false })),
+      });
+    }
+  };
 
   const isActionPending = followPending || unfollowPending;
 
@@ -441,8 +437,7 @@ export default function FeedPage() {
                         let streamUrl = track.hlsUrl ?? '';
                         if (!streamUrl) {
                           try {
-                            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/tracks/${track._id}`);
-                            const data = await res.json();
+                            const { data } = await apiClient.get(`/tracks/${track._id}`);
                             const detail = data?.data ?? data;
                             streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
                           } catch { /* empty */ }
@@ -454,9 +449,7 @@ export default function FeedPage() {
                           artworkUrl: track.artworkUrl ?? '',
                           streamUrl,
                           hlsUrl: streamUrl,
-                          duration: track.duration
-                            ? `${Math.floor(track.duration / 60)}:${String(Math.floor(track.duration % 60)).padStart(2, '0')}`
-                            : '0:00',
+                          duration: track.duration,
                           waveform: track.waveform ?? [],
                         } as any);
                       }}
