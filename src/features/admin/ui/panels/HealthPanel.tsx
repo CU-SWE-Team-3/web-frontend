@@ -1,75 +1,24 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   AreaChart, Area, BarChart, Bar,
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend
+  Tooltip, ResponsiveContainer, XAxis, YAxis, CartesianGrid
 } from 'recharts'
-import { useAdminStats } from '../../hooks/useAdminStats'
+import { useAdminStats, useDailyActiveUsers, useTopTracks } from '../../hooks/useAdminStats'
 import { MetricCard } from '../components/MetricCard'
-
-// ── Mock time-series data (until backend exposes time-series endpoints) ────────
-// NOTE FOR BACKEND TEAM:
-// The YAML /admin/stats only returns aggregate totals.
-// For time-series charts, please add:
-//   GET /admin/stats/daily-users?days=30  → { date, activeUsers }[]
-//   GET /admin/stats/top-tracks?period=week → { title, plays }[]
-// Until then, we generate plausible demo data from the totals.
-
-function generateDailyUsers(totalUsers: number) {
-  const data = []
-  const now = new Date()
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    const base = Math.floor(totalUsers * 0.3)
-    const rand = Math.floor(Math.random() * (totalUsers * 0.15))
-    data.push({ date: label, activeUsers: base + rand })
-  }
-  return data
-}
-
-function generateTopTracks(totalTracks: number) {
-  const names = [
-    'Midnight Drive', 'Solar Bloom', 'Echo Chamber', 'Static Rush',
-    'Neon Pulse', 'Desert Wind', 'Ghost Protocol', 'Blue Hour',
-    'Storm Cell', 'Velvet Fog',
-  ]
-  return names.map((name, i) => ({
-    name: name.length > 12 ? name.slice(0, 12) + '…' : name,
-    plays: Math.floor((totalTracks * 3) * (1 - i * 0.07)) + Math.floor(Math.random() * 200),
-  }))
-}
-
-function generateStorageBreakdown(totalStorage: string) {
-  const totalMB = parseFloat(totalStorage ?? '2048')
-  return [
-    { name: 'Audio Files', value: Math.floor(totalMB * 0.72), color: '#ff5500' },
-    { name: 'Artwork', value: Math.floor(totalMB * 0.18), color: '#3b82f6' },
-    { name: 'Waveforms', value: Math.floor(totalMB * 0.07), color: '#22c55e' },
-    { name: 'Other', value: Math.floor(totalMB * 0.03), color: '#8b5cf6' },
-  ]
-}
 
 const CHART_COLORS = { line: '#ff5500', bar: '#ff5500', grid: '#1e1e1e', text: '#555' }
 
 export default function HealthPanel() {
   const { data: stats, isLoading, dataUpdatedAt } = useAdminStats()
+  const { data: dailyUsers = [], isLoading: chartLoading } = useDailyActiveUsers(30)
+  const { data: topTracks = [], isLoading: topLoading } = useTopTracks(10)
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
 
   useEffect(() => {
     if (dataUpdatedAt) setLastRefreshed(new Date(dataUpdatedAt))
   }, [dataUpdatedAt])
-
-  const dailyUsers = useMemo(() =>
-    generateDailyUsers(stats?.totalUsers ?? 1000), [stats?.totalUsers])
-
-  const topTracks = useMemo(() =>
-    generateTopTracks(stats?.totalTracks ?? 500), [stats?.totalTracks])
-
-  const storageData = useMemo(() =>
-    generateStorageBreakdown(stats?.totalStorageUsed ?? '2048 MB'), [stats?.totalStorageUsed])
 
   return (
     <div>
@@ -128,7 +77,7 @@ export default function HealthPanel() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
         {/* Area Chart — Daily Active Users */}
-        <ChartCard title="Daily Active Users (30 Days)" isLoading={isLoading}>
+        <ChartCard title="Daily Active Users (30 Days)" isLoading={chartLoading}>
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart data={dailyUsers} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
               <defs>
@@ -160,10 +109,9 @@ export default function HealthPanel() {
         </ChartCard>
       </div>
 
-      {/* Donut Chart removed per screenshot layout (which has 2 wide rows) */}
 
       {/* ── Bar Chart — Top Tracks ────────────────────────────────────── */}
-      <ChartCard title="Top 10 Tracks (This Week)" isLoading={isLoading}>
+      <ChartCard title="Top 10 Tracks by Play Count" isLoading={topLoading}>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={topTracks} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
             <CartesianGrid stroke={CHART_COLORS.grid} horizontal={true} vertical={false} />
@@ -178,15 +126,6 @@ export default function HealthPanel() {
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
-
-      {/* Backend note */}
-      <div style={{
-        marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: 8,
-        background: '#f59e0b11', border: '1px solid #f59e0b33', color: '#f59e0b', fontSize: '0.78rem',
-      }}>
-        ⚠ <strong>Backend Note:</strong> Daily active users &amp; top tracks use generated demo data.
-        To show real data, expose <code>GET /admin/stats/daily-users</code> and <code>GET /admin/stats/top-tracks</code>.
-      </div>
     </div>
   )
 }

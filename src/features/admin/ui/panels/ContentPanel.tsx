@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { AdminTable } from '../components/AdminTable'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { showAdminToast } from '../components/AdminToast'
-import { searchTracks } from '../../api/adminApi'
-import { useHideTrack, useRestoreTrack, useSuspendUser, useRestoreUser } from '../../hooks/useAdminModeration'
+import {
+  useHideTrack, useRestoreTrack, useSuspendUser, useRestoreUser,
+  useAdminTracks, useAdminUsers,
+} from '../../hooks/useAdminModeration'
+import type { AdminUser } from '../../hooks/useAdminModeration'
 
 type ContentTab = 'tracks' | 'accounts'
 
@@ -46,6 +48,9 @@ export default function ContentPanel() {
     ids?: string[]
   } | null>(null)
 
+  const [userSearch, setUserSearch] = useState('')
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState('')
+
   const hideTrack = useHideTrack()
   const restoreTrack = useRestoreTrack()
   const suspendUser = useSuspendUser()
@@ -57,11 +62,21 @@ export default function ContentPanel() {
     return () => clearTimeout(t)
   }, [trackSearch])
 
-  const { data: tracks = [], isLoading: tracksLoading } = useQuery({
-    queryKey: ['admin-tracks', debouncedTrackSearch],
-    queryFn: () => searchTracks(debouncedTrackSearch || undefined),
-    staleTime: 30_000,
+  // Debounce user search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedUserSearch(userSearch), 400)
+    return () => clearTimeout(t)
+  }, [userSearch])
+
+  const { data: tracksData, isLoading: tracksLoading } = useAdminTracks({
+    search: debouncedTrackSearch || undefined,
   })
+  const tracks = tracksData?.data ?? []
+
+  const { data: usersData, isLoading: usersLoading } = useAdminUsers({
+    search: debouncedUserSearch || undefined,
+  })
+  const users = usersData?.data ?? []
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -246,24 +261,79 @@ export default function ContentPanel() {
         </>
       )}
 
-      {/* ── ACCOUNTS TAB ────────────────────────────────────────────── */}
+      {/* ── ACCOUNTS TAB ─────────────────────────────────────────── */}
       {activeTab === 'accounts' && (
         <>
-          {/* Backend note banner */}
-          <div style={{
-            padding: '0.75rem 1rem', borderRadius: 8,
-            background: '#3b82f611', border: '1px solid #3b82f633',
-            color: '#3b82f6', fontSize: '0.8rem', marginBottom: '1rem',
-          }}>
-            ℹ <strong>Backend Required:</strong> A <code>GET /admin/users</code> endpoint with search &amp; pagination is needed for a full accounts list. Currently showing a placeholder — see API notes in the code comments.
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <SearchInput
+              id="admin-user-search"
+              value={userSearch}
+              onChange={setUserSearch}
+              placeholder="Search users..."
+            />
           </div>
 
           <AdminTable
             columns={ACCOUNT_COLS}
-            data={[]}
-            isLoading={false}
-            emptyMessage="No user list endpoint available. Backend must expose GET /admin/users."
-            renderRow={() => null}
+            data={users}
+            isLoading={usersLoading}
+            getId={(u: AdminUser) => u._id}
+            emptyMessage="No users found."
+            renderRow={(user: AdminUser) => (
+              <tr
+                key={user._id}
+                style={{ borderBottom: '1px solid #1e1e1e', transition: 'background 150ms' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#1f1f1f')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <td style={td}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '50%', overflow: 'hidden',
+                      background: '#2a2a2a', flexShrink: 0,
+                    }}>
+                      {user.avatarUrl && <img src={user.avatarUrl} alt="" width={32} height={32} style={{ objectFit: 'cover' }} />}
+                    </div>
+                    <span style={{ color: '#eee', fontWeight: 500 }}>{user.displayName}</span>
+                  </div>
+                </td>
+                <td style={{ ...td, color: '#888', fontFamily: 'monospace' }}>@{user.permalink}</td>
+                <td style={{ ...td }}>
+                  <span style={{
+                    padding: '3px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
+                    background: user.role === 'Artist' ? '#ff550022' : '#3b82f622',
+                    color: user.role === 'Artist' ? '#ff5500' : '#3b82f6',
+                  }}>{user.role}</span>
+                </td>
+                <td style={td}>
+                  <span style={{
+                    padding: '3px 10px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 600,
+                    background: user.accountStatus === 'Active' ? '#22c55e22' : '#ef444422',
+                    color: user.accountStatus === 'Active' ? '#22c55e' : '#ef4444',
+                    border: `1px solid ${user.accountStatus === 'Active' ? '#22c55e44' : '#ef444444'}`,
+                  }}>{user.accountStatus}</span>
+                </td>
+                <td style={td}>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    {user.accountStatus !== 'Suspended' ? (
+                      <MiniBtn
+                        id={`suspend-${user._id}`}
+                        label="Suspend"
+                        color="#ef4444"
+                        onClick={() => setConfirmModal({ type: 'suspend', id: user._id })}
+                      />
+                    ) : (
+                      <MiniBtn
+                        id={`restore-user-${user._id}`}
+                        label="Restore"
+                        color="#22c55e"
+                        onClick={() => setConfirmModal({ type: 'restore-user', id: user._id })}
+                      />
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )}
           />
         </>
       )}
