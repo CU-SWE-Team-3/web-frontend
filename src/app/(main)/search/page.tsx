@@ -280,7 +280,10 @@ export default function SearchPage() {
                           </svg>
                           {isLiked(t._id) ? 'Liked' : 'Like'}
                         </button>
-                        <button className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30">
+                        <button 
+                          onClick={() => handleRepost(t._id)}
+                          className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30"
+                        >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                           Repost
                         </button>
