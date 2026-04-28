@@ -1,5 +1,5 @@
 import apiClient from '@/shared/api/client'
-import type { FeedTrack, SuggestedArtist } from '../model/types'
+import type { FeedTrack, SuggestedArtist, FeedActivity } from '../model/types'
 
 // ─── Mappers ──────────────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ function mapFeedTrack(raw: any): FeedTrack {
     permalink: t.permalink || t._id || '',
     artworkUrl: t.artworkUrl || undefined,
     hlsUrl: t.hlsUrl || undefined,
-    waveform: Array.isArray(t.waveform) ? t.waveform : undefined,
+    waveform: Array.isArray(t.waveform) ? t.waveform : (Array.isArray(t.waveformData) ? t.waveformData : undefined),
     duration: typeof t.duration === 'number' ? t.duration : undefined,
     genre: t.genre || '',
     playCount: t.playCount ?? 0,
@@ -31,6 +31,17 @@ function mapFeedTrack(raw: any): FeedTrack {
     commentCount: t.commentCount ?? 0,
     createdAt: t.createdAt || raw.createdAt || '',
     artist: mapFeedArtist(t.artist),
+  }
+}
+
+function mapFeedActivity(act: any): FeedActivity | null {
+  if (!act.target || act.targetModel !== 'Track') return null;
+  return {
+    activityType: act.activityType,
+    activityDate: act.activityDate,
+    actors: Array.isArray(act.actors) ? act.actors.map(mapFeedArtist) : [],
+    target: mapFeedTrack(act.target),
+    targetModel: act.targetModel,
   }
 }
 
@@ -56,31 +67,18 @@ export const feedRepository = {
    * Activities are grouped by BioBeats (e.g. "User X liked Track Y").
    * For the current UI, we extract the target tracks from these activities.
    */
-  async getFeed(): Promise<FeedTrack[]> {
+  async getFeed(): Promise<FeedActivity[]> {
     try {
       const { data } = await apiClient.get('/feed')
 
       // BioBeats v1.10 returns { status: "success", data: { feed: FeedActivity[] } }
-      const activities: any[] = data?.data?.feed ?? []
+      const rawActivities: any[] = data?.data?.feed ?? []
 
-      if (!Array.isArray(activities)) return []
+      if (!Array.isArray(rawActivities)) return []
 
-      // Map activities to tracks. We only care about activities that have a track target.
-      // We also deduplicate tracks if the same track appears multiple times in the feed.
-      const tracks: FeedTrack[] = []
-      const seenIds = new Set<string>()
-
-      for (const act of activities) {
-        if (act.target && act.targetModel === 'Track') {
-          const track = mapFeedTrack(act.target)
-          if (!seenIds.has(track._id)) {
-            tracks.push(track)
-            seenIds.add(track._id)
-          }
-        }
-      }
-
-      return tracks
+      return rawActivities
+        .map(mapFeedActivity)
+        .filter((a): a is FeedActivity => a !== null)
     } catch (err) {
       console.warn('[feedRepository] GET /feed failed:', err)
       return []

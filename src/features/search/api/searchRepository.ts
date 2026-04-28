@@ -97,4 +97,32 @@ export const searchRepository = {
       return empty
     }
   },
+
+  /**
+   * GET /tracks/autocomplete?q=<query>
+   * Typeahead suggestions matching the start of the query string.
+   */
+  async autocomplete(query: string): Promise<SearchResults> {
+    const empty: SearchResults = { tracks: [], users: [], playlists: [] }
+    if (!query || query.trim().length < 2) return empty
+
+    try {
+      const { data } = await apiClient.get('/tracks/autocomplete', {
+        params: { q: query.trim() },
+      })
+
+      const payload = data?.data;
+      if (payload && typeof payload === 'object') {
+        return {
+          tracks: Array.isArray(payload.tracks) ? payload.tracks.map(mapTrackResult) : [],
+          users: Array.isArray(payload.users) ? payload.users.map(mapUserResult) : [],
+          playlists: Array.isArray(payload.playlists) ? payload.playlists.map(mapPlaylistResult) : [],
+        }
+      }
+      return empty
+    } catch (err) {
+      console.warn('[searchRepository] GET /tracks/autocomplete failed:', err)
+      return empty
+    }
+  },
 }
