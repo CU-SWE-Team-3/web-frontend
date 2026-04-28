@@ -7,7 +7,9 @@ import UploadPage from '../page'
 // Mock next/navigation
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush })
+  useRouter: () => ({ push: mockPush }),
+  usePathname: () => '/upload',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 // Mock timers for recording and upload progress

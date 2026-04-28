@@ -92,7 +92,7 @@ describe('RegisterForm', () => {
     await user.click(screen.getByTestId('register-submit-button'))
     
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/feed')
+      expect(mockPush).toHaveBeenCalledWith('/home')
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(localStorage.getItem('accessToken')).toBe('new-jwt-token')
