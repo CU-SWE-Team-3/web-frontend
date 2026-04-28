@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { NavBar } from '@/shared/ui/NavBar/NavBar';
@@ -15,9 +15,14 @@ import { useUnfollowUser } from '@/features/social-graph/model/useUnfollowUser';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 import { FeedTrackCard, SquareTrackCard } from '@/shared/ui';
+import { AppToast } from '@/shared/ui/AppToast';
 import { Heart } from 'lucide-react';
 import type { FollowNode } from '@/features/social-graph/model/types';
 import type { Track } from '@/features/player/model/playerStore';
+import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
+import { PlaylistGridCard } from '@/features/playlists/ui/PlaylistGridCard';
+import { CreatePlaylistModal } from '@/features/playlists/ui/CreatePlaylistModal';
+import type { Playlist } from '@/features/playlists/model/playlist';
 import s from './Library.module.scss';
 
 const TABS = [
@@ -134,8 +139,8 @@ function LibraryContent() {
             getWaveformBars={getWaveformBars}
           />
         )}
-        {activeTab === 'playlists' && <PlaceholderTab title="Playlists" />}
-        {activeTab === 'albums' && <PlaceholderTab title="Albums" />}
+        {activeTab === 'playlists' && <PlaylistsLibraryTab userId={userId} />}
+        {activeTab === 'albums' && <AlbumsLibraryTab userId={userId} />}
         {activeTab === 'stations' && <PlaceholderTab title="Stations" />}
         {activeTab === 'following' && (
           <FollowingTab users={followingList ?? []} isLoading={followingLoading} />
@@ -458,7 +463,97 @@ function FollowingTab({ users, isLoading }: FollowingTabProps) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Placeholder Tab
+   Playlists Library Tab
+   ═══════════════════════════════════════════════════════ */
+function PlaylistsLibraryTab({ userId }: { userId: string }) {
+  const { data: playlists, isLoading } = useUserPlaylists(userId, 'playlist');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
+
+  return (
+    <div>
+      <div className={s.sectionHeader}>
+        <h2 className={s.sectionTitle}>Your playlists</h2>
+        <button
+          className={s.clearBtn}
+          style={{ textDecoration: 'none', border: '1px solid var(--sc-primary)', color: 'var(--sc-primary)', padding: '6px 14px', borderRadius: '4px' }}
+          onClick={() => setCreateOpen(true)}
+          data-testid="library-create-playlist"
+        >
+          + Create playlist
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} style={{ aspectRatio: 1, background: 'var(--sc-bg-dark-elevated)', borderRadius: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
+      ) : !playlists || playlists.length === 0 ? (
+        <div className={s.emptyState}>
+          <div className={s.emptyIcon}>🎵</div>
+          <div className={s.emptyTitle}>No playlists yet</div>
+          <div className={s.emptyText}>Create your first playlist to get started</div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+          {playlists.map((pl: Playlist) => (
+            <PlaylistGridCard key={pl._id} playlist={pl} />
+          ))}
+        </div>
+      )}
+
+      <CreatePlaylistModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => setToast({ message: 'Playlist created!', variant: 'success' })}
+      />
+
+      {toast && (
+        <AppToast message={toast.message} variant={toast.variant} open={true} onClose={() => setToast(null)} />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   Albums Library Tab
+   ═══════════════════════════════════════════════════════ */
+function AlbumsLibraryTab({ userId }: { userId: string }) {
+  const { data: albums, isLoading } = useUserPlaylists(userId, 'album');
+
+  return (
+    <div>
+      <div className={s.sectionHeader}>
+        <h2 className={s.sectionTitle}>Your albums</h2>
+      </div>
+
+      {isLoading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ aspectRatio: 1, background: 'var(--sc-bg-dark-elevated)', borderRadius: 8, animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
+      ) : !albums || albums.length === 0 ? (
+        <div className={s.emptyState}>
+          <div className={s.emptyIcon}>💿</div>
+          <div className={s.emptyTitle}>No albums yet</div>
+          <div className={s.emptyText}>Albums you create will appear here</div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+          {albums.map((pl: Playlist) => (
+            <PlaylistGridCard key={pl._id} playlist={pl} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   Placeholder Tab (for Stations)
    ═══════════════════════════════════════════════════════ */
 function PlaceholderTab({ title }: { title: string }) {
   return (

@@ -1,0 +1,112 @@
+/* CreatePlaylistModal Styles */
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  margin: -24px;
+  background-color: #121212;
+}
+
+.header {
+  padding: 20px 20px 15px;
+  border-bottom: 1px solid #333333;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: Inter, sans-serif;
+}
+
+.body {
+  padding: 20px;
+}
+
+.createForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldLabel {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-gray-400);
+  font-family: var(--sc-font-family);
+}
+
+.required {
+  color: var(--sc-primary);
+}
+
+.titleInput {
+  width: 100%;
+  background: #212121;
+  border: 1px solid #333333;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  padding: 5px 10px;
+  height: 32px;
+  outline: none;
+
+  &:focus {
+    border-color: #666666;
+  }
+}
+
+.privacyRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding-bottom: 10px;
+}
+
+.privacyLabel {
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-400);
+  font-family: var(--sc-font-family);
+  margin-right: 4px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+}
+
+.radio {
+  accent-color: var(--sc-primary);
+  cursor: pointer;
+}
+
+.saveBtn {
+  margin-left: auto;
+  padding: 6px 15px;
+  border-radius: 3px;
+  border: none;
+  background: #ffffff;
+  color: #000000;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+
+  &:hover:not(:disabled) {
+    background: #e5e5e5;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

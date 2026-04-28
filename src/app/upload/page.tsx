@@ -66,6 +66,7 @@ export default function UploadPage() {
   const [description, setDescription] = useState("");
   const [privacy, setPrivacy] = useState<"public" | "private" | "schedule">("public");
   const [artworkUrl, setArtworkUrl] = useState("");
+  const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const artworkInputRef = useRef<HTMLInputElement>(null);
 
   // Recording
@@ -153,7 +154,10 @@ export default function UploadPage() {
   // Artwork
   const handleArtworkSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f?.type.startsWith("image/")) setArtworkUrl(URL.createObjectURL(f));
+    if (f?.type.startsWith("image/")) {
+      setArtworkFile(f);
+      setArtworkUrl(URL.createObjectURL(f));
+    }
   }, []);
 
   // Submit
@@ -182,6 +186,7 @@ export default function UploadPage() {
           allowComments: optionsData?.allowComments,
         },
         audioFile: file,
+        artworkFile: artworkFile || undefined,
         onProgress: (p) => setUploadProgress(p),
       });
       // Log the full upload response for debugging
@@ -197,12 +202,12 @@ export default function UploadPage() {
       const exactErr = typeof backendMsg === 'string' ? backendMsg : JSON.stringify(backendMsg);
       setSaveError(exactErr || err?.message || "Upload failed. Please try again.");
     } finally { setIsSaving(false); }
-  }, [file, title, genre, tags, description, privacy, artworkUrl, optionsData, user, uploadMutation, isSaving]);
+  }, [file, title, genre, tags, description, privacy, artworkUrl, artworkFile, optionsData, user, uploadMutation, isSaving]);
 
   const handleCancel = useCallback(() => {
     setFile(null); setStage("dropzone"); setUploadProgress(0); setUploadComplete(false);
     setTitle(""); setTrackLink(""); setGenre(""); setTags(""); setDescription("");
-    setPrivacy("public"); setArtworkUrl(""); setFileError(""); setSaveError("");
+    setPrivacy("public"); setArtworkUrl(""); setArtworkFile(null); setFileError(""); setSaveError("");
   }, []);
 
   const filteredGenres = GENRE_OPTIONS.filter((g) => g.toLowerCase().includes(genreSearch.toLowerCase()));

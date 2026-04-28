@@ -1,0 +1,86 @@
+/* DeletePlaylistDialog Styles */
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sc-space-6);
+}
+
+.message {
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-300);
+  line-height: var(--sc-line-height-normal);
+  font-family: var(--sc-font-family);
+  margin: 0;
+
+  strong {
+    color: var(--sc-white);
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sc-space-3);
+}
+
+.cancelBtn {
+  padding: 8px 20px;
+  border-radius: var(--sc-radius-md);
+  border: 1px solid var(--sc-border);
+  background: transparent;
+  color: var(--sc-gray-400);
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+
+  &:hover:not(:disabled) {
+    color: var(--sc-white);
+    border-color: var(--sc-gray-500);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.deleteBtn {
+  padding: 8px 24px;
+  border-radius: var(--sc-radius-md);
+  border: none;
+  background: var(--sc-danger);
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-semibold);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+
+  &:hover:not(:disabled) {
+    background: var(--sc-danger-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--sc-white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

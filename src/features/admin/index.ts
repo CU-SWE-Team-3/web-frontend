@@ -1,0 +1,13 @@
+// ─── Admin Feature — Public API ───────────────────────────────────────────────
+export { AdminLayout } from './ui/AdminLayout'
+export { AdminGuard } from './ui/AdminGuard'
+export { AdminSidebar } from './ui/AdminSidebar'
+export { AdminToastProvider, showAdminToast } from './ui/components/AdminToast'
+export { ConfirmModal } from './ui/components/ConfirmModal'
+export { AdminTable } from './ui/components/AdminTable'
+export { MetricCard } from './ui/components/MetricCard'
+export { useAdminStore } from './model/useAdminStore'
+export { useAdminReports, useUpdateReportStatus } from './hooks/useAdminReports'
+export { useAdminStats } from './hooks/useAdminStats'
+export { useHideTrack, useRestoreTrack, useSuspendUser, useRestoreUser } from './hooks/useAdminModeration'
+export * from './api/adminApi'

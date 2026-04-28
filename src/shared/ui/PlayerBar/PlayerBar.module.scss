@@ -87,6 +87,15 @@
   display: block;
 }
 
+.contextTitle {
+  font-size: 11px;
+  color: var(--sc-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  margin-bottom: 2px;
+}
 .heartBtn {
   flex-shrink: 0;
   background: none;
