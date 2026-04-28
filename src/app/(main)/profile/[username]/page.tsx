@@ -68,7 +68,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const [activeTab, setActiveTab] = useState('All');
 
   const isMeKeyword = username === 'me';
-  const isOwnProfile = isMeKeyword || (authUser && (
+  const isOwnProfile = isMeKeyword || !!(authUser && (
     authUser.id === username || 
     authUser.permalink === username || 
     authUser.username === username ||
