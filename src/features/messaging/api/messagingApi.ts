@@ -219,12 +219,15 @@ export const unblockUser = async (userId: string): Promise<void> => {
 
 // ─── User Search ─────────────────────────────────────────────────────────────
 
-/** GET /search?q=...&type=users */
+/** GET /tracks/search?q=...&type=users */
 export const searchUsers = async (query: string): Promise<MessageUser[]> => {
   if (!query.trim()) return [];
 
-  const { data: res } = await apiClient.get<{ success?: boolean; data: { users?: MessageUser[] } }>(
-    '/search',
+  const { data: res } = await apiClient.get<{ 
+    status?: string; 
+    data: { users?: MessageUser[] } 
+  }>(
+    '/tracks/search',
     { params: { q: query, type: 'users' } }
   );
   return res.data?.users || [];
@@ -233,9 +236,12 @@ export const searchUsers = async (query: string): Promise<MessageUser[]> => {
 /** GET /profile/{permalink} - used as fallback to resolve recipient by username */
 export const resolveUserByPermalink = async (permalink: string): Promise<string | null> => {
   try {
-    const { data: res } = await apiClient.get(`/profile/${encodeURIComponent(permalink)}`);
-    const profile = res.data?.profile || res.data;
-    return profile._id || profile.id || profile.user?._id || null;
+    const { data: res } = await apiClient.get<{ data: { user: { _id: string } } }>(
+      `/profile/${encodeURIComponent(permalink)}`
+    );
+    // Support both direct data and nested user object
+    const user = res.data?.user || (res.data as any);
+    return user?._id || user?.id || null;
   } catch {
     return null;
   }

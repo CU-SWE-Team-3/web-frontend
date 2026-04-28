@@ -304,7 +304,7 @@ describe('messagingApi', () => {
 
       const result = await api.searchUsers('User');
 
-      expect(mockedClient.get).toHaveBeenCalledWith('/search', {
+      expect(mockedClient.get).toHaveBeenCalledWith('/tracks/search', {
         params: { q: 'User', type: 'users' },
       });
       expect(result).toEqual(mockUsers);

@@ -79,9 +79,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           id: "dev-mock-user", 
           _id: "dev-mock-user",
           username: "Local Dev", 
+          displayName: "Local Developer",
+          permalink: "local-dev",
           email: "dev@biobeats.local", 
-          avatarUrl: null 
-        } as any, 
+          avatarUrl: null,
+          role: "Artist",
+          isPremium: true,
+          followerCount: 0,
+          followingCount: 0,
+          createdAt: new Date().toISOString()
+        } as User, 
         isAuthenticated: true, 
         isInitialized: true 
       })

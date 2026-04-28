@@ -1,15 +1,30 @@
 // ─── User ────────────────────────────────────────────────────────────────────
 export interface User {
   id: string
+  _id?: string // Alias for API consistency
   email: string
   username: string
   displayName: string
   permalink?: string
+  bio?: string
+  country?: string
+  city?: string
+  genres?: string[]
   avatarUrl?: string
   coverUrl?: string
-  role: 'artist' | 'listener'
-  isVerified: boolean
+  role: 'Artist' | 'Listener' | 'Admin'
+  isPremium?: boolean
+  subscriptionPlan?: 'Free' | 'Pro' | 'Go+'
+  subscriptionExpiresAt?: string | null
+  cancelAtPeriodEnd?: boolean
+  isEmailVerified?: boolean
+  accountStatus?: 'Active' | 'Suspended' | 'Deleted'
+  followerCount?: number
+  followingCount?: number
+  socialLinks?: Array<{ _id: string; platform: string; url: string }>
+  notificationPreferences?: Record<string, boolean>
   createdAt: string
+  updatedAt?: string
 }
 
 // ─── API Wrapper ──────────────────────────────────────────────────────────────

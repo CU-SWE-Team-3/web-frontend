@@ -58,6 +58,7 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
 
   return {
     id: t._id || t.id,
+    _id: t._id || t.id,
     permalink: t.permalink || t.id,
     title: t.title || "Untitled",
     artist: artistName,
@@ -66,12 +67,13 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     description: t.description || "",
     releaseDate: t.releaseDate || "",
     visibility: t.isPublic === false ? "Private" as const : "Public" as const,
-    status: (t.processingState === "Finished" || t.status === "Finished" ? "Finished" : "Processing") as "Finished" | "Processing",
+    status: (t.processingState === "Finished" ? "Finished" : (t.processingState === "Failed" ? "Failed" : "Processing")) as "Finished" | "Processing" | "Failed",
     audioFileName: t.audioFileName || t.fileName || "",
     artworkUrl: t.artworkUrl || "",
     waveform: t.waveform || makeWaveform(),
     duration: durationValue,
     createdAt: t.createdAt || "",
+    updatedAt: t.updatedAt || "",
     streamUrl: t.hlsUrl || t.streamUrl || "",
     hlsUrl: t.hlsUrl || "",
     playCount: t.playCount || 0,
@@ -410,6 +412,19 @@ export const tracksRepository = {
     } catch (err) {
       console.warn('[tracksRepository] API delete failed:', err);
       throw err;
+    }
+  },
+  
+  async searchTracks(query: string): Promise<Track[]> {
+    try {
+      const response = await apiClient.get('/tracks/search', {
+        params: { q: query, type: 'tracks' }
+      });
+      const apiTracks = response.data?.data?.tracks || [];
+      return apiTracks.map((t: any) => mapApiTrack(t));
+    } catch (err) {
+      console.warn('[tracksRepository] searchTracks failed:', err);
+      return [];
     }
   },
 };
