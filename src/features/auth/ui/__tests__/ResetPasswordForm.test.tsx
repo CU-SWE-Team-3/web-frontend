@@ -4,7 +4,23 @@ import axios from 'axios'
 import ResetPasswordForm from '../ResetPasswordForm'
 
 // --- Mocking ---
-vi.mock('axios')
+vi.mock('axios', () => {
+  return {
+    default: {
+      patch: vi.fn(),
+      post: vi.fn(),
+      create: vi.fn(() => ({
+        interceptors: {
+          request: { use: vi.fn() },
+          response: { use: vi.fn() },
+        },
+        get: vi.fn(),
+        post: vi.fn(),
+        patch: vi.fn(),
+      })),
+    },
+  }
+})
 
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -51,7 +67,7 @@ describe('ResetPasswordForm', () => {
   })
 
   it('calls the API with token and newPassword and shows success message', async () => {
-    ;(axios.post as any).mockResolvedValueOnce({ data: { success: true } })
+    ;(axios.patch as any).mockResolvedValueOnce({ data: { success: true } })
     render(<ResetPasswordForm />)
     
     fireEvent.change(screen.getByTestId('reset-password-new-input'), { target: { value: 'strongpassword123' } })
@@ -60,7 +76,7 @@ describe('ResetPasswordForm', () => {
     fireEvent.submit(screen.getByTestId('reset-password-form'))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(axios.patch).toHaveBeenCalledWith(
         'http://localhost:8000/api/auth/reset-password',
         { token: 'valid-reset-token', newPassword: 'strongpassword123' },
         { withCredentials: true }
@@ -77,7 +93,7 @@ describe('ResetPasswordForm', () => {
   })
 
   it('displays API error appropriately', async () => {
-    ;(axios.post as any).mockRejectedValueOnce(new Error('API failure'))
+    ;(axios.patch as any).mockRejectedValueOnce(new Error('API failure'))
     render(<ResetPasswordForm />)
     
     fireEvent.change(screen.getByTestId('reset-password-new-input'), { target: { value: 'strongpassword123' } })

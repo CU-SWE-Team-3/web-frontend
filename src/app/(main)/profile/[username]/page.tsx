@@ -329,12 +329,12 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
 
     /* ── Albums tab ── */
     if (activeTab === 'Albums') {
-      return <ProfilePlaylistGrid userId={targetId} releaseType="album" emptyText="No albums yet" isOwnProfile={isOwnProfile} />;
+      return <ProfilePlaylistGrid userId={targetId} releaseType="album" emptyText="No albums yet" isOwnProfile={isOwnProfile ?? undefined} />;
     }
 
     /* ── Playlists tab ── */
     if (activeTab === 'Playlists') {
-      return <ProfilePlaylistGrid userId={targetId} releaseType="playlist" emptyText="No playlists yet" isOwnProfile={isOwnProfile} />;
+      return <ProfilePlaylistGrid userId={targetId} releaseType="playlist" emptyText="No playlists yet" isOwnProfile={isOwnProfile ?? undefined} />;
     }
 
     /* ── All tab (default): own tracks + reposts merged by date ── */
