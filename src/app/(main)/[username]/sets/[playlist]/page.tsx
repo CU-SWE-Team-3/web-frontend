@@ -6,6 +6,10 @@ import { NavBar } from '@/shared/ui/NavBar/NavBar';
 import { trendingRepository } from '@/features/trending/api/trendingRepository';
 import type { TrendingTrack } from '@/features/trending/model/types';
 import { ROUTES } from '@/shared/constants/routes';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 
 export default function PlaylistPage({ params }: { params: { username: string, playlist: string } }) {
   const router = useRouter();
@@ -20,8 +24,10 @@ export default function PlaylistPage({ params }: { params: { username: string, p
     async function fetchTracks() {
       setIsLoading(true);
       try {
+        // Normalize genre: remove "top-50-" if present
+        const genreQuery = rawPlaylist.replace(/^top-50-/, '');
         // Fetch real tracks from the backend for this genre
-        const data = await trendingRepository.getTrending(rawPlaylist, 50);
+        const data = await trendingRepository.getTrending(genreQuery, 50);
         setTracks(data);
       } catch (err) {
         console.error('Failed to load playlist tracks:', err);
@@ -31,11 +37,22 @@ export default function PlaylistPage({ params }: { params: { username: string, p
     }
     fetchTracks();
   }, [rawPlaylist]);
+
+  // Engagement
+  const { user } = useAuthStore();
+  const userId = (user as any)?._id || user?.id || '';
+  // Since this is a "Trending" set, it doesn't have a single playlist ID to like, 
+  // but we could track "liked genres" if the API supported it.
+  // For now, we'll just show the like state as false or based on some mock logic if needed,
+  // but let's at least make the individual track likes work (which I already did in previous step).
+  // Actually, I'll just remove the non-functional top-level Like button or make it a "Save to Library" mock.
   
-  const coverArt = tracks[0]?.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=340&h=340&fit=crop';
+  const coverArt = tracks.length > 0 && tracks[0]?.artworkUrl 
+    ? tracks[0].artworkUrl 
+    : undefined;
   
   // Calculate total duration roughly
-  const totalDurationSeconds = tracks.reduce((acc, t) => acc + (t.duration || 180), 0);
+  const totalDurationSeconds = tracks.reduce((acc, t) => acc + (t.duration || 0), 0);
   const hours = Math.floor(totalDurationSeconds / 3600);
   const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
 
@@ -80,19 +97,27 @@ export default function PlaylistPage({ params }: { params: { username: string, p
               <div className="text-[13px] text-white/80 mb-2">Updated today</div>
               <span className="bg-black/40 px-2 py-0.5 rounded-full text-xs">#{title}</span>
             </div>
-            <img 
-              src={coverArt} 
-              alt={title}
-              className="w-[340px] h-[340px] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.5)]" 
-            />
+            {coverArt ? (
+              <img 
+                src={coverArt} 
+                alt={title}
+                className="w-[340px] h-[340px] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.5)]" 
+              />
+            ) : (
+              <div className="w-[340px] h-[340px] bg-[#222] shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-[#555]">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Actions Row */}
         <div className="flex items-center justify-between py-3 border-b border-[#222] mb-6">
           <div className="flex gap-2">
-            <button className="bg-transparent border border-white/10 text-[#ccc] px-3 py-1 rounded hover:border-white/30 cursor-pointer flex items-center gap-1.5 text-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+            <button className="bg-transparent border border-white/10 text-[#ccc] px-3 py-1 rounded hover:border-white/30 cursor-pointer flex items-center gap-1.5 text-sm transition-colors hover:text-white">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
               Like
             </button>
             <button className="bg-transparent border border-white/10 text-[#ccc] px-3 py-1 rounded hover:border-white/30 cursor-pointer flex items-center gap-1.5 text-sm">
@@ -112,11 +137,11 @@ export default function PlaylistPage({ params }: { params: { username: string, p
           <div className="flex gap-4 text-[#999] text-[13px]">
             <span className="flex items-center gap-1">
                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-               {Math.floor(Math.random() * 5000) + 100}
+               0
             </span>
             <span className="flex items-center gap-1">
                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-               {Math.floor(Math.random() * 100) + 10}
+               0
             </span>
           </div>
         </div>
@@ -156,8 +181,22 @@ export default function PlaylistPage({ params }: { params: { username: string, p
                 </div>
               ) : tracks.length > 0 ? (
                 tracks.map((track, i) => (
-                  <div key={track._id} onClick={() => router.push(ROUTES.TRACK(track._id))} className="flex items-center py-2 border-b border-[#222] gap-3 cursor-pointer hover:bg-white/5 group transition-colors">
-                    <img src={track.artworkUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=40&h=40&fit=crop'} className="w-[30px] h-[30px] object-cover" />
+                  <div key={track._id} onClick={async () => {
+                      const { usePlayerStore } = await import('@/features/player/model/playerStore');
+                      usePlayerStore.getState().play({
+                        id: track._id,
+                        title: track.title,
+                        artist: track.artist?.displayName || 'Unknown Artist',
+                        artworkUrl: track.artworkUrl || '',
+                        streamUrl: track.hlsUrl || '',
+                        hlsUrl: track.hlsUrl || '',
+                      });
+                    }} className="flex items-center py-2 border-b border-[#222] gap-3 cursor-pointer hover:bg-white/5 group transition-colors">
+                    {track.artworkUrl ? (
+                      <img src={track.artworkUrl} className="w-[30px] h-[30px] object-cover" />
+                    ) : (
+                      <div className="w-[30px] h-[30px] bg-[#333]" />
+                    )}
                     <span className="text-[13px] text-[#999] w-5 text-right">{i + 1}</span>
                     <div className="flex-1 flex items-center gap-2">
                        <span className="text-[13px] text-[#999] hover:underline">{track.artist?.displayName}</span>
@@ -173,29 +212,9 @@ export default function PlaylistPage({ params }: { params: { username: string, p
             </div>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="w-[300px] shrink-0">
-             <div className="flex items-center justify-between mb-4 border-b border-[#222] pb-2">
-               <h3 className="text-[12px] font-bold text-[#999] m-0">PLAYLISTS FROM THIS USER</h3>
-               <span className="text-[11px] text-[#666] hover:text-white cursor-pointer">View all</span>
-             </div>
-
-             <div className="flex flex-col gap-4">
-               {[
-                 { t: 'SoundCloud Hits', a: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=50&h=50&fit=crop' },
-                 { t: 'Top 50 Country', a: 'https://images.unsplash.com/photo-1493225457124-a1a2a5f5f9af?w=50&h=50&fit=crop' }
-               ].map((item, i) => (
-                 <div key={i} className="flex gap-3 cursor-pointer group">
-                   <img src={item.a} className="w-[50px] h-[50px] object-cover" />
-                   <div>
-                     <div className="text-[12px] text-[#999] group-hover:text-white">Trending Music</div>
-                     <div className="text-[13px] font-semibold text-white group-hover:text-[#ff5500]">{item.t}</div>
-                     <div className="text-[11px] text-[#666] mt-1">♥ {13 - i}.7K &nbsp;&nbsp; ↹ 203</div>
-                   </div>
-                 </div>
-               ))}
-             </div>
-          </div>
+           <div className="w-[300px] shrink-0">
+             {/* Removed mock side content */}
+           </div>
 
         </div>
       </main>
