@@ -16,6 +16,8 @@ import { ROUTES } from '@/shared/constants/routes';
 // ─── Types ────────────────────────────────────────────────────────────────────
 import type { TrackResult, UserResult, PlaylistResult } from '@/features/search';
 
+import apiClient from '@/shared/api/client';
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
   if (!n) return '0';
@@ -31,6 +33,40 @@ function fmtDuration(secs?: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// ─── Real Waveform using actual API data ─────────────────────────────────────
+function RealWaveform({ data }: { data?: number[] }) {
+  // Normalise to 80 bars
+  const BAR_COUNT = 80;
+  const bars = React.useMemo(() => {
+    if (data && data.length > 0) {
+      const max = Math.max(...data, 1);
+      const step = Math.max(1, Math.floor(data.length / BAR_COUNT));
+      return Array.from({ length: BAR_COUNT }, (_, i) => {
+        const slice = data.slice(i * step, (i + 1) * step);
+        const avg = slice.reduce((a, b) => a + b, 0) / (slice.length || 1);
+        return Math.max(3, (avg / max) * 48);
+      });
+    }
+    // Fallback: sinusoidal so it at least looks like a waveform
+    return Array.from({ length: BAR_COUNT }, (_, i) =>
+      Math.max(3, (8 + Math.abs(Math.sin(i * 0.4) * 35)) / 100 * 48)
+    );
+  }, [data]);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 48, width: '100%' }}>
+      {bars.map((h, i) => (
+        <div key={i} style={{
+          flex: 1,
+          height: h,
+          borderRadius: 1,
+          background: data && data.length > 0 ? 'rgba(255,85,0,0.7)' : 'rgba(255,255,255,0.4)',
+        }} />
+      ))}
+    </div>
+  );
+}
+
 // ─── Sidebar Tab Definition ──────────────────────────────────────────────────
 type Tab = 'everything' | 'tracks' | 'people' | 'albums' | 'playlists';
 const TABS: { id: Tab; label: string }[] = [
@@ -40,21 +76,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'albums', label: 'Albums' },
   { id: 'playlists', label: 'Playlists' },
 ];
-
-function DummyWaveform() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 48, width: '100%' }}>
-      {Array.from({ length: 80 }).map((_, i) => (
-        <div key={i} style={{
-          flex: 1,
-          height: Math.max(3, (8 + Math.abs(Math.sin(i * 0.4) * 35)) / 100 * 48),
-          borderRadius: 1,
-          background: 'rgba(255,255,255,0.4)',
-        }} />
-      ))}
-    </div>
-  );
-}
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SearchPage() {
@@ -191,17 +212,27 @@ export default function SearchPage() {
                     likes={t.likeCount}
                     reposts={t.repostCount ?? 0}
                     comments={t.commentCount ?? 0}
-                    waveformSlot={<DummyWaveform />}
-                    onPlay={() => play({
-                      id: t._id,
-                      title: t.title,
-                      artist: t.artist.displayName,
-                      artworkUrl: t.artworkUrl ?? '',
-                      streamUrl: t.hlsUrl ?? '',
-                      hlsUrl: t.hlsUrl ?? '',
-                      duration: fmtDuration(t.duration),
-                      waveform: [],
-                    } as any)}
+                    waveformSlot={<RealWaveform data={t.waveform} />}
+                    onPlay={async () => {
+                      // Use hlsUrl from search result, or fetch full track detail to get it
+                      let streamUrl = t.hlsUrl ?? '';
+                      if (!streamUrl) {
+                        try {
+                          const res = await apiClient.get(`/tracks/${t._id}`);
+                          const detail = res.data?.data ?? res.data;
+                          streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                        } catch { /* play with empty url, GlobalAudioEngine will handle */ }
+                      }
+                      play({
+                        id: t._id,
+                        title: t.title,
+                        artist: t.artist.displayName,
+                        artworkUrl: t.artworkUrl ?? '',
+                        streamUrl,
+                        hlsUrl: streamUrl,
+                        duration: t.duration ?? 0,
+                      });
+                    }}
                     actionsSlot={
                       <div className="flex gap-2">
                         <button className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30">
