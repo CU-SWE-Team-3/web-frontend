@@ -29,10 +29,10 @@ export interface Track {
   buyLink?: string;
   allowComments?: boolean;
   // Engagement counts
-  playCount: number;
-  likeCount: number;
-  repostCount: number;
-  commentCount: number;
+  playCount?: number;
+  likeCount?: number;
+  repostCount?: number;
+  commentCount?: number;
 }
 
 export interface UploadTrackInput {

@@ -240,7 +240,7 @@ export const resolveUserByPermalink = async (permalink: string): Promise<string 
       `/profile/${encodeURIComponent(permalink)}`
     );
     // Support both direct data and nested user object
-    const user = res.data?.user || (res.data as any);
+    const user = (res.data?.user || res.data) as any;
     return user?._id || user?.id || null;
   } catch {
     return null;
