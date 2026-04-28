@@ -38,6 +38,23 @@ This document outlines all the `data-testid` attributes implemented in the BioBe
 | **PlaylistCard** | `playlist-card` | Playlist gallery item |
 | | `playlist-card-artwork` | Cover art |
 | | `playlist-card-play-button` | Interactive play icon |
+| **PlaylistGridCard** | `playlist-grid-card` | Library/profile playlist card root |
+| | `playlist-grid-card-{id}` | Playlist artwork link for a specific playlist |
+| | `playlist-grid-card-artwork` | Playlist cover image |
+| | `playlist-grid-card-artwork-placeholder` | Empty cover fallback |
+| | `playlist-grid-card-play-button` | Hover play button |
+| | `playlist-grid-card-track-count` | Displayed track count |
+| | `playlist-grid-card-title` | Playlist title text |
+| | `playlist-grid-card-creator` | Playlist creator display name |
+| **PlaylistDetailHeader** | `playlist-detail-header` | Playlist page header root |
+| | `playlist-title` | Playlist title text |
+| | `playlist-header-play-btn` | Header play button |
+| | `playlist-header-creator-name` | Creator name next to playlist title |
+| | `playlist-header-track-count` | Large track count in header stats |
+| | `playlist-header-creator-avatar` | Creator avatar image in details sidebar |
+| | `playlist-header-creator-avatar-placeholder` | Creator avatar fallback |
+| | `playlist-header-sidebar-creator-name` | Creator name under sidebar avatar |
+| | `playlist-artwork` | Playlist cover artwork region |
 | **SidebarTrackItem** | `sidebar-track-item` | Small track item in sidebars |
 | | `sidebar-track-artist` | Artist name |
 | | `sidebar-track-plays` | Play count tooltip/label |

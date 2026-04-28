@@ -21,6 +21,7 @@ export interface FeedTrackCardProps {
   actionsSlot?: ReactNode;
   onPlay?: () => void;
   className?: string;
+  audioUrl?: string;   // kept for backwards compat with history/library pages
   
   // Header Props
   reposterName?: string;

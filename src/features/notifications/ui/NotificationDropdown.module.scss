@@ -226,3 +226,50 @@
 .bellWrapper {
   position: relative;
 }
+
+/* ── Follow Button ── */
+.followBtn {
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--sc-font-family);
+  border-radius: var(--sc-radius-md, 4px);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 120ms ease;
+  white-space: nowrap;
+
+  /* Default: Follow back */
+  color: var(--sc-text-primary, #fff);
+  background: none;
+  border: 1px solid var(--sc-text-primary, #fff);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.followBtnFollowing {
+  color: var(--sc-text-secondary, #999);
+  border-color: var(--sc-text-secondary, #999);
+  background: none;
+
+  &:hover {
+    background: none;
+  }
+}
+
+.followBtnUnfollow {
+  color: var(--sc-danger, #cf0000);
+  border-color: var(--sc-danger, #cf0000);
+
+  &:hover {
+    background: rgba(207, 0, 0, 0.08);
+  }
+}
+

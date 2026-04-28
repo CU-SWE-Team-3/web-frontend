@@ -12,6 +12,8 @@ export interface TrackResult {
   genre?: string
   playCount: number
   likeCount: number
+  repostCount?: number
+  commentCount?: number
   artist: {
     _id: string
     displayName: string

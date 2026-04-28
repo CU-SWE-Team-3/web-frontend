@@ -28,6 +28,8 @@ export const NavBar: FC<NavBarProps> = ({
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+
+  // ── Profile dropdown state ──
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [internalSearch, setInternalSearch] = useState('');
@@ -37,11 +39,15 @@ export const NavBar: FC<NavBarProps> = ({
     router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(query.trim())}`);
   };
 
-  // Notification state
+  // ── Notification state ──
   const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen } = useNotificationStore();
   const notifRef = useRef<HTMLDivElement>(null);
 
-  // Close user dropdown on click outside
+  // ── More dropdown state ──
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -52,8 +58,20 @@ export const NavBar: FC<NavBarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [dropdownOpen]);
 
+  // Close more dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    if (moreOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [moreOpen]);
+
   const handleLogout = async () => {
     setDropdownOpen(false);
+    setMoreOpen(false);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       await fetch(`${apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' });
@@ -102,14 +120,14 @@ export const NavBar: FC<NavBarProps> = ({
             </div>
           </Link>
 
-          {/* Dropdown trigger */}
+          {/* ── Profile Dropdown ── */}
           <div ref={dropdownRef} className={s.dropdownWrapper}>
             <button className={s.iconBtn} onClick={() => setDropdownOpen(!dropdownOpen)} data-testid="navbar-user-dropdown">
               <ChevronDownIcon size={16} />
             </button>
 
             {dropdownOpen && (
-              <div className={s.dropdown}>
+              <div className={s.dropdown} data-testid="navbar-profile-dropdown-menu">
                 <Link
                   href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'}
                   className={s.dropdownItem}
@@ -129,28 +147,68 @@ export const NavBar: FC<NavBarProps> = ({
                   Likes
                 </Link>
                 <Link
-                  href={ROUTES.HISTORY}
+                  href={ROUTES.STATIONS}
                   className={s.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-history"
+                  data-testid="navbar-dropdown-stations"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  History
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                  Stations
+                </Link>
+                <Link
+                  href={user ? ROUTES.FOLLOWING(((user as any).permalink || user.id)) : '/'}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-following"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                  Following
+                </Link>
+                <Link
+                  href="/feed"
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-who-to-follow"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="21 8 21 14"/><polyline points="18 11 24 11"/></svg>
+                  Who to follow
+                </Link>
+                <Link
+                  href={ROUTES.FOR_ARTISTS}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-try-pro"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="var(--sc-primary, #f50)"/><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.8 4.8 2.4-7.2-6-4.8h7.6z" fill="#fff"/></svg>
+                  Try Artist Pro
+                </Link>
+                <Link
+                  href={ROUTES.MY_TRACKS}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-tracks"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="2" height="20"/><rect x="9" y="6" width="2" height="16"/><rect x="14" y="4" width="2" height="18"/><rect x="19" y="8" width="2" height="14"/></svg>
+                  Tracks
                 </Link>
                 <Link
                   href={ROUTES.SETTINGS}
                   className={s.dropdownItem}
                   onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-settings"
+                  data-testid="navbar-dropdown-insights"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                  Settings
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  Insights
                 </Link>
-                <div className={s.dropdownDivider} />
-                <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-dropdown-signout">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                  Sign out
-                </button>
+                <Link
+                  href={ROUTES.SETTINGS}
+                  className={s.dropdownItem}
+                  onClick={() => setDropdownOpen(false)}
+                  data-testid="navbar-dropdown-distribute"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  Distribute
+                </Link>
               </div>
             )}
           </div>
@@ -167,28 +225,9 @@ export const NavBar: FC<NavBarProps> = ({
               <NotificationIcon size={18} />
               {unreadCount > 0 && (
                 <span
-                  data-testid="notification-unread-badge"
-                  style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -6,
-                    minWidth: 16,
-                    height: 16,
-                    padding: '0 4px',
-                    borderRadius: 'var(--sc-radius-full, 9999px)',
-                    background: 'var(--sc-danger, #cf0000)',
-                    color: 'var(--sc-white, #fff)',
-                    fontFamily: 'var(--sc-font-family)',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1,
-                  }}
-                >
-                  {unreadCount >= 10 ? '9+' : unreadCount}
-                </span>
+                  data-testid="notification-unread-dot"
+                  className={s.notifDot}
+                />
               )}
             </button>
             <NotificationDropdown />
@@ -196,7 +235,39 @@ export const NavBar: FC<NavBarProps> = ({
 
           {/* ── Message Dropdown (M9) ── */}
           <MessageDropdown buttonClassName={s.iconBtn} />
-          <button className={s.iconBtn} data-testid="navbar-more-button"><MoreIcon size={18} /></button>
+
+          {/* ── More (3-dots) Dropdown ── */}
+          <div ref={moreRef} className={s.dropdownWrapper}>
+            <button
+              className={s.iconBtn}
+              onClick={() => setMoreOpen(!moreOpen)}
+              data-testid="navbar-more-button"
+            >
+              <MoreIcon size={18} />
+            </button>
+
+            {moreOpen && (
+              <div className={`${s.dropdown} ${s.moreDropdown}`} data-testid="navbar-more-dropdown-menu">
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-about">About us</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-legal">Legal</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-copyright">Copyright</Link>
+                <div className={s.dropdownDivider} />
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-mobile-apps">Mobile apps</Link>
+                <Link href={ROUTES.FOR_ARTISTS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-artist-membership">Artist Membership</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-newsroom">Newsroom</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-jobs">Jobs</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-developers">Developers</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-store">SoundCloud Store</Link>
+                <div className={s.dropdownDivider} />
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-support">Support</Link>
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-keyboard">Keyboard shortcuts</Link>
+                <div className={s.dropdownDivider} />
+                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-subscription">Subscription</Link>
+                <Link href={ROUTES.SETTINGS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-settings">Settings</Link>
+                <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-more-signout">Sign out</button>
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <>

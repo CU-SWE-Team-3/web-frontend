@@ -1,6 +1,6 @@
 'use client'
 
-import { type FC, useEffect, useRef, useCallback } from 'react'
+import { type FC, useEffect, useRef, useCallback, useState } from 'react'
 import Link from 'next/link'
 import { useNotificationStore } from '../model/useNotificationStore'
 import { NotificationItem } from './NotificationItem'
@@ -98,18 +98,16 @@ export const NotificationDropdown: FC<NotificationDropdownProps> = ({ className 
       </div>
 
       {/* ── Footer ── */}
-      {notifications.length > 0 && (
-        <div className={s.footer}>
-          <Link
-            href="/settings?tab=notifications"
-            className={s.viewAll}
-            onClick={handleSettingsClick}
-            data-testid="notification-dropdown-view-all"
-          >
-            View all notifications
-          </Link>
-        </div>
-      )}
+      <div className={s.footer}>
+        <Link
+          href="/notifications"
+          className={s.viewAll}
+          onClick={handleSettingsClick}
+          data-testid="notification-dropdown-view-all"
+        >
+          View all notifications
+        </Link>
+      </div>
     </div>
   )
 }

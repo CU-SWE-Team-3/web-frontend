@@ -1,0 +1,291 @@
+/* AddToPlaylistModal – SoundCloud-exact styling */
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  margin: -24px; /* cancel AppModal padding to go edge-to-edge */
+  background-color: #121212;
+}
+
+/* ─── Tabs ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #333333;
+  padding: 0 10px;
+}
+
+.tab {
+  flex: none;
+  padding: 16px 20px;
+  font-size: var(--sc-font-size-lg);
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-regular);
+  color: var(--sc-gray-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color var(--sc-transition-fast);
+
+  &:hover {
+    color: #ffffff;
+  }
+}
+
+.tabActive {
+  color: #ffffff;
+  font-weight: 500;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background-color: #ffffff;
+  }
+}
+
+/* ─── Tab Body ─── */
+.tabBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ─── Filter Input ─── */
+.filterInput {
+  width: 100%;
+  background: #212121;
+  border: 1px solid #333333;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  padding: 5px 10px;
+  height: 32px;
+  outline: none;
+  margin-bottom: 15px;
+
+  &::placeholder {
+    color: #999999;
+  }
+
+  &:focus {
+    border-color: #666666;
+  }
+}
+
+/* ─── Playlist List ─── */
+.playlistList {
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.playlistRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background var(--sc-transition-fast);
+
+  &:hover {
+    background: var(--sc-bg-dark-elevated);
+  }
+}
+
+.playlistRowSelected {
+  background: var(--sc-bg-dark-elevated);
+}
+
+.playlistRowAdded {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.checkCol {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkmark {
+  display: flex;
+}
+
+.rowArtwork {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sc-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--sc-bg-dark-hover);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.rowArtworkPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: var(--sc-bg-dark-hover);
+}
+
+.rowInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rowTitle {
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowCount {
+  font-size: var(--sc-font-size-xs);
+  color: var(--sc-gray-500);
+  font-family: var(--sc-font-family);
+}
+
+.addToPlaylistBtn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: var(--sc-radius-sm);
+  border: 1px solid var(--sc-primary);
+  background: transparent;
+  color: var(--sc-primary);
+  font-size: var(--sc-font-size-sm);
+  font-family: var(--sc-font-family);
+  font-weight: var(--sc-font-weight-medium);
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--sc-primary);
+    color: var(--sc-white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ─── Loading / Empty ─── */
+.loadingState,
+.emptyState {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+}
+
+/* ─── Create Form ─── */
+.createForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldLabel {
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-medium);
+  color: var(--sc-gray-400);
+  font-family: var(--sc-font-family);
+}
+
+.required {
+  color: var(--sc-primary);
+}
+
+.titleInput {
+  width: 100%;
+  background: #212121;
+  border: 1px solid #333333;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  padding: 5px 10px;
+  height: 32px;
+  outline: none;
+
+  &:focus {
+    border-color: #666666;
+  }
+}
+
+/* ─── Privacy Row ─── */
+.privacyRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.privacyLabel {
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-gray-400);
+  font-family: var(--sc-font-family);
+  margin-right: 4px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sc-font-size-md);
+  color: var(--sc-white);
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+}
+
+.radio {
+  accent-color: var(--sc-primary);
+  cursor: pointer;
+}
+
+.saveBtn {
+  margin-left: auto;
+  padding: 6px 15px;
+  border-radius: 3px;
+  border: none;
+  background: #ffffff;
+  color: #000000;
+  font-size: 14px;
+  font-family: var(--sc-font-family);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sc-transition-fast);
+
+  &:hover:not(:disabled) {
+    background: #e5e5e5;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

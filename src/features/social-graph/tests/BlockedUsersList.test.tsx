@@ -1,17 +1,19 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BlockedUsersList } from "../ui/BlockedUsersList";
 import { useBlockedUsers } from "../model/useBlockedUsers";
 import { useUnblockUser } from "../model/useUnblockUser";
+
 // Mock the hooks
-jest.mock("../model/useBlockedUsers");
-jest.mock("../model/useUnblockUser");
+vi.mock("../model/useBlockedUsers");
+vi.mock("../model/useUnblockUser");
 
 // Mocking toast inline since the file was moved
-const mockToast = jest.fn();
-jest.mock("@/shared/ui/AppToast/useAppToast", () => ({
+const mockToast = vi.fn();
+vi.mock("@/shared/ui/AppToast/useAppToast", () => ({
   useAppToast: () => ({ toast: mockToast }),
-}), { virtual: true });
+}));
 
 const mockBlockedUsers = [
   { id: "1", username: "user-1", displayName: "User One", avatarUrl: "avatar1.png" },
@@ -19,14 +21,12 @@ const mockBlockedUsers = [
 ];
 
 describe("BlockedUsersList", () => {
-  let mockMutate: jest.Mock;
-  let mockToast: jest.Mock;
+  let mockMutate: any;
 
   beforeEach(() => {
-    mockMutate = jest.fn();
-    mockToast = jest.fn();
+    mockMutate = vi.fn();
 
-    (useUnblockUser as jest.Mock).mockReturnValue({
+    (useUnblockUser as any).mockReturnValue({
       mutate: mockMutate,
       isPending: false,
       variables: null,
@@ -34,11 +34,11 @@ describe("BlockedUsersList", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("1. renders blocked users list", () => {
-    (useBlockedUsers as jest.Mock).mockReturnValue({
+    (useBlockedUsers as any).mockReturnValue({
       data: mockBlockedUsers,
       isLoading: false,
       isError: false,
@@ -55,7 +55,7 @@ describe("BlockedUsersList", () => {
   });
 
   it("2. shows empty state", () => {
-    (useBlockedUsers as jest.Mock).mockReturnValue({
+    (useBlockedUsers as any).mockReturnValue({
       data: [],
       isLoading: false,
       isError: false,
@@ -68,7 +68,7 @@ describe("BlockedUsersList", () => {
   });
 
   it("3. shows loading skeleton", () => {
-    (useBlockedUsers as jest.Mock).mockReturnValue({
+    (useBlockedUsers as any).mockReturnValue({
       data: undefined,
       isLoading: true,
       isError: false,
@@ -80,13 +80,13 @@ describe("BlockedUsersList", () => {
   });
 
   it("4. unblock button removes user", async () => {
-    (useBlockedUsers as jest.Mock).mockReturnValue({
+    (useBlockedUsers as any).mockReturnValue({
       data: mockBlockedUsers,
       isLoading: false,
       isError: false,
     });
 
-    mockMutate.mockImplementation((userId, options) => {
+    mockMutate.mockImplementation((userId: string, options: any) => {
       // simulate success
       options.onSuccess();
     });
@@ -106,13 +106,13 @@ describe("BlockedUsersList", () => {
   });
 
   it("5. API error shows toast", async () => {
-    (useBlockedUsers as jest.Mock).mockReturnValue({
+    (useBlockedUsers as any).mockReturnValue({
       data: mockBlockedUsers,
       isLoading: false,
       isError: false,
     });
 
-    mockMutate.mockImplementation((userId, options) => {
+    mockMutate.mockImplementation((userId: string, options: any) => {
       // simulate error
       options.onError(new Error("Server error"));
     });

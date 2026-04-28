@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = localStorage.getItem('accessToken');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '/api'
       const axios = (await import('axios')).default
       const response = await axios.get(`${apiUrl}/auth/me`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -72,19 +72,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isInitialized: true })
       }
     } catch {
-      // DEV BYPASS: Allow frontend development without a real backend
-      console.warn('Backend unavailable: Using local Dev Mock User')
-      set({ 
-        user: { 
-          id: "dev-mock-user", 
-          _id: "dev-mock-user",
-          username: "Local Dev", 
-          email: "dev@biobeats.local", 
-          avatarUrl: null 
-        } as any, 
-        isAuthenticated: true, 
-        isInitialized: true 
-      })
+      // Backend auth check failed - user is not authenticated
+      localStorage.removeItem('accessToken')
+      set({ isInitialized: true })
     }
   },
 }))

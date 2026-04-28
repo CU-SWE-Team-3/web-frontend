@@ -1,20 +1,27 @@
-// ─── User ────────────────────────────────────────────────────────────────────
+// User
 export interface User {
-  _id: string;
+  // Primary identifiers — our backend uses _id; some older code uses id
+  _id?: string;
+  id?: string;
   email: string;
+  // Both username and displayName are used across the codebase
+  username?: string;
   displayName: string;
-  permalink: string;
+  permalink?: string;
   avatarUrl?: string;
   coverUrl?: string;
-  role: 'Artist' | 'Listener' | 'Admin';
-  isEmailVerified: boolean;
-  isPremium: boolean;
-  followerCount: number;
-  followingCount: number;
+  role: 'artist' | 'listener' | 'admin' | 'Artist' | 'Listener' | 'Admin';
+  // Auth flags
+  isEmailVerified?: boolean;
+  isVerified?: boolean;
+  isPremium?: boolean;
+  // Social counts
+  followerCount?: number;
+  followingCount?: number;
   createdAt: string;
 }
 
-// ─── API Wrapper ──────────────────────────────────────────────────────────────
+// API Wrapper
 export interface ApiResponse<T> {
   success: boolean;
   status: 'success' | 'fail' | 'error';
@@ -23,7 +30,7 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-// ─── Auth Payloads ───────────────────────────────────────────────────────────
+// Auth Payloads
 export interface LoginPayload {
   email: string;
   password: string;
@@ -45,12 +52,46 @@ export interface ResetPasswordPayload {
   newPassword: string;
 }
 
-// ─── Auth Response ───────────────────────────────────────────────────────────
+// Auth Response
 export interface AuthResponse {
   user: User;
 }
 
-// ─── Notifications ──────────────────────────────────────────────────────────
+// Admin
+export interface ReportData {
+  _id: string
+  reporter: string | { _id: string; displayName: string; permalink: string; avatarUrl?: string }
+  targetType: 'Track' | 'Comment' | 'User'
+  targetId: string
+  reason: 'Copyright' | 'Inappropriate Content' | 'Spam' | 'Other'
+  status: 'Pending' | 'Reviewed' | 'Resolved'
+  createdAt: string
+}
+
+export interface DashboardStats {
+  totalUsers: number
+  roleBreakdown: { artists: number; listeners: number }
+  artistToListenerRatio: string
+  totalTracks: number
+  totalPlays: number
+  completedPlays: number
+  playThroughRate: string
+  totalStorageUsed: string
+}
+
+export interface UserModerationResponse {
+  success: boolean
+  message: string
+  data: { userId: string; status: string }
+}
+
+export interface TrackModerationResponse {
+  success: boolean
+  message: string
+  data: { trackId: string; isPublic: boolean; moderationStatus: string }
+}
+
+// Notifications
 export type NotificationType =
   | 'LIKE'
   | 'REPOST'

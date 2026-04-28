@@ -1,6 +1,6 @@
 'use client'
 
-import { type FC, useCallback } from 'react'
+import { type FC, useCallback, useState } from 'react'
 import type { Notification } from '@/shared/types'
 import { useNotificationStore } from '../model/useNotificationStore'
 import s from './NotificationDropdown.module.scss'
@@ -45,6 +45,52 @@ function formatRelativeTime(dateString: string): string {
   const weeks = Math.floor(days / 7)
   if (weeks < 4) return `${weeks}w`
   return new Date(dateString).toLocaleDateString()
+}
+
+// ─── Follow Button (inline, uses apiClient directly) ────────────────────────────
+
+interface FollowBtnProps {
+  userId: string
+}
+
+const FollowBtn: FC<FollowBtnProps> = ({ userId }) => {
+  const [following, setFollowing] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLoading(true)
+    try {
+      const apiClient = (await import('@/shared/api/client')).default
+      if (following) {
+        await apiClient.delete(`/network/${userId}/follow`, { withCredentials: true })
+        setFollowing(false)
+      } else {
+        await apiClient.post(`/network/${userId}/follow`, {}, { withCredentials: true })
+        setFollowing(true)
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const label = following ? (hovered ? 'Unfollow' : 'Following') : 'Follow back'
+
+  return (
+    <button
+      className={`${s.followBtn} ${following ? s.followBtnFollowing : ''} ${following && hovered ? s.followBtnUnfollow : ''}`}
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      disabled={loading}
+      data-testid={`notification-follow-btn-${userId}`}
+    >
+      {label}
+    </button>
+  )
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────────
@@ -96,8 +142,10 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
         <div className={s.time}>{timeAgo}</div>
       </div>
 
-      {/* Target artwork (if applicable) */}
-      {notification.target?.artworkUrl && (
+      {/* Follow button for FOLLOW type, or artwork for other types */}
+      {notification.type === 'FOLLOW' && actor ? (
+        <FollowBtn userId={actor._id} />
+      ) : notification.target?.artworkUrl ? (
         <div className={s.artwork}>
           <img
             src={notification.target.artworkUrl}
@@ -105,7 +153,7 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
             className={s.artworkImg}
           />
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
