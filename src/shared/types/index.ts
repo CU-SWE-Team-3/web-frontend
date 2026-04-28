@@ -1,24 +1,31 @@
 // User
 export interface User {
-  // Primary identifiers — our backend uses _id; some older code uses id
-  _id?: string;
-  id?: string;
+  id: string;
+  _id?: string; // Alias for API consistency
   email: string;
-  // Both username and displayName are used across the codebase
   username?: string;
   displayName: string;
   permalink?: string;
+  bio?: string;
+  country?: string;
+  city?: string;
+  genres?: string[];
   avatarUrl?: string;
   coverUrl?: string;
-  role: 'artist' | 'listener' | 'admin' | 'Artist' | 'Listener' | 'Admin';
-  // Auth flags
+  role: 'Artist' | 'Listener' | 'Admin' | 'artist' | 'listener' | 'admin';
+  isPremium?: boolean;
+  subscriptionPlan?: 'Free' | 'Pro' | 'Go+';
+  subscriptionExpiresAt?: string | null;
+  cancelAtPeriodEnd?: boolean;
   isEmailVerified?: boolean;
   isVerified?: boolean;
-  isPremium?: boolean;
-  // Social counts
+  accountStatus?: 'Active' | 'Suspended' | 'Deleted';
   followerCount?: number;
   followingCount?: number;
+  socialLinks?: Array<{ _id: string; platform: string; url: string }>;
+  notificationPreferences?: Record<string, boolean>;
   createdAt: string;
+  updatedAt?: string;
 }
 
 // API Wrapper

@@ -80,18 +80,12 @@ export const getMessages = async (
 
 /** POST /messages */
 export const sendMessage = async (
-  conversationId: string,
+  receiverId: string,
   content: string,
   sharedTrack?: any
 ): Promise<Message> => {
-  // We need to find the receiverId. On the backend, sending a message
-  // requires a receiverId, not a conversationId. We resolve this by
-  // first looking up the participant from cached conversation data,
-  // or by passing a receiverId directly.
-  // For existing conversations the caller should pass via the overload.
-
   const payload: SendMessagePayload = {
-    receiverId: conversationId, // will be overridden by caller when possible
+    receiverId,
     content,
   };
 
@@ -119,6 +113,7 @@ export const sendMessageToUser = async (
     payload.attachmentType = attachmentType;
     payload.attachmentId = attachmentId;
   }
+  
   const { data: res } = await apiClient.post<{ success: boolean; data: { message: Message } }>(
     '/messages',
     payload
@@ -132,25 +127,26 @@ export const sendMessageToUser = async (
 export const startConversation = async (
   userId: string,
   content: string,
-  sharedTrack?: any
+  sharedTrack?: any,
+  attachment?: { type: 'track' | 'playlist'; id: string }
 ): Promise<Conversation> => {
   const msg = await sendMessageToUser(
     userId,
     content,
-    sharedTrack ? 'track' : undefined,
-    sharedTrack?.trackId
+    attachment?.type || (sharedTrack ? 'track' : undefined),
+    attachment?.id || sharedTrack?.trackId
   );
-  // After sending, refetch conversations to get the full conversation object
+  
   const conversations = await getConversations();
   const conv = conversations.find(
-    (c) => c.participants.some((p) => p._id === userId)
+    (c) => c.participants.some((p) => p._id === userId) || c._id === msg.conversationId
   );
   if (conv) return conv;
-  // Fallback: construct a minimal conversation from the message
+
   return {
     _id: msg.conversationId,
     participants: [],
-    participant: { _id: userId, displayName: '', permalink: '', avatarUrl: null },
+    participant: { _id: userId, displayName: 'Unknown', permalink: userId, avatarUrl: null },
     lastMessage: msg,
     unreadCount: 0,
     isBlocked: false,
@@ -210,27 +206,43 @@ export const deleteConversation = async (conversationId: string): Promise<void> 
 };
 
 // ─── Block / Unblock ─────────────────────────────────────────────────────────
-// These aren't in the Messaging tag but are common social features.
-// Adjust the endpoint once the backend confirms the exact path.
 
 /** POST /users/{userId}/block */
 export const blockUser = async (userId: string): Promise<void> => {
-  await apiClient.post(`/users/${userId}/block`);
+  await apiClient.post(`/network/${userId}/block`);
 };
 
 /** DELETE /users/{userId}/block */
 export const unblockUser = async (userId: string): Promise<void> => {
-  await apiClient.delete(`/users/${userId}/block`);
+  await apiClient.delete(`/network/${userId}/block`);
 };
 
 // ─── User Search ─────────────────────────────────────────────────────────────
 
-/** GET /users/search?q=... */
+/** GET /tracks/search?q=...&type=users */
 export const searchUsers = async (query: string): Promise<MessageUser[]> => {
   if (!query.trim()) return [];
-  const { data: res } = await apiClient.get<{ success: boolean; data: { users: MessageUser[] } }>(
-    '/users/search',
-    { params: { q: query } }
+
+  const { data: res } = await apiClient.get<{ 
+    status?: string; 
+    data: { users?: MessageUser[] } 
+  }>(
+    '/tracks/search',
+    { params: { q: query, type: 'users' } }
   );
-  return res.data.users || [];
+  return res.data?.users || [];
+};
+
+/** GET /profile/{permalink} - used as fallback to resolve recipient by username */
+export const resolveUserByPermalink = async (permalink: string): Promise<string | null> => {
+  try {
+    const { data: res } = await apiClient.get<{ data: { user: { _id: string } } }>(
+      `/profile/${encodeURIComponent(permalink)}`
+    );
+    // Support both direct data and nested user object
+    const user = res.data?.user || (res.data as any);
+    return user?._id || user?.id || null;
+  } catch {
+    return null;
+  }
 };
