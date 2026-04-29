@@ -95,4 +95,47 @@ export const trendingRepository = {
       return []
     }
   },
+  
+  /**
+   * GET /discovery/mixed-for-you
+   * Returns personalized "Mix" stations for the authenticated user.
+   */
+  async getMixedForYou(): Promise<any[]> {
+    try {
+      const { data } = await apiClient.get('/discovery/mixed-for-you')
+      return data?.data?.stations ?? data?.data ?? []
+    } catch (err) {
+      console.warn('[trendingRepository] GET /discovery/mixed-for-you failed:', err)
+      return []
+    }
+  },
+
+  /**
+   * GET /discovery/more-of-what-you-like
+   * Returns track recommendations based on user's recent likes.
+   */
+  async getMoreOfWhatYouLike(): Promise<TrendingTrack[]> {
+    try {
+      const { data } = await apiClient.get('/discovery/more-of-what-you-like')
+      const raw = data?.data?.tracks ?? []
+      return raw.map((item: any, i: number) => mapTrendingTrack(item, i))
+    } catch (err) {
+      console.warn('[trendingRepository] GET /discovery/more-of-what-you-like failed:', err)
+      return []
+    }
+  },
+
+  /**
+   * GET /discovery/suggested-artists
+   * Returns personalized user/artist suggestions.
+   */
+  async getSuggestedArtists(): Promise<any[]> {
+    try {
+      const { data } = await apiClient.get('/network/suggested')
+      return data?.data ?? []
+    } catch (err) {
+      console.warn('[trendingRepository] GET /network/suggested failed:', err)
+      return []
+    }
+  },
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Track } from './playerStore';
 
 export interface HistoryEntry {
@@ -23,33 +24,45 @@ interface HistoryActions {
 
 export type HistoryStore = HistoryState & HistoryActions;
 
-export const useHistoryStore = create<HistoryStore>((set) => ({
-  recentlyPlayed: [],
-  listeningHistory: [],
+export const useHistoryStore = create<HistoryStore>()(
+  persist(
+    (set) => ({
+      recentlyPlayed: [],
+      listeningHistory: [],
 
-  addToHistory: (track: Track, durationPlayed = 0) =>
-    set((state) => {
-      const filtered = state.recentlyPlayed.filter((t) => t.id !== track.id);
-      const newRecent = [track, ...filtered].slice(0, 10);
-      
-      const filteredListening = state.listeningHistory.filter((e) => e.track.id !== track.id);
-      const entry: HistoryEntry = {
-        id: `${track.id}-${Date.now()}`,
-        track,
-        playedAt: new Date().toISOString(),
-        durationPlayed,
-      };
-      
-      return {
-        recentlyPlayed: newRecent,
-        listeningHistory: [entry, ...filteredListening],
-      };
+      addToHistory: (track: Track, durationPlayed = 0) =>
+        set((state) => {
+          const filtered = state.recentlyPlayed.filter((t) => t.id !== track.id);
+          const newRecent = [track, ...filtered].slice(0, 10);
+          
+          const filteredListening = state.listeningHistory.filter((e) => e.track.id !== track.id);
+          const entry: HistoryEntry = {
+            id: `${track.id}-${Date.now()}`,
+            track,
+            playedAt: new Date().toISOString(),
+            durationPlayed,
+          };
+          
+          return {
+            recentlyPlayed: newRecent,
+            listeningHistory: [entry, ...filteredListening].slice(0, 50),
+          };
+        }),
+
+      clearRecent: () => set({ recentlyPlayed: [] }),
+
+      deleteHistoryItem: (id: string) =>
+        set((state) => ({
+          listeningHistory: state.listeningHistory.filter((e) => e.id !== id),
+        })),
     }),
-
-  clearRecent: () => set({ recentlyPlayed: [] }),
-
-  deleteHistoryItem: (id: string) =>
-    set((state) => ({
-      listeningHistory: state.listeningHistory.filter((e) => e.id !== id),
-    })),
-}));
+    {
+      name: 'biobeats-history',
+      // Only persist the data, not the actions
+      partialize: (state) => ({
+        recentlyPlayed: state.recentlyPlayed,
+        listeningHistory: state.listeningHistory,
+      }),
+    }
+  )
+);

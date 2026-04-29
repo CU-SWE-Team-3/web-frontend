@@ -30,7 +30,7 @@ describe('engagementApi', () => {
       await likeTrack('track-123');
       expect(apiClient.post).toHaveBeenCalledWith(
         '/tracks/track-123/like',
-        {},
+        { targetModel: 'Track' },
         { withCredentials: true }
       );
     });
@@ -40,7 +40,7 @@ describe('engagementApi', () => {
       await unlikeTrack('track-123');
       expect(apiClient.delete).toHaveBeenCalledWith(
         '/tracks/track-123/like',
-        { withCredentials: true }
+        { data: { targetModel: 'Track' }, withCredentials: true }
       );
     });
 
@@ -73,7 +73,7 @@ describe('engagementApi', () => {
       const result = await repostTrack('track-123');
       expect(apiClient.post).toHaveBeenCalledWith(
         '/tracks/track-123/repost',
-        {},
+        { targetModel: 'Track' },
         { withCredentials: true }
       );
       expect(result).toEqual({ reposted: true });
@@ -86,7 +86,7 @@ describe('engagementApi', () => {
       const result = await unrepostTrack('track-123');
       expect(apiClient.delete).toHaveBeenCalledWith(
         '/tracks/track-123/repost',
-        { withCredentials: true }
+        { data: { targetModel: 'Track' }, withCredentials: true }
       );
       expect(result).toEqual({ reposted: false });
     });
@@ -101,14 +101,34 @@ describe('engagementApi', () => {
 
     it('getUserReposts should unwrap the repostedTracks array from /profile/:id/reposts', async () => {
       vi.mocked(apiClient.get).mockResolvedValueOnce({
-        data: { data: { repostedTracks: [{ track: { id: 't1' } }] } },
+        data: {
+          data: {
+            repostedTracks: [
+              {
+                repostDate: '2026-01-01T00:00:00.000Z',
+                target: {
+                  _id: 't1',
+                  title: 'Track One',
+                  artworkUrl: 'art.jpg',
+                  streamUrl: 'audio.mp3',
+                },
+              },
+            ],
+          },
+        },
       });
       const result = await getUserReposts('user-123');
       expect(apiClient.get).toHaveBeenCalledWith('/profile/user-123/reposts', {
         params: { page: 1, limit: 20 },
         withCredentials: true,
       });
-      expect(result).toEqual([{ track: { id: 't1' } }]);
+      expect(result[0].track).toMatchObject({
+        id: 't1',
+        title: 'Track One',
+        artworkUrl: 'art.jpg',
+        streamUrl: 'audio.mp3',
+      });
+      expect(result[0].target).toEqual(result[0].track);
     });
   });
 });

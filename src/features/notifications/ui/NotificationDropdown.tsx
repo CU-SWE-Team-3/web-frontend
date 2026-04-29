@@ -88,9 +88,9 @@ export const NotificationDropdown: FC<NotificationDropdownProps> = ({ className 
             No notifications
           </div>
         ) : (
-          notifications.map((notification) => (
+          notifications.map((notification, idx) => (
             <NotificationItem
-              key={notification._id}
+              key={`${notification._id}-${idx}`}
               notification={notification}
             />
           ))

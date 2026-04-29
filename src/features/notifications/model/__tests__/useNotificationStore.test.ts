@@ -53,12 +53,26 @@ describe('useNotificationStore', () => {
       expect(state.unreadCount).toBe(1)
     })
 
-    it('should not add duplicate notifications', () => {
-      const n = mockNotification()
-      useNotificationStore.getState().addNotification(n)
-      useNotificationStore.getState().addNotification(n) // duplicate
+    it('should update existing notification and bring it to top', () => {
+      const n1 = mockNotification({ _id: 'n1', isRead: true })
+      const n2 = mockNotification({ _id: 'n2' })
+      useNotificationStore.getState().addNotification(n1)
+      useNotificationStore.getState().addNotification(n2)
+      
+      expect(useNotificationStore.getState().notifications).toHaveLength(2)
+      expect(useNotificationStore.getState().unreadCount).toBe(1) // n2 is unread, n1 is read
 
-      expect(useNotificationStore.getState().notifications).toHaveLength(1)
+      // Update n1 to be unread and with more actors
+      const updatedN1 = mockNotification({ _id: 'n1', isRead: false, actorCount: 2 })
+      useNotificationStore.getState().addNotification(updatedN1)
+
+      const state = useNotificationStore.getState()
+      expect(state.notifications).toHaveLength(2)
+      // n1 should now be at the top
+      expect(state.notifications[0]._id).toBe('n1')
+      expect(state.notifications[0].actorCount).toBe(2)
+      // unread count should be 2 because n1 went from read to unread
+      expect(state.unreadCount).toBe(2)
     })
   })
 

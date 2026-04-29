@@ -139,11 +139,11 @@ function SettingsContent() {
       </div>
 
       {/* ===== SETTINGS CONTAINER ===== */}
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '30px 20px' }}>
-        <h1 data-testid="settings-title" style={{ fontSize: 24, fontWeight: 700, marginBottom: 20 }}>Settings</h1>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: 'clamp(16px, 4vw, 30px) clamp(12px, 4vw, 20px)' }}>
+        <h1 data-testid="settings-title" style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 700, marginBottom: 20 }}>Settings</h1>
 
         {/* TABS */}
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--sc-border)', marginBottom: 30 }}>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--sc-border)', marginBottom: 30, overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, scrollbarWidth: 'none' as any }}>
           {TABS.map((tab) => (
             <button
               key={tab.key}

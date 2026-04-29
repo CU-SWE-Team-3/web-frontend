@@ -23,9 +23,11 @@ import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
 import { RecentlyPlayed } from '@/features/player/ui/history/RecentlyPlayed';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import apiClient from '@/shared/api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 import type { SuggestedArtist, FeedActivity, FeedTrack } from '@/features/feed';
+import { useUserReposts } from '@/features/track-engagement/model/useUserReposts';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
@@ -256,6 +258,48 @@ export default function FeedPage() {
   const { data: likedTracksList } = useLikedTracks();
   const likedTrackIds = (likedTracksList ?? []).map(t => t.id);
 
+  // ── Auth user + own reposts ──────────────────────────────────────────────────
+  const currentUser = useAuthStore((s) => s.user);
+  const userId = (currentUser as any)?._id || currentUser?.id || '';
+  const { data: userRepostsData = [] } = useUserReposts(userId);
+
+  const repostedByMeIds = new Set(
+    (userRepostsData ?? []).map((r: any) =>
+      r.target?._id || r.target?.id || r.track?._id || r.track?.id || ''
+    ).filter(Boolean)
+  );
+  const [localRepostMap, setLocalRepostMap] = useState<Record<string, boolean>>({});
+  const isReposted = (id: string) => localRepostMap[id] ?? repostedByMeIds.has(id);
+
+  // ── Repost filter toggle ──────────────────────────────────────────────────────
+  const [showReposts, setShowReposts] = useState(true);
+
+  // Merge user's own reposts into feed, filtered by toggle
+  const mergedFeed: FeedActivity[] = React.useMemo(() => {
+    if (!showReposts) return feedActivities.filter(a => a.activityType === 'TRACK_UPLOAD');
+    const feedTrackIds = new Set(feedActivities.map(a => a.target?._id));
+    const myRepostActivities: FeedActivity[] = (userRepostsData ?? []).flatMap((r: any) => {
+      const t = r.target || r.track;
+      if (!t || feedTrackIds.has(t._id || t.id)) return [];
+      return [{
+        activityType: 'REPOST' as const,
+        activityDate: r.repostDate || r.createdAt || new Date().toISOString(),
+        actors: [{ _id: userId, displayName: currentUser?.displayName || currentUser?.username || 'You', permalink: (currentUser as any)?.permalink || userId, avatarUrl: (currentUser as any)?.avatarUrl }],
+        target: {
+          _id: t._id || t.id || '', title: t.title || 'Untitled', permalink: t.permalink || t._id || '',
+          artworkUrl: t.artworkUrl, hlsUrl: t.hlsUrl || t.streamUrl, waveform: Array.isArray(t.waveform) ? t.waveform : undefined,
+          duration: t.duration, genre: t.genre || '', playCount: t.playCount ?? 0, likeCount: t.likeCount ?? 0,
+          repostCount: t.repostCount ?? 0, commentCount: t.commentCount ?? 0, createdAt: t.createdAt || '',
+          artist: { _id: t.artist?._id || '', displayName: t.artist?.displayName || 'Unknown Artist', permalink: t.artist?.permalink || '', avatarUrl: t.artist?.avatarUrl },
+        },
+        targetModel: 'Track',
+      }];
+    });
+    return [...feedActivities, ...myRepostActivities].sort(
+      (a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()
+    );
+  }, [feedActivities, userRepostsData, showReposts, userId, currentUser]);
+
   // ── Player / History ─────────────────────────────────────────────────────────
   const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
   const listeningHistory = useHistoryStore((st) => st.listeningHistory);
@@ -301,12 +345,22 @@ export default function FeedPage() {
   );
 
   // ── Repost / Share / Copy Link ────────────────────────────────────────────────
-  const repostTrack = useRepostTrack();
-  const unrepostTrack = useUnrepostTrack();
+  const repostTrackMut = useRepostTrack();
+  const unrepostTrackMut = useUnrepostTrack();
 
-  const handleRepost = (trackId: string) => {
+  const handleRepost = (track: FeedTrack) => {
     if (!isAuthenticated) { router.push('/login'); return; }
-    repostTrack.mutate({ trackId });
+    const currently = isReposted(track._id);
+    setLocalRepostMap(prev => ({ ...prev, [track._id]: !currently }));
+    if (currently) {
+      unrepostTrackMut.mutate(track._id, {
+        onError: () => setLocalRepostMap(prev => ({ ...prev, [track._id]: true })),
+      });
+    } else {
+      repostTrackMut.mutate({ trackId: track._id, track }, {
+        onError: () => setLocalRepostMap(prev => ({ ...prev, [track._id]: false })),
+      });
+    }
   };
 
   const handleCopyLink = (track: FeedTrack) => {
@@ -356,21 +410,12 @@ export default function FeedPage() {
 
       <main
         data-testid="feed-page"
-        style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}
+        style={{ maxWidth: 1240, margin: '0 auto', padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 24px)', display: 'flex', gap: 32, flexWrap: 'wrap' }}
       >
         {/* ─── Main Feed Column ─── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 'min(100%, 300px)' }}>
 
-          {/* Recently Played Section */}
-          {recentlyPlayed.length > 0 && (
-            <div style={{ marginBottom: 32 }} data-testid="feed-recently-played">
-              <RecentlyPlayed
-                tracks={recentlyPlayed}
-                onPlay={(track) => play(track)}
-                onClear={clearRecent}
-              />
-            </div>
-          )}
+          {/* Recently Played Section Moved to Sidebar */}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700 }}>
@@ -378,8 +423,11 @@ export default function FeedPage() {
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, color: '#999' }}>Reposts</span>
-              <div style={{ width: 36, height: 20, background: '#ff5500', borderRadius: 10, position: 'relative', cursor: 'pointer' }}>
-                <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', right: 2, top: 2 }} />
+              <div
+                onClick={() => setShowReposts(v => !v)}
+                style={{ width: 36, height: 20, background: showReposts ? '#ff5500' : '#444', borderRadius: 10, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
+              >
+                <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: showReposts ? 18 : 2, transition: 'left 0.2s' }} />
               </div>
             </div>
           </div>
@@ -388,11 +436,11 @@ export default function FeedPage() {
             <div data-testid="feed-skeleton">
               {[1, 2, 3].map((i) => <FeedTrackSkeleton key={i} />)}
             </div>
-          ) : feedActivities.length === 0 ? (
+          ) : mergedFeed.length === 0 ? (
             <EmptyFeed />
           ) : (
             <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {feedActivities.map((activity, idx) => {
+              {mergedFeed.map((activity, idx) => {
                 const track = activity.target;
                 const actor = activity.actors[0] || track.artist;
                 const liked = isLiked(track._id);
@@ -423,6 +471,8 @@ export default function FeedPage() {
                       waveformSlot={
                         <WaveformPlayer 
                           waveform={track.waveform} 
+                          audioUrl={track.hlsUrl}
+                          durationSeconds={track.duration}
                           hidePlayButton 
                           trackMeta={{
                             id: track._id,
@@ -479,11 +529,11 @@ export default function FeedPage() {
                           </button>
 
                           <button 
-                            onClick={() => handleRepost(track._id)}
-                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                            onClick={() => handleRepost(track)}
+                            style={{ background: isReposted(track._id) ? 'rgba(255,85,0,0.2)' : 'transparent', border: isReposted(track._id) ? '1px solid #ff5500' : '1px solid rgba(255,255,255,0.15)', color: isReposted(track._id) ? '#ff5500' : '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                            Repost
+                            {isReposted(track._id) ? 'Reposted' : 'Repost'}
                           </button>
 
                           <button 
@@ -512,8 +562,19 @@ export default function FeedPage() {
         </div>
 
         {/* ─── Sidebar ─── */}
-        <aside style={{ width: 300, flexShrink: 0 }}>
+        <aside style={{ width: 'min(300px, 100%)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 32 }}>
           
+          {/* ── Listening History ── */}
+          {recentlyPlayed.length > 0 && (
+            <div data-testid="feed-recently-played">
+              <RecentlyPlayed
+                tracks={recentlyPlayed}
+                onPlay={(track) => play(track)}
+                onClear={clearRecent}
+              />
+            </div>
+          )}
+
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
               <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">Artist Tools</h3>
@@ -575,10 +636,106 @@ export default function FeedPage() {
             </div>
 
             {likedTracksList && likedTracksList.length > 0 ? (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {likedTracksList.slice(0, 8).map((track) => (
-                  <div key={track.id} onClick={() => play(track as any)} style={{ width: 48, height: 48, background: '#222', borderRadius: 4, cursor: 'pointer', overflow: 'hidden' }}>
-                     {track.artworkUrl && <img src={track.artworkUrl} style={{width:'100%', height:'100%', objectFit: 'cover'}}/>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {likedTracksList.slice(0, 4).map((track) => (
+                  <div
+                    key={track.id}
+                    onClick={() => play({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artist || 'Unknown Artist',
+                      artworkUrl: track.artworkUrl || '',
+                      streamUrl: track.streamUrl || track.hlsUrl || '',
+                      hlsUrl: track.hlsUrl || track.streamUrl || '',
+                      duration: track.duration,
+                    } as any)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '52px minmax(0, 1fr)',
+                      gap: 10,
+                      alignItems: 'start',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ width: 52, height: 52, background: '#222', overflow: 'hidden', flexShrink: 0 }}>
+                      {track.artworkUrl ? (
+                        <img
+                          src={track.artworkUrl}
+                          alt=""
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #333, #151515)' }} />
+                      )}
+                    </div>
+
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        title={track.artist || 'Unknown Artist'}
+                        style={{
+                          color: '#999',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {track.artist || 'Unknown Artist'}
+                      </div>
+                      <div
+                        title={track.title}
+                        style={{
+                          color: '#fff',
+                          fontSize: 13,
+                          fontWeight: 800,
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          marginTop: 2,
+                        }}
+                      >
+                        {track.title}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, color: '#8a8a8a', fontSize: 11, minWidth: 0 }}>
+                        {track.playCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                            {fmt(track.playCount)}
+                          </span>
+                        )}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                          {fmt(track.likeCount || 1)}
+                        </span>
+                        {track.repostCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M17 1l4 4-4 4" />
+                              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                              <path d="M7 23l-4-4 4-4" />
+                              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                            </svg>
+                            {fmt(track.repostCount)}
+                          </span>
+                        )}
+                        {track.commentCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                            </svg>
+                            {fmt(track.commentCount)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

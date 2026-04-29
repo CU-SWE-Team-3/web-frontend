@@ -418,7 +418,7 @@ function FollowingTab({ users, isLoading }: FollowingTabProps) {
         {users.map((user) => (
           <Link
             key={user.id}
-            href={ROUTES.PROFILE(user.username)}
+            href={ROUTES.PROFILE(user.username || user.id)}
             className={s.followingCard}
             data-testid={`following-card-${user.id}`}
           >

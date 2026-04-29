@@ -1,6 +1,6 @@
 'use client'
 
-import { type FC } from 'react'
+import { type FC, useEffect } from 'react'
 import { useNotificationPreferencesStore } from '../model/useNotificationPreferencesStore'
 import s from './NotificationSettingsTab.module.scss'
 
@@ -38,11 +38,16 @@ export const NotificationSettingsTab: FC = () => {
     updates,
     isLoading,
     isDirty,
+    fetchPreferences,
     toggleActivity,
     toggleUpdate,
     savePreferences,
     resetChanges,
   } = useNotificationPreferencesStore()
+
+  useEffect(() => {
+    fetchPreferences()
+  }, [fetchPreferences])
 
   return (
     <div className={s.tab} data-testid="notification-settings-tab">
@@ -169,12 +174,12 @@ export const NotificationSettingsTab: FC = () => {
               </div>
 
               {/* Devices (not all rows have it) */}
-              {row.channels.includes('devices') ? (
+              {row.channels.includes('devices' as any) ? (
                 <div className={s.prefCheckbox}>
                   <input
                     type="checkbox"
                     checked={updateValue?.devices ?? false}
-                    onChange={(e) => toggleActivity(row.key, 'devices', e.target.checked)}
+                    onChange={(e) => toggleUpdate(row.key, 'devices', e.target.checked)}
                     data-testid={`notification-pref-${row.key}-devices`}
                   />
                 </div>

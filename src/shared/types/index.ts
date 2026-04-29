@@ -117,6 +117,7 @@ export interface NotificationActor {
   avatarUrl: string | null
   permalink?: string
   isPremium?: boolean
+  isFollowing?: boolean
 }
 
 export interface NotificationTarget {
@@ -143,12 +144,33 @@ export interface Notification {
 
 export interface NotificationPreferences {
   pushEnabled: boolean
+  emailEnabled?: boolean
+
+  // Push (Devices)
   allowLikes: boolean
   allowReposts: boolean
   allowComments: boolean
   allowFollows: boolean
   allowMessages: boolean
   allowNewTracks: boolean
+  allowRecommended?: boolean
+
+  // Email
+  emailLikes?: boolean
+  emailReposts?: boolean
+  emailComments?: boolean
+  emailFollows?: boolean
+  emailMessages?: boolean
+  emailNewTracks?: boolean
+  emailRecommended?: boolean
+
+  // Legacy/Other mappings (optional to keep for backward compatibility during transition)
+  allowLikesEmail?: boolean
+  allowRepostsEmail?: boolean
+  allowCommentsEmail?: boolean
+  allowFollowsEmail?: boolean
+  allowMessagesEmail?: boolean
+  allowNewTracksEmail?: boolean
 }
 
 export interface NotificationFeedResponse {

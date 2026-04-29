@@ -5,6 +5,7 @@ import apiClient from '@/shared/api/client';
 import { ShareIcon, EditIcon } from '@/shared/ui/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { useFollowStore } from '@/features/social-graph/model/useFollowStore';
 import s from './ProfileTabs.module.scss';
 
 const TABS = ['All', 'Popular tracks', 'Tracks', 'Albums', 'Playlists', 'Reposts'];
@@ -20,7 +21,12 @@ export interface ProfileTabsProps {
 
 export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, isOwnProfile, targetUserId, profile, onTabChange }) => {
   const [active, setActive] = useState('All');
-  const [isFollowing, setIsFollowing] = useState(false);
+  const followStore = useFollowStore();
+  
+  // Use global follow state; if not available, fallback to profile.isFollowing if the backend provided it
+  const globalFollowing = targetUserId ? followStore.followingMap[targetUserId] : undefined;
+  const isFollowing = globalFollowing ?? (profile?.isFollowing || false);
+
   const [followLoading, setFollowLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,10 +48,10 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
     try {
       if (isFollowing) {
         await apiClient.delete(`/network/${targetUserId}/follow`, { withCredentials: true });
-        setIsFollowing(false);
+        followStore.setFollowing(targetUserId, false);
       } else {
         await apiClient.post(`/network/${targetUserId}/follow`, {}, { withCredentials: true });
-        setIsFollowing(true);
+        followStore.setFollowing(targetUserId, true);
 
         // Optimistic injection into my following list
         const authState = useAuthStore.getState();
@@ -75,7 +81,7 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
     } catch (err: any) {
       console.warn('[ProfileTabs] Follow/unfollow error:', err.response?.status);
       // Toggle locally as fallback
-      setIsFollowing(prev => !prev);
+      followStore.setFollowing(targetUserId, !isFollowing);
     } finally {
       setFollowLoading(false);
     }

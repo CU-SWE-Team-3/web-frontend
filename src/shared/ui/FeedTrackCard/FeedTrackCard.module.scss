@@ -52,6 +52,10 @@
 .mainBody {
   display: flex;
   gap: var(--sc-space-4);
+
+  @media (max-width: 480px) {
+    gap: 10px;
+  }
 }
 
 .artworkWrapper {
@@ -63,6 +67,16 @@
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   background: var(--sc-bg-dark-elevated);
+
+  @media (max-width: 768px) {
+    width: 120px;
+    height: 120px;
+  }
+
+  @media (max-width: 480px) {
+    width: 88px;
+    height: 88px;
+  }
 }
 
 .artworkImg {
@@ -84,6 +98,11 @@
   align-items: center;
   gap: var(--sc-space-3);
   margin-bottom: var(--sc-space-3);
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
 }
 
 .playBtn {
@@ -103,6 +122,11 @@
     transform: scale(1.05);
     background: #ff6600;
   }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
+  }
 }
 
 .playTriangle {
@@ -112,6 +136,10 @@
   border-width: 7px 0 7px 12px;
   border-color: transparent transparent transparent var(--sc-white);
   margin-left: 3px;
+
+  @media (max-width: 480px) {
+    border-width: 5px 0 5px 9px;
+  }
 }
 
 .titleInfo {
@@ -126,6 +154,10 @@
   text-decoration: none;
   margin-bottom: 2px;
   &:hover { color: var(--sc-white); }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
 }
 
 .trackTitle {
@@ -137,6 +169,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   &:hover { color: #ccc; }
+
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+  }
 }
 
 .waveformContainer {
@@ -145,6 +185,11 @@
   display: flex;
   align-items: flex-end;
   margin-bottom: var(--sc-space-3);
+
+  @media (max-width: 480px) {
+    min-height: 36px;
+    margin-bottom: 8px;
+  }
 }
 
 .commentBar {
@@ -156,6 +201,10 @@
   padding: 4px 6px;
   border-radius: var(--sc-radius-sm);
   border: 1px solid rgba(255,255,255,0.05);
+
+  @media (max-width: 480px) {
+    margin-bottom: 8px;
+  }
 }
 
 .commentAvatar {
@@ -163,6 +212,7 @@
   height: 24px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .commentInputWrap {
@@ -170,6 +220,7 @@
   display: flex;
   align-items: center;
   position: relative;
+  min-width: 0;
 }
 
 .commentInput {
@@ -180,8 +231,13 @@
   font-size: 13px;
   padding: 4px 8px;
   outline: none;
+  min-width: 0;
   &::placeholder {
     color: var(--sc-gray-500);
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
   }
 }
 
@@ -194,6 +250,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   &:hover { color: var(--sc-white); }
 }
 
@@ -201,12 +258,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .actionsLeft {
   display: flex;
   align-items: center;
   gap: var(--sc-space-2);
+  flex-wrap: wrap;
 }
 
 .statsRight {

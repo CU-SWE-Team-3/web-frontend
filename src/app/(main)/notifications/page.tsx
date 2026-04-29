@@ -59,28 +59,40 @@ function formatRelativeTime(dateString: string): string {
   return new Date(dateString).toLocaleDateString()
 }
 
+import { useFollowStore } from '@/features/social-graph/model/useFollowStore'
+import { useFollowing } from '@/features/social-graph/model/useFollowing'
+import { useAuthStore } from '@/features/auth/model/useAuthStore'
+
 // ─── Follow Button Component ────────────────────────────────────────────────────
 function FollowButton({ userId, initialFollowing = false }: { userId: string; initialFollowing?: boolean }) {
-  const [following, setFollowing] = useState(initialFollowing)
+  const followStore = useFollowStore()
+  const authUser = useAuthStore(s => s.user)
+  const myId = (authUser as any)?._id || authUser?.id
+  const { data: followingList } = useFollowing(myId || '')
+  
+  const isActuallyFollowing = followingList?.some(u => u.id === userId || (u as any)._id === userId)
+  const globalFollowing = followStore.followingMap[userId]
+  const isFollowing = globalFollowing ?? isActuallyFollowing ?? initialFollowing
+
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleClick = async () => {
     setLoading(true)
     try {
-      if (following) {
+      if (isFollowing) {
         await apiClient.delete(`/network/${userId}/follow`, { withCredentials: true })
-        setFollowing(false)
+        followStore.setFollowing(userId, false)
       } else {
         await apiClient.post(`/network/${userId}/follow`, {}, { withCredentials: true })
-        setFollowing(true)
+        followStore.setFollowing(userId, true)
       }
     } catch { /* ignore */ }
     finally { setLoading(false) }
   }
 
-  const label = following ? (hovered ? 'Unfollow' : 'Following') : 'Follow back'
-  const btnClass = following
+  const label = isFollowing ? (hovered ? 'Unfollow' : 'Following') : 'Follow back'
+  const btnClass = isFollowing
     ? hovered ? s.followBtnUnfollow : s.followBtnFollowing
     : s.followBtnDefault
 
@@ -107,9 +119,19 @@ function NotificationRow({ notification }: { notification: Notification }) {
   const { actorName, action } = buildNotificationText(notification)
   const timeAgo = formatRelativeTime(notification.updatedAt)
 
+  // Resolve profile link for the actor
+  const actorHref = actor ? `/profile/${actor.permalink || actor._id}` : null
+
+  // Resolve track/playlist target link
+  const targetHref = notification.target?.permalink
+    ? `/tracks/${notification.target.permalink}`
+    : notification.actionLink || null
+
   const handleClick = () => {
     if (!notification.isRead) markRead(notification._id)
   }
+
+  const showFollowBtn = actor && notification.type === 'FOLLOW'
 
   return (
     <div
@@ -117,21 +139,43 @@ function NotificationRow({ notification }: { notification: Notification }) {
       onClick={handleClick}
       data-testid={`notif-page-item-${notification._id}`}
     >
-      {/* Avatar */}
-      <div className={s.notifAvatar}>
-        {actor?.avatarUrl ? (
-          <img src={actor.avatarUrl} alt={actor.displayName} className={s.notifAvatarImg} />
-        ) : (
-          <div className={s.notifAvatarPlaceholder}>
-            {(actor?.displayName?.[0] ?? '?').toUpperCase()}
-          </div>
-        )}
-      </div>
+      {/* Avatar — clickable link to actor's profile */}
+      {actorHref ? (
+        <Link
+          href={actorHref}
+          onClick={(e) => e.stopPropagation()}
+          className={s.notifAvatar}
+          data-testid={`notif-page-avatar-${notification._id}`}
+        >
+          {actor?.avatarUrl ? (
+            <img src={actor.avatarUrl} alt={actor.displayName} className={s.notifAvatarImg} />
+          ) : (
+            <div className={s.notifAvatarPlaceholder}>
+              {(actor?.displayName?.[0] ?? '?').toUpperCase()}
+            </div>
+          )}
+        </Link>
+      ) : (
+        <div className={s.notifAvatar}>
+          <div className={s.notifAvatarPlaceholder}>?</div>
+        </div>
+      )}
 
-      {/* Body */}
+      {/* Body — actor name is a clickable link */}
       <div className={s.notifBody}>
         <div className={s.notifText}>
-          <strong>{actorName}</strong> {action}
+          {actorHref ? (
+            <Link
+              href={actorHref}
+              onClick={(e) => e.stopPropagation()}
+              className={s.actorLink}
+              data-testid={`notif-page-actor-link-${notification._id}`}
+            >
+              {actorName}
+            </Link>
+          ) : (
+            <strong>{actorName}</strong>
+          )}{' '}{action}
         </div>
         <div className={s.notifTime}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -141,9 +185,30 @@ function NotificationRow({ notification }: { notification: Notification }) {
 
       {/* Actions */}
       <div className={s.notifActions}>
-        {notification.type === 'FOLLOW' && actor && (
-          <FollowButton userId={actor._id} />
+        {/* Follow button for social notifications */}
+        {showFollowBtn && (
+          <FollowButton userId={actor._id} initialFollowing={actor.isFollowing} />
         )}
+
+        {/* Track artwork thumbnail — clickable link */}
+        {!showFollowBtn && notification.target?.artworkUrl && (
+          targetHref ? (
+            <Link
+              href={targetHref}
+              onClick={(e) => e.stopPropagation()}
+              className={s.notifArtwork}
+              data-testid={`notif-page-artwork-${notification._id}`}
+            >
+              <img src={notification.target.artworkUrl} alt={notification.target.title} className={s.notifArtworkImg} />
+            </Link>
+          ) : (
+            <div className={s.notifArtwork}>
+              <img src={notification.target.artworkUrl} alt={notification.target.title} className={s.notifArtworkImg} />
+            </div>
+          )
+        )}
+
+        {/* More options */}
         <div style={{ position: 'relative' }}>
           <button
             className={s.notifMoreBtn}
@@ -263,8 +328,8 @@ export default function NotificationsPage() {
                 No notifications
               </div>
             ) : (
-              filtered.map((n) => (
-                <NotificationRow key={n._id} notification={n} />
+              filtered.map((n, idx) => (
+                <NotificationRow key={`${n._id}-${idx}`} notification={n} />
               ))
             )}
           </div>
@@ -291,7 +356,7 @@ export default function NotificationsPage() {
                     )}
                   </div>
                   <span className={s.sidebarUserName}>{actor.displayName}</span>
-                  <FollowButton userId={actor._id} />
+                  <FollowButton userId={actor._id} initialFollowing={actor.isFollowing} />
                 </div>
               ))}
             </div>

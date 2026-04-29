@@ -9,6 +9,7 @@ export const ROUTES = {
   FEED: '/feed',
   SETTINGS: '/settings',
   FOR_ARTISTS: '/for-artists',
+  ARTIST_STUDIO: '/artists',
   PROFILE: (username: string) => `/profile/${username}`,
   FOLLOWERS: (username: string) => `/profile/${username}/followers`,
   FOLLOWING: (username: string) => `/profile/${username}/following`,
