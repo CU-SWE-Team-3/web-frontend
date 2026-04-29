@@ -8,10 +8,8 @@ import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/shared/api/client';
-import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
-import { SquareTrackCard } from '@/shared/ui/SquareTrackCard';
 import { useEditorial, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists, useGenreStation } from '@/features/trending/model/trendingQueries';
 import { getStationHref } from '@/features/trending/lib/stationLinks';
 
@@ -29,12 +27,7 @@ export default function DiscoverPage() {
   const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
   const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({});
 
-  // History & Player
-  const listeningHistory = useHistoryStore((st) => st.listeningHistory);
   const play = usePlayerStore((st) => st.play);
-
-  // Deduplicate and get recently played tracks
-  const recentlyPlayed = listeningHistory.slice(0, 10).map((entry) => entry.track);
 
   // Liked tracks
   const { data: likedTracksList } = useLikedTracks();
@@ -48,6 +41,41 @@ export default function DiscoverPage() {
   const { data: trendingHiphop, isLoading: isHiphopLoading } = useGenreStation('Hiphop & rap');
   const { data: trendingElectronic, isLoading: isElectronicLoading } = useGenreStation('Electronic');
   const { data: trendingPop, isLoading: isPopLoading } = useGenreStation('Pop');
+
+  const moreLikeStation = moreOfWhatYouLike?.length ? {
+    id: 'more-of-what-you-like',
+    title: 'More of what you like',
+    description: 'A station based on tracks you already like',
+    artworkUrl: moreOfWhatYouLike[0]?.artworkUrl,
+    tracks: moreOfWhatYouLike,
+  } : null;
+
+  const genreStations = [
+    {
+      id: 'genre-electronic',
+      title: 'Electronic',
+      description: 'Trending Music',
+      artworkUrl: trendingElectronic?.[0]?.artworkUrl,
+      tracks: trendingElectronic,
+      isLoading: isElectronicLoading,
+    },
+    {
+      id: 'genre-hiphop-rap',
+      title: 'Hip-hop & Rap',
+      description: 'Trending Music',
+      artworkUrl: trendingHiphop?.[0]?.artworkUrl,
+      tracks: trendingHiphop,
+      isLoading: isHiphopLoading,
+    },
+    {
+      id: 'genre-pop',
+      title: 'Pop',
+      description: 'Trending Music',
+      artworkUrl: trendingPop?.[0]?.artworkUrl,
+      tracks: trendingPop,
+      isLoading: isPopLoading,
+    },
+  ].filter((station) => (station.tracks?.length ?? 0) > 0);
 
   useEffect(() => {
     // Sync local state with suggest query if needed
@@ -142,70 +170,25 @@ export default function DiscoverPage() {
             </DiscoverSection>
           )}
 
-          {/* More of what you like */}
-          <DiscoverSection title="More of what you like" isLoading={isMoreLoading}>
-            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-              {moreOfWhatYouLike?.length ? moreOfWhatYouLike.map((track) => (
-                <SquareTrackCard 
-                  key={track._id}
-                  id={track._id}
-                  title={track.title}
-                  artist={track.artist.displayName}
-                  artistPermalink={track.artist.permalink}
-                  trackPermalink={track.permalink}
-                  artworkUrl={track.artworkUrl}
-                  onPlay={() => handlePlayTrack(track)}
-                />
-              )) : (
-                <p className="text-[#666] text-[13px] py-4">Like more tracks to get personalized recommendations.</p>
-              )}
-            </div>
-          </DiscoverSection>
-
-          {/* Recently Played */}
-          <DiscoverSection title="Recently Played" hideIfEmpty={false}>
-            {recentlyPlayed.length > 0 ? (
+          {moreLikeStation && (
+            <DiscoverSection title="More of what you like" isLoading={isMoreLoading}>
               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {recentlyPlayed.map((track, i) => (
-                  <SquareTrackCard 
-                    key={`${track.id}-${i}`}
-                    id={track.id}
-                    title={track.title}
-                    artist={track.artist}
-                    artistPermalink={track.artist}
-                    trackPermalink={track.permalink}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
+                <StationCard
+                  station={moreLikeStation}
+                  href={getStationHref(moreLikeStation, 0, 'station')}
+                  onPlay={() => handlePlayBucket(moreLikeStation)}
+                />
               </div>
-            ) : (
-              <p className="text-[#666] text-[13px] py-4">Your recent listening history will appear here.</p>
-            )}
-          </DiscoverSection>
+            </DiscoverSection>
+          )}
 
-          {/* Made for You (Daily Drops / Weekly Wave) */}
           {(curatedBuckets && curatedBuckets.length > 0) && (
             <DiscoverSection title="Made for you">
               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {curatedBuckets.map((bucket: any, bucketIndex: number) => {
-                  const bucketId = bucket.id || bucket._id;
-                  if (bucketId !== 'daily_drops' && bucketId !== 'weekly_wave') return null;
-                  return (
-                    <EditorialCard
-                      key={bucketId}
-                      type={bucketId === 'weekly_wave' ? 'WEEKLY' : 'DAILY'}
-                      title={bucketId === 'weekly_wave' ? 'Weekly Wave' : 'Daily Drops'}
-                      href={getStationHref(bucket, bucketIndex, 'set')}
-                      onPlay={() => handlePlayBucket(bucket)}
-                    />
-                  );
-                })}
-                {curatedBuckets.filter((b: any) => !['daily_drops', 'weekly_wave'].includes(b.id || b._id)).map((bucket: any, bucketIndex: number) => (
-                  <EditorialCard 
-                    key={bucket.id || bucket._id} 
-                    type="DAILY" 
-                    title={bucket.title} 
+                {curatedBuckets.filter((bucket: any) => bucket.tracks?.length).map((bucket: any, bucketIndex: number) => (
+                  <StationCard
+                    key={bucket.id || bucket._id || bucketIndex}
+                    station={bucket}
                     href={getStationHref(bucket, bucketIndex, 'set')}
                     onPlay={() => handlePlayBucket(bucket)}
                   />
@@ -214,132 +197,21 @@ export default function DiscoverPage() {
             </DiscoverSection>
           )}
 
-          {/* Curated Buckets (Trending globally, Genre Stations, etc.) */}
-          {isCuratedLoading ? (
-            <DiscoverSection title="Trending" isLoading={true}>
+          {isCuratedLoading && (
+            <DiscoverSection title="Made for you" isLoading={true}>
               <div />
             </DiscoverSection>
-          ) : (
-            curatedBuckets?.map((bucket) => {
-              if (!bucket.tracks || bucket.tracks.length === 0) return null;
-              return (
-                <DiscoverSection key={bucket.id} title={bucket.title}>
-                  <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                    {bucket.tracks.map((track: any) => (
-                      <SquareTrackCard 
-                        key={`${bucket.id}-${track._id || track.id}`}
-                        id={track._id || track.id}
-                        title={track.title}
-                        artist={track.artist?.displayName || track.artist || 'Unknown'}
-                        artistPermalink={track.artist?.permalink || track.artist}
-                        trackPermalink={track.permalink}
-                        artworkUrl={track.artworkUrl}
-                        onPlay={() => handlePlayTrack(track)}
-                      />
-                    ))}
-                  </div>
-                </DiscoverSection>
-              );
-            })
           )}
 
-          {/* Genre Trending Sections */}
-          {trendingHiphop && trendingHiphop.length > 0 && (
-            <DiscoverSection title="Trending: Hiphop & Rap" isLoading={isHiphopLoading}>
+          {genreStations.length > 0 && (
+            <DiscoverSection title="Trending by genre" isLoading={isHiphopLoading || isElectronicLoading || isPopLoading}>
               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {trendingHiphop.filter(t => (t.playCount ?? 0) >= 10).map((track) => (
-                  <SquareTrackCard 
-                    key={`hp-${track._id}`}
-                    id={track._id}
-                    title={track.title}
-                    artist={track.artist.displayName}
-                    artistPermalink={track.artist.permalink}
-                    trackPermalink={track.permalink}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
-              </div>
-            </DiscoverSection>
-          )}
-
-          {trendingElectronic && trendingElectronic.length > 0 && (
-            <DiscoverSection title="Trending: Electronic" isLoading={isElectronicLoading}>
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {trendingElectronic.filter(t => (t.playCount ?? 0) >= 10).map((track) => (
-                  <SquareTrackCard 
-                    key={`el-${track._id}`}
-                    id={track._id}
-                    title={track.title}
-                    artist={track.artist.displayName}
-                    artistPermalink={track.artist.permalink}
-                    trackPermalink={track.permalink}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
-              </div>
-            </DiscoverSection>
-          )}
-
-          {trendingPop && trendingPop.length > 0 && (
-            <DiscoverSection title="Trending: Pop" isLoading={isPopLoading}>
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {trendingPop.filter(t => (t.playCount ?? 0) >= 10).map((track) => (
-                  <SquareTrackCard 
-                    key={`pop-${track._id}`}
-                    id={track._id}
-                    title={track.title}
-                    artist={track.artist.displayName}
-                    artistPermalink={track.artist.permalink}
-                    trackPermalink={track.permalink}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
-              </div>
-            </DiscoverSection>
-          )}
-
-          {/* Liked By */}
-          {likedTracksList && likedTracksList.length > 0 && (
-            <DiscoverSection title="Liked By">
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {likedTracksList.slice(0, 8).map((track) => (
-                  <SquareTrackCard 
-                    key={`liked-${track.id}`}
-                    id={track.id}
-                    title={track.title}
-                    artist={track.artist}
-                    artworkUrl={track.artworkUrl}
-                    trackPermalink={track.permalink}
-                    onPlay={() => handlePlayTrack(track)}
-                    titlePrefixNode={
-                      <div className="bg-[#ff5500] text-white text-[8px] font-bold px-1 py-0.5 rounded-sm flex items-center gap-1 shadow-md">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        LIKED
-                      </div>
-                    }
-                  />
-                ))}
-              </div>
-            </DiscoverSection>
-          )}
-
-          {/* Albums for You */}
-          {moreOfWhatYouLike && moreOfWhatYouLike.length > 3 && (
-            <DiscoverSection title="Albums for you">
-               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {moreOfWhatYouLike.slice(3, 10).map((track) => (
-                  <SquareTrackCard 
-                    key={`album-${track._id}`}
-                    id={track._id}
-                    title={track.title}
-                    artist={track.artist.displayName}
-                    artistPermalink={track.artist.permalink}
-                    trackPermalink={track.permalink}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
+                {genreStations.map((station, stationIndex) => (
+                  <StationCard
+                    key={station.id}
+                    station={station}
+                    href={getStationHref(station, stationIndex, 'station')}
+                    onPlay={() => handlePlayBucket(station)}
                   />
                 ))}
               </div>
@@ -367,6 +239,8 @@ export default function DiscoverPage() {
         {/* ─── Sidebar (Right Column) ─── */}
         <aside style={{ width: 340, flexShrink: 0 }}>
           
+          {false && (
+            <>
           {/* Artist Tools Card */}
           <div className="bg-[#1a1a1a] rounded-sm mb-8" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
             <div className="border-b border-[#333] p-4 flex justify-between items-center cursor-pointer hover:bg-[#222]">
@@ -406,6 +280,9 @@ export default function DiscoverPage() {
               </button>
             </div>
           </div>
+
+            </>
+          )}
 
           {/* Artists You Should Follow */}
           <div className="mb-8">
@@ -473,46 +350,6 @@ export default function DiscoverPage() {
               {likedTracksList?.slice(0, 3).map((track: any) => (
                 <SidebarTrackRow key={track.id || track._id} track={track} onPlay={() => handlePlayTrack(track)} />
               ))}
-            </div>
-          </div>
-
-          {/* Listening History Sidebar */}
-          <div className="mb-8">
-            <div className="flex items-end justify-between border-b border-[#333] pb-2 mb-4">
-              <h3 className="text-[12px] font-bold text-[#ccc] uppercase tracking-wider">
-                LISTENING HISTORY
-              </h3>
-              <Link href={ROUTES.HISTORY} className="text-[12px] text-[#999] hover:text-[#ccc]">
-                View all
-              </Link>
-            </div>
-            <div className="flex flex-col">
-              {listeningHistory?.slice(0, 3).map((entry: any) => (
-                <SidebarTrackRow key={entry.id || entry.track.id} track={entry.track} onPlay={() => handlePlayTrack(entry.track)} />
-              ))}
-            </div>
-          </div>
-
-          {/* Go Mobile Sidebar */}
-          <div className="mb-8">
-            <h3 className="text-[12px] font-bold text-[#ccc] uppercase tracking-wider mb-4 border-b border-[#333] pb-2">
-              GO MOBILE
-            </h3>
-            <div className="flex gap-2">
-              <Link href="#" className="block w-[130px]">
-                <img 
-                  src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" 
-                  alt="Download on the App Store" 
-                  className="w-full h-auto"
-                />
-              </Link>
-              <Link href="#" className="block w-[130px]">
-                <img 
-                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                  alt="Get it on Google Play" 
-                  className="w-full h-auto"
-                />
-              </Link>
             </div>
           </div>
 
@@ -624,6 +461,45 @@ function MixCard({ index, mix, href, onPlay }: { index: number, mix: any, href: 
       </div>
       <p className="text-[13px] font-medium text-white truncate">{mix.title || `Personal Mix ${index}`}</p>
       <p className="text-[12px] text-[#999] truncate">{mix.description || 'Based on your listening'}</p>
+    </Link>
+  );
+}
+
+function StationCard({ station, href, onPlay }: { station: any, href: string, onPlay: () => void }) {
+  const cover =
+    station.artworkUrl ||
+    station.coverUrl ||
+    station.tracks?.[0]?.artworkUrl ||
+    'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=240&h=240&fit=crop';
+  const trackCount = station.tracks?.length ?? 0;
+
+  return (
+    <Link href={href} className="min-w-[180px] max-w-[180px] group block">
+      <div className="w-[180px] h-[180px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
+        <img
+          src={cover}
+          alt={station.title || 'Station artwork'}
+          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+          onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=240&h=240&fit=crop'; }}
+        />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/35 transition-colors" />
+        <button
+          type="button"
+          aria-label={`Play ${station.title || 'station'}`}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onPlay();
+          }}
+          className="absolute left-1/2 top-1/2 w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ff5500] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" className="ml-0.5"><polygon points="6,4 20,12 6,20" /></svg>
+        </button>
+      </div>
+      <p className="text-[14px] font-bold text-white truncate">{station.title || 'Station'}</p>
+      <p className="text-[12px] text-[#999] truncate">
+        {station.description || `${trackCount} tracks`}
+      </p>
     </Link>
   );
 }

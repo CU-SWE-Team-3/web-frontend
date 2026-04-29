@@ -118,7 +118,7 @@ export default function HeroSlider() {
             Create account
           </Link>
           <Link
-            href="/for-artists"
+            href={ROUTES.ARTIST_PRO}
             data-testid="hero-for-artists-btn"
             style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}
           >
