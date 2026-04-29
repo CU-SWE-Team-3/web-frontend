@@ -145,8 +145,12 @@ export const feedRepository = {
         withCredentials: true,
       })
 
+      // YAML: { success, count, data: ArtistSummary[] }
+      // data.data is the array directly
       const raw: any[] =
-        data?.data ?? data?.users ?? (Array.isArray(data) ? data : [])
+        Array.isArray(data?.data) ? data.data :
+        Array.isArray(data?.users) ? data.users :
+        Array.isArray(data) ? data : []
 
       if (!Array.isArray(raw)) return []
 

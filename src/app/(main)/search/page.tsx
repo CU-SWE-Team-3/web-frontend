@@ -268,12 +268,13 @@ export default function SearchPage() {
                       />
                     }
                     onPlay={async () => {
-                      let streamUrl = t.hlsUrl ?? '';
+                      // Search results are Track objects but hlsUrl may not be populated.
+                      // Call /player/{id}/stream to get the actual HLS/stream URL.
+                      let streamUrl = t.hlsUrl ?? t.streamUrl ?? '';
                       if (!streamUrl) {
                         try {
-                          const res = await apiClient.get(`/tracks/${t._id}`);
-                          const detail = res.data?.data ?? res.data;
-                          streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                          const { data: streamData } = await apiClient.get(`/player/${t._id}/stream`);
+                          streamUrl = streamData?.data?.streamUrl ?? streamData?.data?.hlsUrl ?? '';
                         } catch { /* play with empty url */ }
                       }
                       play({

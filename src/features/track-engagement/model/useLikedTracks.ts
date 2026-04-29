@@ -41,6 +41,7 @@ function mapLikedTrack(rawItem: any): TrackNode {
     hlsUrl: t.hlsUrl || t.streamUrl || t.audioUrl || "",
     audioFileName: t.audioFileName || "",
     duration: typeof t.duration === "number" ? t.duration : 0,
+    permalink: t.permalink || t._id || t.id,
   };
 }
 
