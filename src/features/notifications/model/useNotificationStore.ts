@@ -82,34 +82,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   addNotification: (notification) => {
     const existing = get().notifications
-    const existingIndex = existing.findIndex(n => n._id === notification._id)
     
-    if (existingIndex >= 0) {
-      // It exists. Replace it and move to top.
-      const oldNotification = existing[existingIndex]
-      const newNotifications = [...existing]
-      newNotifications.splice(existingIndex, 1) // remove old one
-      
-      const wasRead = oldNotification.isRead
-      const isNowUnread = !notification.isRead
-      
-      let newUnreadCount = get().unreadCount
-      if (wasRead && isNowUnread) {
-         newUnreadCount += 1
-      } else if (!wasRead && notification.isRead) {
-         newUnreadCount = Math.max(0, newUnreadCount - 1)
-      }
-
-      set({
-        notifications: [notification, ...newNotifications],
-        unreadCount: newUnreadCount,
-      })
-    } else {
-      set({
-        notifications: [notification, ...existing],
-        unreadCount: !notification.isRead ? get().unreadCount + 1 : get().unreadCount,
-      })
-    }
+    // Allow multiple notifications even if the backend reuses the same ID (e.g. for comments on the same track).
+    set({
+      notifications: [notification, ...existing],
+      unreadCount: !notification.isRead ? get().unreadCount + 1 : get().unreadCount,
+    })
   },
 
   markRead: async (id) => {

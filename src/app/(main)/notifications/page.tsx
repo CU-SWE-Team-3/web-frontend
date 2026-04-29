@@ -336,8 +336,8 @@ export default function NotificationsPage() {
                 No notifications
               </div>
             ) : (
-              filtered.map((n) => (
-                <NotificationRow key={n._id} notification={n} />
+              filtered.map((n, idx) => (
+                <NotificationRow key={`${n._id}-${idx}`} notification={n} />
               ))
             )}
           </div>
