@@ -38,7 +38,7 @@ describe('feedRepository', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('/feed');
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('Feed Track');
+    expect(result[0].target.title).toBe('Feed Track');
   });
 
   it('returns empty array if feed is missing in response', async () => {

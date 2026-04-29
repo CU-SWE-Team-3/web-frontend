@@ -23,7 +23,6 @@ import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
 import { RecentlyPlayed } from '@/features/player/ui/history/RecentlyPlayed';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
-import apiClient from '@/shared/api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 import type { SuggestedArtist, FeedActivity, FeedTrack } from '@/features/feed';
@@ -438,7 +437,11 @@ export default function FeedPage() {
                         let streamUrl = track.hlsUrl ?? '';
                         if (!streamUrl) {
                           try {
-                            const { data } = await apiClient.get(`/tracks/${track._id}`);
+                            const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+                            if (!baseUrl) throw new Error('NEXT_PUBLIC_API_URL is not set');
+                            
+                            const res = await fetch(`${baseUrl}/tracks/${track._id}`, { cache: 'no-store' });
+                            const data = await res.json();
                             const detail = data?.data ?? data;
                             streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
                           } catch { /* empty */ }
