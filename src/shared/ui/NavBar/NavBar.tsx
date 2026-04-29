@@ -32,7 +32,14 @@ export const NavBar: FC<NavBarProps> = ({
   // ── Profile dropdown state ──
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [internalSearch, setInternalSearch] = useState('');
+  const [internalSearch, setInternalSearch] = useState(searchValue ?? '');
+
+  // ── Sync internal search with external search value (e.g. on navigation) ──
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setInternalSearch(searchValue);
+    }
+  }, [searchValue]);
 
   const handleSearchSubmit = (query: string) => {
     if (!query.trim()) return;
@@ -101,8 +108,8 @@ export const NavBar: FC<NavBarProps> = ({
     {/* Center: Search */}
     <div className={s.centerSection}>
       <SearchBar
-        value={searchValue ?? internalSearch}
-        onChange={(v) => { setInternalSearch(v); onSearchChange?.(v); }}
+        value={internalSearch}
+        onChange={setInternalSearch}
         onSubmit={handleSearchSubmit}
       />
     </div>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/features/auth/model/useAuthStore'
 import { feedRepository } from '../api/feedRepository'
-import type { FeedTrack, SuggestedArtist } from './types'
+import type { FeedTrack, SuggestedArtist, FeedActivity } from './types'
 
 // ─── Query Keys ───────────────────────────────────────────────────────────────
 export const FEED_QUERY_KEY = ['feed'] as const
@@ -18,7 +18,7 @@ export const SUGGESTED_ARTISTS_QUERY_KEY = ['network', 'suggested'] as const
 export function useFeed() {
   const isInitialized = useAuthStore((s) => s.isInitialized)
 
-  return useQuery<FeedTrack[], Error>({
+  return useQuery<FeedActivity[], Error>({
     queryKey: FEED_QUERY_KEY,
     queryFn: () => feedRepository.getFeed(),
     enabled: isInitialized,

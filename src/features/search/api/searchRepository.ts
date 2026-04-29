@@ -9,11 +9,14 @@ function mapTrackResult(raw: any): TrackResult {
     title: raw.title || 'Untitled',
     permalink: raw.permalink || raw._id || '',
     artworkUrl: raw.artworkUrl || undefined,
-    hlsUrl: raw.hlsUrl || undefined,
+    hlsUrl: raw.hlsUrl || raw.streamUrl || undefined,
     duration: typeof raw.duration === 'number' ? raw.duration : undefined,
     genre: raw.genre || '',
     playCount: raw.playCount ?? 0,
     likeCount: raw.likeCount ?? 0,
+    repostCount: raw.repostCount ?? undefined,
+    commentCount: raw.commentCount ?? undefined,
+    waveform: Array.isArray(raw.waveform) ? raw.waveform : undefined,
     artist: {
       _id: raw.artist?._id || raw.artist?.id || '',
       displayName: raw.artist?.displayName || raw.artist?.username || 'Unknown Artist',
@@ -91,6 +94,34 @@ export const searchRepository = {
       return empty
     } catch (err) {
       console.warn('[searchRepository] GET /tracks/search failed:', err)
+      return empty
+    }
+  },
+
+  /**
+   * GET /tracks/autocomplete?q=<query>
+   * Typeahead suggestions matching the start of the query string.
+   */
+  async autocomplete(query: string): Promise<SearchResults> {
+    const empty: SearchResults = { tracks: [], users: [], playlists: [] }
+    if (!query || query.trim().length < 2) return empty
+
+    try {
+      const { data } = await apiClient.get('/tracks/autocomplete', {
+        params: { q: query.trim() },
+      })
+
+      const payload = data?.data;
+      if (payload && typeof payload === 'object') {
+        return {
+          tracks: Array.isArray(payload.tracks) ? payload.tracks.map(mapTrackResult) : [],
+          users: Array.isArray(payload.users) ? payload.users.map(mapUserResult) : [],
+          playlists: Array.isArray(payload.playlists) ? payload.playlists.map(mapPlaylistResult) : [],
+        }
+      }
+      return empty
+    } catch (err) {
+      console.warn('[searchRepository] GET /tracks/autocomplete failed:', err)
       return empty
     }
   },

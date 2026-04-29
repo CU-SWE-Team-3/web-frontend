@@ -10,9 +10,12 @@ import { useFollowUser } from '@/features/social-graph/model/useFollowUser';
 import { useUnfollowUser } from '@/features/social-graph/model/useUnfollowUser';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { useRepostTrack } from '@/features/track-engagement/model/useRepostTrack';
+import { useUnrepostTrack } from '@/features/track-engagement/model/useUnrepostTrack';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useHistoryStore } from '@/features/player/model/historyStore';
+import { WaveformPlayer } from '@/features/tracks/ui/WaveformPlayer';
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 import { NavBar } from '@/shared/ui/NavBar/NavBar';
@@ -22,7 +25,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-import type { SuggestedArtist, FeedTrack } from '@/features/feed';
+import type { SuggestedArtist, FeedActivity, FeedTrack } from '@/features/feed';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
@@ -75,25 +78,7 @@ function SuggestedArtistSkeleton() {
   );
 }
 
-// ─── Waveform Display ─────────────────────────────────────────────────────────
-function FeedWaveform({ data }: { data?: number[] }) {
-  const bars = data && data.length > 0 ? data : Array.from({ length: 80 }, (_, i) => {
-    return 8 + Math.abs(Math.sin(i * 0.4) * 35);
-  });
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 48, width: '100%' }}>
-      {bars.slice(0, 80).map((h, i) => (
-        <div key={i} style={{
-          flex: 1,
-          height: Math.max(3, (h / 100) * 48),
-          borderRadius: 1,
-          background: i < 25 ? 'var(--sc-primary, #ff5500)' : 'rgba(255,255,255,0.15)',
-          transition: 'background 200ms',
-        }} />
-      ))}
-    </div>
-  );
-}
+// ─── Waveform is now handled by the real WaveformPlayer component ────────────
 
 // ─── Empty Feed State ─────────────────────────────────────────────────────────
 function EmptyFeed() {
@@ -266,9 +251,10 @@ export default function FeedPage() {
   const { isAuthenticated } = useAuthStore();
 
   // ── Data Hooks ───────────────────────────────────────────────────────────────
-  const { data: feedTracks = [], isLoading: feedLoading } = useFeed();
+  const { data: feedActivities = [], isLoading: feedLoading } = useFeed();
   const { data: suggestedArtists = [], isLoading: suggestLoading } = useSuggestedArtists(5);
   const { data: likedTracksList } = useLikedTracks();
+  const likedTrackIds = (likedTracksList ?? []).map(t => t.id);
 
   // ── Player / History ─────────────────────────────────────────────────────────
   const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
@@ -314,30 +300,53 @@ export default function FeedPage() {
     [isAuthenticated, isFollowing, followUser, unfollowUser],
   );
 
+  // ── Repost / Share / Copy Link ────────────────────────────────────────────────
+  const repostTrack = useRepostTrack();
+  const unrepostTrack = useUnrepostTrack();
+
+  const handleRepost = (trackId: string) => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    repostTrack.mutate({ trackId });
+  };
+
+  const handleCopyLink = (track: FeedTrack) => {
+    const url = `${window.location.origin}/tracks/${track.permalink || track._id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!');
+    });
+  };
+
+  const handleShare = (track: FeedTrack) => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator.share({
+        title: track.title,
+        text: `Check out ${track.title} by ${track.artist.displayName} on BioBeats`,
+        url: `${window.location.origin}/tracks/${track.permalink || track._id}`,
+      }).catch(() => {});
+    } else {
+      handleCopyLink(track);
+    }
+  };
+
   // ── Like toggle (per-track) ──────────────────────────────────────────────────
-  const likedSet = new Set((likedTracksList ?? []).map((t) => t.id));
   const [localLikedMap, setLocalLikedMap] = useState<Record<string, boolean>>({});
 
-  const isLiked = (trackId: string) => localLikedMap[trackId] ?? likedSet.has(trackId);
+  const isLiked = (id: string) => localLikedMap[id] ?? likedTrackIds.includes(id);
 
-  const handleLikeToggle = useCallback(
-    (track: FeedTrack) => {
-      if (!isAuthenticated) return;
-      const currently = isLiked(track._id);
-      setLocalLikedMap((prev) => ({ ...prev, [track._id]: !currently }));
-      if (currently) {
-        unlikeTrack(track._id, {
-          onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: true })),
-        });
-      } else {
-        likeTrack(track._id, {
-          onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: false })),
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, likedSet, likeTrack, unlikeTrack],
-  );
+  const handleLikeToggle = (track: FeedTrack) => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    const currently = isLiked(track._id);
+    setLocalLikedMap((prev) => ({ ...prev, [track._id]: !currently }));
+    if (currently) {
+      unlikeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: true })),
+      });
+    } else {
+      likeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: false })),
+      });
+    }
+  };
 
   const isActionPending = followPending || unfollowPending;
 
@@ -379,14 +388,19 @@ export default function FeedPage() {
             <div data-testid="feed-skeleton">
               {[1, 2, 3].map((i) => <FeedTrackSkeleton key={i} />)}
             </div>
-          ) : feedTracks.length === 0 ? (
+          ) : feedActivities.length === 0 ? (
             <EmptyFeed />
           ) : (
             <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {feedTracks.map((track) => {
+              {feedActivities.map((activity, idx) => {
+                const track = activity.target;
+                const actor = activity.actors[0] || track.artist;
                 const liked = isLiked(track._id);
+                const actionText = activity.activityType === 'TRACK_UPLOAD' ? 'posted a track' : 
+                                  activity.activityType === 'REPOST' ? 'reposted a track' : 
+                                  activity.activityType === 'LIKE' ? 'liked a track' : 'posted a track';
                 return (
-                  <div key={track._id} data-testid="feed-track-item">
+                  <div key={`${track._id}-${idx}`} data-testid="feed-track-item">
                     <FeedTrackCard
                       title={track.title}
                       artist={track.artist?.displayName ?? 'Unknown Artist'}
@@ -396,28 +410,46 @@ export default function FeedPage() {
                         track.artworkUrl ||
                         'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'
                       }
-                      reposterName={track.artist?.displayName ?? 'User'}
-                      reposterAvatarUrl={track.artist?.avatarUrl}
-                      reposterPermalink={track.artist?.permalink}
-                      actionType={Math.random() > 0.5 ? 'reposted a track' : 'posted a track'}
-                      repostTime={timeAgo(track.createdAt)}
+                      reposterName={actor.displayName}
+                      reposterAvatarUrl={actor.avatarUrl}
+                      reposterPermalink={actor.permalink}
+                      actionType={actionText as any}
+                      repostTime={timeAgo(activity.activityDate || track.createdAt)}
                       plays={track.playCount}
                       likes={liked ? (track.likeCount + 1) : track.likeCount}
                       reposts={track.repostCount}
                       comments={track.commentCount}
                       liked={liked}
-                      waveformSlot={<FeedWaveform data={track.waveform} />}
-                      onPlay={() => {
+                      waveformSlot={
+                        <WaveformPlayer 
+                          waveform={track.waveform} 
+                          hidePlayButton 
+                          trackMeta={{
+                            id: track._id,
+                            title: track.title,
+                            artist: track.artist?.displayName || 'Artist',
+                            artworkUrl: track.artworkUrl,
+                            hlsUrl: track.hlsUrl
+                          }}
+                        />
+                      }
+                      onPlay={async () => {
+                        let streamUrl = track.hlsUrl ?? '';
+                        if (!streamUrl) {
+                          try {
+                            const { data } = await apiClient.get(`/tracks/${track._id}`);
+                            const detail = data?.data ?? data;
+                            streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                          } catch { /* empty */ }
+                        }
                         play({
                           id: track._id,
                           title: track.title,
                           artist: track.artist?.displayName ?? 'Unknown Artist',
                           artworkUrl: track.artworkUrl ?? '',
-                          streamUrl: track.hlsUrl ?? '',
-                          hlsUrl: track.hlsUrl ?? '',
-                          duration: track.duration
-                            ? `${Math.floor(track.duration / 60)}:${String(Math.floor(track.duration % 60)).padStart(2, '0')}`
-                            : '0:00',
+                          streamUrl,
+                          hlsUrl: streamUrl,
+                          duration: track.duration,
                           waveform: track.waveform ?? [],
                         } as any);
                       }}
@@ -440,25 +472,34 @@ export default function FeedPage() {
                               gap: 6
                             }}
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill={liked ? 'white' : 'currentColor'}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                            {fmt(liked ? (track.likeCount + 1) : track.likeCount)}
-                          </button>
-                          
-                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                            {fmt(track.repostCount)}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'white' : 'none'} stroke="currentColor" strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            {liked ? 'Liked' : 'Like'}
                           </button>
 
-                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                          <button 
+                            onClick={() => handleRepost(track._id)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                            Repost
                           </button>
 
-                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                          <button 
+                            onClick={() => handleShare(track)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                            Share
                           </button>
 
-                          <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                          <button 
+                            onClick={() => handleCopyLink(track)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            Copy Link
                           </button>
                         </div>
                       }

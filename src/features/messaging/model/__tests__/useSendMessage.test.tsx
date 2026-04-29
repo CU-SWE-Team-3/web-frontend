@@ -48,13 +48,14 @@ describe('useSendMessage', () => {
     await act(async () => {
       result.current.mutate({
         conversationId: 'conv-1',
+        receiverId: 'user-2',
         content: 'Test message',
       });
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(api.sendMessage).toHaveBeenCalledWith('conv-1', 'Test message', undefined);
+    expect(api.sendMessage).toHaveBeenCalledWith('user-2', 'Test message', undefined);
     expect(result.current.data).toEqual(mockResponse);
   });
 
@@ -68,6 +69,7 @@ describe('useSendMessage', () => {
     await act(async () => {
       result.current.mutate({
         conversationId: 'conv-1',
+        receiverId: 'user-2',
         content: 'Test message',
       });
     });

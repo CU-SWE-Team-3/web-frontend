@@ -53,7 +53,7 @@ describe('useStartConversation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(api.startConversation).toHaveBeenCalledWith('u1', 'Hello!', undefined);
+    expect(api.startConversation).toHaveBeenCalledWith('u1', 'Hello!', undefined, undefined);
     expect(result.current.data?._id).toBe('conv-new');
   });
 
@@ -83,7 +83,7 @@ describe('useStartConversation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(api.startConversation).toHaveBeenCalledWith('u1', 'Check this out!', sharedTrack);
+    expect(api.startConversation).toHaveBeenCalledWith('u1', 'Check this out!', sharedTrack, undefined);
   });
 
   it('should handle failure when starting a conversation', async () => {
@@ -102,5 +102,32 @@ describe('useStartConversation', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error?.message).toBe('User not found');
+  });
+
+  it('should start a conversation with an attachment', async () => {
+    vi.mocked(api.startConversation).mockResolvedValueOnce(mockConversation);
+
+    const attachment = { type: 'track' as const, id: 'track-123' };
+
+    const { result } = renderHook(() => useStartConversation(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      result.current.mutate({
+        userId: 'u1',
+        content: 'Check this attachment!',
+        attachment,
+      });
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(api.startConversation).toHaveBeenCalledWith(
+      'u1',
+      'Check this attachment!',
+      undefined,
+      attachment
+    );
   });
 });

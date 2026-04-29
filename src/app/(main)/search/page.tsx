@@ -7,6 +7,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 // ─── Feature Hooks ────────────────────────────────────────────────────────────
 import { useSearch } from '@/features/search';
 import { usePlayerStore } from '@/features/player/model/playerStore';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { useRepostTrack } from '@/features/track-engagement/model/useRepostTrack';
+import { useUnrepostTrack } from '@/features/track-engagement/model/useUnrepostTrack';
+import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { WaveformPlayer } from '@/features/tracks/ui/WaveformPlayer';
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 import { NavBar } from '@/shared/ui/NavBar/NavBar';
@@ -15,6 +22,8 @@ import { ROUTES } from '@/shared/constants/routes';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 import type { TrackResult, UserResult, PlaylistResult } from '@/features/search';
+
+import apiClient from '@/shared/api/client';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
@@ -31,6 +40,8 @@ function fmtDuration(secs?: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// ─── Waveform is now handled by WaveformPlayer component ────────────────────
+
 // ─── Sidebar Tab Definition ──────────────────────────────────────────────────
 type Tab = 'everything' | 'tracks' | 'people' | 'albums' | 'playlists';
 const TABS: { id: Tab; label: string }[] = [
@@ -40,21 +51,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'albums', label: 'Albums' },
   { id: 'playlists', label: 'Playlists' },
 ];
-
-function DummyWaveform() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: 48, width: '100%' }}>
-      {Array.from({ length: 80 }).map((_, i) => (
-        <div key={i} style={{
-          flex: 1,
-          height: Math.max(3, (8 + Math.abs(Math.sin(i * 0.4) * 35)) / 100 * 48),
-          borderRadius: 1,
-          background: 'rgba(255,255,255,0.4)',
-        }} />
-      ))}
-    </div>
-  );
-}
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SearchPage() {
@@ -70,6 +66,51 @@ export default function SearchPage() {
   const tracks = results?.tracks ?? [];
   const users = results?.users ?? [];
   const playlists = results?.playlists ?? [];
+
+  // Engagement
+  const { user } = useAuthStore();
+  const userId = (user as any)?._id || user?.id || '';
+  const { data: likedTracksList } = useLikedTracks();
+  const likedTrackIds = (likedTracksList ?? []).map(t => t.id);
+  const isLiked = (id: string) => likedTrackIds.includes(id);
+
+  const { mutate: likeTrack } = useLikeTrack();
+  const { mutate: unlikeTrack } = useUnlikeTrack();
+  const repostTrack = useRepostTrack();
+  const unrepostTrack = useUnrepostTrack();
+
+  const handleLikeToggle = (trackId: string) => {
+    if (!userId) { router.push('/login'); return; }
+    if (isLiked(trackId)) {
+      unlikeTrack(trackId);
+    } else {
+      likeTrack(trackId);
+    }
+  };
+
+  const handleRepost = (trackId: string) => {
+    if (!userId) { router.push('/login'); return; }
+    repostTrack.mutate({ trackId });
+  };
+
+  const handleCopyLink = (track: TrackResult) => {
+    const url = `${window.location.origin}/tracks/${track.permalink || track._id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!');
+    });
+  };
+
+  const handleShare = (track: TrackResult) => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator.share({
+        title: track.title,
+        text: `Check out ${track.title} by ${track.artist.displayName} on BioBeats`,
+        url: `${window.location.origin}/tracks/${track.permalink || track._id}`,
+      }).catch(() => {});
+    } else {
+      handleCopyLink(track);
+    }
+  };
 
   const filteredResults = useMemo(() => {
     if (activeTab === 'tracks') return tracks;
@@ -159,7 +200,7 @@ export default function SearchPage() {
                   </div>
                   <div className="flex-1">
                     <h2 className="text-[20px] font-bold flex items-center gap-2">
-                      <Link href={ROUTES.PROFILE(users[0].permalink)} className="hover:underline">{users[0].displayName}</Link>
+                      <Link href={`/profile/${users[0].permalink || users[0]._id}`} className="hover:underline">{users[0].displayName}</Link>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="#3399ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                     </h2>
                     <p className="text-[14px] text-[#999] mt-1">{users[0].displayName}</p>
@@ -191,24 +232,58 @@ export default function SearchPage() {
                     likes={t.likeCount}
                     reposts={t.repostCount ?? 0}
                     comments={t.commentCount ?? 0}
-                    waveformSlot={<DummyWaveform />}
-                    onPlay={() => play({
-                      id: t._id,
-                      title: t.title,
-                      artist: t.artist.displayName,
-                      artworkUrl: t.artworkUrl ?? '',
-                      streamUrl: t.hlsUrl ?? '',
-                      hlsUrl: t.hlsUrl ?? '',
-                      duration: fmtDuration(t.duration),
-                      waveform: [],
-                    } as any)}
+                    waveformSlot={
+                      <WaveformPlayer 
+                        waveform={t.waveform} 
+                        hidePlayButton 
+                        trackMeta={{
+                          id: t._id,
+                          title: t.title,
+                          artist: t.artist.displayName,
+                          artworkUrl: t.artworkUrl,
+                          hlsUrl: t.hlsUrl
+                        }}
+                      />
+                    }
+                    onPlay={async () => {
+                      let streamUrl = t.hlsUrl ?? '';
+                      if (!streamUrl) {
+                        try {
+                          const res = await apiClient.get(`/tracks/${t._id}`);
+                          const detail = res.data?.data ?? res.data;
+                          streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                        } catch { /* play with empty url */ }
+                      }
+                      play({
+                        id: t._id,
+                        title: t.title,
+                        artist: t.artist.displayName,
+                        artworkUrl: t.artworkUrl ?? '',
+                        streamUrl,
+                        hlsUrl: streamUrl,
+                        duration: t.duration ?? 0,
+                      });
+                    }}
+                    liked={isLiked(t._id)}
                     actionsSlot={
                       <div className="flex gap-2">
-                        <button className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                          Like
+                        <button 
+                          onClick={() => handleLikeToggle(t._id)}
+                          className={`px-3 py-1 text-[12px] font-semibold border rounded transition-colors ${
+                            isLiked(t._id) 
+                              ? 'bg-[#ff5500] border-[#ff5500] text-white' 
+                              : 'border-white/20 text-[#ccc] hover:border-white/40'
+                          }`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill={isLiked(t._id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                          </svg>
+                          {isLiked(t._id) ? 'Liked' : 'Like'}
                         </button>
-                        <button className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30">
+                        <button 
+                          onClick={() => handleRepost(t._id)}
+                          className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30"
+                        >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                           Repost
                         </button>

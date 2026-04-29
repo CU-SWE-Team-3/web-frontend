@@ -1,8 +1,9 @@
 export type TrackVisibility = "Public" | "Private";
-export type ProcessingStatus = "Processing" | "Finished";
+export type ProcessingStatus = "Processing" | "Finished" | "Failed";
 
 export interface Track {
   id: string;
+  _id?: string;
   permalink?: string;
   title: string;
   artist: string;
@@ -18,6 +19,7 @@ export interface Track {
   waveform: number[];
   duration: string;
   createdAt: string;
+  updatedAt?: string;
   hlsUrl?: string;
   streamUrl?: string;
   // Locally retained UI metadata
