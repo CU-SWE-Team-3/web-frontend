@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (token && typeof window !== 'undefined') {
       localStorage.setItem('accessToken', token)
     }
-    set({ user, isAuthenticated: true })
+    set({ user, isAuthenticated: true, isInitialized: true })
   },
 
   // Called on logout — call API to clear cookies, then clear local state + token
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken')
     }
-    set({ user: null, isAuthenticated: false })
+    set({ user: null, isAuthenticated: false, isInitialized: true })
   },
 
   // Update profile data without re-logging in
@@ -71,9 +71,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem('accessToken')
         set({ isInitialized: true })
       }
-    } catch {
-      // In production, if backend is unavailable just mark as not authenticated
-      set({ isAuthenticated: false, isInitialized: true })
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        localStorage.removeItem('accessToken')
+      }
+      set({ user: null, isAuthenticated: false, isInitialized: true })
     }
   },
 }))

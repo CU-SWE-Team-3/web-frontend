@@ -8,8 +8,9 @@ import { useAuthStore } from '../../model/useAuthStore'
 
 // Mock useRouter
 const mockPush = vi.fn()
+const mockReplace = vi.fn()
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }))
 
 const server = setupServer(
@@ -69,7 +70,7 @@ describe('LoginForm', () => {
     await user.click(screen.getByTestId('login-submit-button'))
     
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/home')
+      expect(mockReplace).toHaveBeenCalledWith('/discover')
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(useAuthStore.getState().user?.email).toBe('test@example.com')

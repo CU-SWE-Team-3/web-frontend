@@ -56,17 +56,19 @@ const LoginForm = () => {
         { email, password },
         { withCredentials: true }
       )
-      const user = response.data?.data?.user
-      const token = response.data?.data?.accessToken || response.data?.accessToken
+      const payload = response.data?.data ?? response.data
+      const user = payload?.user ?? payload
+      const token = payload?.accessToken || payload?.token || response.data?.accessToken
       if (user) {
         login(user, token)
-        // Role-based redirect: Admin → /admin dashboard, everyone else → /home
         const role = user?.role?.toLowerCase?.() ?? ''
         if (role === 'admin') {
-          router.push(ROUTES.ADMIN_DASHBOARD)
+          router.replace(ROUTES.ADMIN_DASHBOARD)
         } else {
-          router.push(ROUTES.DASHBOARD)
+          router.replace(ROUTES.DASHBOARD)
         }
+      } else {
+        setErrors({ general: 'Login succeeded, but no user data was returned.' })
       }
     } catch (err: any) {
       const message = err?.response?.data?.message || 'Invalid email or password.'
