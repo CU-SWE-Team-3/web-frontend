@@ -274,27 +274,24 @@ export const GlobalAudioEngine = () => {
     if (currentTrack?.tier === 'pro' && time > 30) {
       time = 30; // clamp
     }
-    // Set guard so timeupdate won't fight the seek
+    // Set guard — cleared by native onSeeked event on the <audio> element
     isSeekingRef.current = true;
+    seek(time);
     if (playbackSource === 'global' && audioRef.current) {
       audioRef.current.currentTime = time;
     }
-    // Dispatch a custom event so the active WaveformPlayer can sync
+    // Dispatch a custom event so the active WaveformPlayer can sync its visuals
     if (playbackSource === 'inline') {
       window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time } }));
     }
-    seek(time);
-    // Clear guard after audio element has processed the seek
-    setTimeout(() => { isSeekingRef.current = false; }, 200);
   };
   
   useEffect(() => {
     const onGlobalSeek = (e: any) => {
       if (e.detail?.time !== undefined && audioRef.current) {
+        // Guard cleared by native onSeeked — no setTimeout needed
         isSeekingRef.current = true;
         audioRef.current.currentTime = e.detail.time;
-        // Fallback clear in case onSeeked doesn't fire
-        setTimeout(() => { isSeekingRef.current = false; }, 300);
       }
     };
     window.addEventListener('playerbar-seek', onGlobalSeek);
@@ -322,8 +319,16 @@ export const GlobalAudioEngine = () => {
         onLoadedMetadata={handleLoadedMetadata}
         onProgress={handleProgress}
         onEnded={handleEnded}
-        onSeeking={() => { isSeekingRef.current = true; }}
-        onSeeked={() => { isSeekingRef.current = false; }}
+        onSeeking={() => {
+          isSeekingRef.current = true;
+        }}
+        onSeeked={() => {
+          isSeekingRef.current = false;
+          // Push confirmed position to store
+          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+          // Notify WaveformPlayer to clear its own seeking guard
+          window.dispatchEvent(new CustomEvent('playerbar-seeked'));
+        }}
         crossOrigin="anonymous"
         className="hidden"
       />
