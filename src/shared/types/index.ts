@@ -15,6 +15,9 @@ export interface User {
   isEmailVerified?: boolean;
   isVerified?: boolean;
   isPremium?: boolean;
+  subscriptionPlan?: 'Free' | 'Pro' | 'Go+';
+  subscriptionExpiresAt?: string | null;
+  cancelAtPeriodEnd?: boolean;
   // Social counts
   followerCount?: number;
   followingCount?: number;

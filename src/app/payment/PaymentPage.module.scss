@@ -1,0 +1,459 @@
+/* component-id: PaymentPageStyles_001 */
+
+.page {
+  min-height: 100vh;
+  background: #fff;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  color: #111;
+}
+
+.header {
+  height: 52px;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.headerUser {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ccc;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.chevronIcon {
+  color: #888;
+  font-size: 12px;
+}
+
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 36px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 48px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Left Column ─────────────────────────────────────────────────────────── */
+.leftCol {}
+
+/* ── Billing Cycle ─────────────────────────────────────────────────────── */
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111;
+}
+
+.lockIcon {
+  font-size: 14px;
+}
+
+.billingOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.billingOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms;
+  position: relative;
+
+  &.selected {
+    border-color: #ff5500;
+  }
+
+  &:hover:not(.selected) {
+    border-color: #aaa;
+  }
+}
+
+.billingRadio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 150ms;
+
+  &.checked {
+    border-color: #ff5500;
+
+    &::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff5500;
+    }
+  }
+}
+
+.billingInfo {
+  flex: 1;
+}
+
+.billingLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.billingPrice {
+  font-size: 12px;
+  color: #666;
+}
+
+.discountBadge {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ff5500;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── Payment Methods ─────────────────────────────────────────────────────── */
+.paymentOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms;
+
+  &.selected {
+    border-color: #111;
+  }
+
+  &:hover:not(.selected) {
+    border-color: #aaa;
+  }
+}
+
+.paymentLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+  flex: 1;
+}
+
+.paymentLogos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.paymentLogo {
+  height: 20px;
+  width: auto;
+}
+
+.applePayLogo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+  border: 1px solid #ccc;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.paypalLogo {
+  font-size: 13px;
+  font-weight: 800;
+  color: #003087;
+}
+
+.cardIcons {
+  display: flex;
+  gap: 4px;
+}
+
+.cardIcon {
+  width: 32px;
+  height: 20px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  border: 1px solid #ddd;
+
+  &.visa { background: #1a1f71; color: #fff; }
+  &.mc { background: linear-gradient(90deg, #eb001b 40%, #f79e1b 60%); color: transparent; }
+  &.amex { background: #2e77bc; color: #fff; }
+  &.maestro { background: #6f6f6f; color: #fff; }
+  &.jcb { background: #003087; color: #fff; }
+  &.discover { background: #ff6600; color: #fff; }
+}
+
+/* ── Right Column ────────────────────────────────────────────────────────── */
+.rightCol {}
+
+.reviewSection {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.reviewTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #111;
+}
+
+.reviewProductRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reviewProductIcon {
+  width: 40px;
+  height: 40px;
+  background: #ff5500;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    fill: #fff;
+  }
+}
+
+.reviewProductName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.couponLink {
+  display: block;
+  font-size: 13px;
+  color: #ff5500;
+  text-decoration: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.reviewDivider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 14px 0;
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reviewLabel {
+  font-size: 13px;
+  color: #111;
+  font-weight: 600;
+}
+
+.reviewValue {
+  font-size: 13px;
+  color: #111;
+  font-weight: 700;
+}
+
+.reviewBillingLabel {
+  font-size: 12px;
+  color: #888;
+}
+
+.reviewBillingValue {
+  font-size: 12px;
+  color: #888;
+}
+
+.reviewNote {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.reviewCurrency {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+/* ── Buy Button ────────────────────────────────────────────────────────── */
+.buyBtn {
+  width: 100%;
+  padding: 14px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms;
+  margin-bottom: 12px;
+
+  &:hover:not(:disabled) {
+    background: #111;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.processing {
+    background: #888;
+  }
+
+  &.success {
+    background: #16a34a;
+  }
+}
+
+.legalNote {
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.5;
+  text-align: center;
+
+  a {
+    color: #ff5500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.footerSignIn {
+  font-size: 12px;
+  color: #666;
+
+  a {
+    color: #ff5500;
+    text-decoration: none;
+  }
+}
+
+.footerLinks {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  font-size: 11px;
+  color: #888;
+  text-decoration: none;
+
+  &:hover {
+    color: #333;
+  }
+}
+
+/* ── Error ────────────────────────────────────────────────────────────── */
+.errorMsg {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}

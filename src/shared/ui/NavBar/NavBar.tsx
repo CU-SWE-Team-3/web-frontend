@@ -111,7 +111,7 @@ export const NavBar: FC<NavBarProps> = ({
     <div className={s.rightSection}>
       {isAuthenticated ? (
         <>
-          <span className={s.tryProLink}>Try Artist Pro</span>
+          <Link href={ROUTES.ARTIST_PRO} className={s.tryProLink} data-testid="navbar-try-artist-pro">Try Artist Pro</Link>
           <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
           <button className={s.navTextLink} onClick={onUpload} data-testid="navbar-upload-button">Upload</button>
           <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED} data-testid="navbar-user-avatar">
@@ -262,7 +262,7 @@ export const NavBar: FC<NavBarProps> = ({
                 <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-support">Support</Link>
                 <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-keyboard">Keyboard shortcuts</Link>
                 <div className={s.dropdownDivider} />
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-subscription">Subscription</Link>
+                <Link href={ROUTES.SUBSCRIPTION} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-subscription">Subscription</Link>
                 <Link href={ROUTES.SETTINGS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-settings">Settings</Link>
                 <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-more-signout">Sign out</button>
               </div>
