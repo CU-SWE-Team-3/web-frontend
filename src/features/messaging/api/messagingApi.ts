@@ -236,7 +236,7 @@ export const searchUsers = async (query: string): Promise<MessageUser[]> => {
 /** GET /profile/{permalink} - used as fallback to resolve recipient by username */
 export const resolveUserByPermalink = async (permalink: string): Promise<string | null> => {
   try {
-    const { data: res } = await apiClient.get<{ data: { user: { _id: string } } }>(
+    const { data: res } = await apiClient.get<{ data: { user: { _id: string; id?: string } } }>(
       `/profile/${encodeURIComponent(permalink)}`
     );
     // Support both direct data and nested user object
