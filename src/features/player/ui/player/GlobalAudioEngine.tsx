@@ -18,6 +18,7 @@ export const GlobalAudioEngine = () => {
   const gainNodeRef = useRef<GainNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const isSeekingRef = useRef(false);
   
   const {
     currentTrack,
@@ -208,6 +209,8 @@ export const GlobalAudioEngine = () => {
   // 2. Audio Event Handlers
   const handleTimeUpdate = () => {
     if (audioRef.current) {
+      // Skip if we are in the middle of a seek — prevents snap-back
+      if (isSeekingRef.current) return;
       const time = audioRef.current.currentTime;
       if (currentTrack?.tier === 'pro' && time >= 30) {
         if (!audioRef.current.paused) {
@@ -271,6 +274,8 @@ export const GlobalAudioEngine = () => {
     if (currentTrack?.tier === 'pro' && time > 30) {
       time = 30; // clamp
     }
+    // Set guard so timeupdate won't fight the seek
+    isSeekingRef.current = true;
     if (playbackSource === 'global' && audioRef.current) {
       audioRef.current.currentTime = time;
     }
@@ -279,6 +284,8 @@ export const GlobalAudioEngine = () => {
       window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time } }));
     }
     seek(time);
+    // Clear guard after audio element has processed the seek
+    setTimeout(() => { isSeekingRef.current = false; }, 200);
   };
   
   useEffect(() => {
