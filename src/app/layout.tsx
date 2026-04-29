@@ -7,7 +7,7 @@ import { PremiumAdBanner } from '@/shared/ui/PremiumAdBanner/PremiumAdBanner'
 
 export const metadata: Metadata = {
   title: 'BioBeats',
-  description: 'SoundCloud Clone',
+  description: 'BioBeats music platform',
 }
 
 export const viewport: Viewport = {

@@ -13,7 +13,7 @@ const HERO_FEATURES = [
   {
     icon: '📡',
     name: 'Grow your audience',
-    desc: 'Add your tracks to algorithmically generated playlists and get your music in front of more fans on SoundCloud and beyond.',
+    desc: 'Add your tracks to algorithmically generated playlists and get your music in front of more fans on BioBeats and beyond.',
   },
   {
     icon: '📊',
@@ -28,7 +28,7 @@ const HERO_FEATURES = [
   {
     icon: '💸',
     name: 'Distribution is included',
-    desc: 'Send your songs to Spotify, Apple Music, TikTok, and 50+ stores. Keep 100% of your royalties, and use SoundCloud for free.',
+    desc: 'Send your songs to Spotify, Apple Music, TikTok, and 50+ stores. Keep 100% of your royalties, and use BioBeats for free.',
   },
 ];
 
@@ -135,7 +135,7 @@ export default function ArtistProPage() {
         <div className={s.heroContent}>
           <p className={s.heroEyebrow}>
             <span className={s.heroEmoji}>🎙️</span>
-            Join millions of artists that use SoundCloud to get heard.
+            Join millions of artists that use BioBeats to get heard.
           </p>
           <h1 className={s.heroTitle} data-testid="artist-pro-title">
             Reach more listeners.

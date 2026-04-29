@@ -159,7 +159,7 @@ export default function PlaylistPage({ params }: { params: { username: string, p
                  </div>
               </div>
               <div>
-                <p className="text-[13px] text-white mb-2">Trending {title} songs on SoundCloud. Updates weekly with popular tracks.</p>
+                <p className="text-[13px] text-white mb-2">Trending {title} songs on BioBeats. Updates weekly with popular tracks.</p>
                 <div className="flex gap-2">
                   {['#'+title, '#Top Tracks', '#Trending'].map(tag => (
                     <span key={tag} className="text-[12px] text-[#999] bg-[#222] px-2 py-0.5 rounded-full">{tag}</span>

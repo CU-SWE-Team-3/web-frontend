@@ -164,7 +164,7 @@ const RegisterForm = () => {
       </div>
 
       <p className="text-[11px] text-[#777] leading-tight">
-        By creating an account, you agree to SoundCloud&apos;s{' '}
+        By creating an account, you agree to BioBeats&apos;{' '}
         <span className="text-[#ff5500] cursor-pointer hover:underline">Terms of Use</span> and acknowledge our{' '}
         <span className="text-[#ff5500] cursor-pointer hover:underline">Privacy Policy</span>.
       </p>
