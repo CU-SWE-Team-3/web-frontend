@@ -19,6 +19,7 @@ export interface User {
   cancelAtPeriodEnd?: boolean;
   isEmailVerified?: boolean;
   isVerified?: boolean;
+  // Social counts
   accountStatus?: 'Active' | 'Suspended' | 'Deleted';
   followerCount?: number;
   followingCount?: number;
