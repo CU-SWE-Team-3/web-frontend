@@ -305,9 +305,9 @@ export default function FeedPage() {
   const repostTrack = useRepostTrack();
   const unrepostTrack = useUnrepostTrack();
 
-  const handleRepost = (trackId: string) => {
+  const handleRepost = (track: FeedTrack) => {
     if (!isAuthenticated) { router.push('/login'); return; }
-    repostTrack.mutate({ trackId });
+    repostTrack.mutate({ trackId: track._id, track });
   };
 
   const handleCopyLink = (track: FeedTrack) => {
@@ -480,7 +480,7 @@ export default function FeedPage() {
                           </button>
 
                           <button 
-                            onClick={() => handleRepost(track._id)}
+                            onClick={() => handleRepost(track)}
                             style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
@@ -576,10 +576,106 @@ export default function FeedPage() {
             </div>
 
             {likedTracksList && likedTracksList.length > 0 ? (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {likedTracksList.slice(0, 8).map((track) => (
-                  <div key={track.id} onClick={() => play(track as any)} style={{ width: 48, height: 48, background: '#222', borderRadius: 4, cursor: 'pointer', overflow: 'hidden' }}>
-                     {track.artworkUrl && <img src={track.artworkUrl} style={{width:'100%', height:'100%', objectFit: 'cover'}}/>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {likedTracksList.slice(0, 4).map((track) => (
+                  <div
+                    key={track.id}
+                    onClick={() => play({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artist || 'Unknown Artist',
+                      artworkUrl: track.artworkUrl || '',
+                      streamUrl: track.streamUrl || track.hlsUrl || '',
+                      hlsUrl: track.hlsUrl || track.streamUrl || '',
+                      duration: track.duration,
+                    } as any)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '52px minmax(0, 1fr)',
+                      gap: 10,
+                      alignItems: 'start',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ width: 52, height: 52, background: '#222', overflow: 'hidden', flexShrink: 0 }}>
+                      {track.artworkUrl ? (
+                        <img
+                          src={track.artworkUrl}
+                          alt=""
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #333, #151515)' }} />
+                      )}
+                    </div>
+
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        title={track.artist || 'Unknown Artist'}
+                        style={{
+                          color: '#999',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {track.artist || 'Unknown Artist'}
+                      </div>
+                      <div
+                        title={track.title}
+                        style={{
+                          color: '#fff',
+                          fontSize: 13,
+                          fontWeight: 800,
+                          lineHeight: 1.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          marginTop: 2,
+                        }}
+                      >
+                        {track.title}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, color: '#8a8a8a', fontSize: 11, minWidth: 0 }}>
+                        {track.playCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                            {fmt(track.playCount)}
+                          </span>
+                        )}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                          {fmt(track.likeCount || 1)}
+                        </span>
+                        {track.repostCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M17 1l4 4-4 4" />
+                              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                              <path d="M7 23l-4-4 4-4" />
+                              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                            </svg>
+                            {fmt(track.repostCount)}
+                          </span>
+                        )}
+                        {track.commentCount > 0 && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                            </svg>
+                            {fmt(track.commentCount)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

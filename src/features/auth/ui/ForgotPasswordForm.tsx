@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import axios from 'axios'
+import apiClient from '@/shared/api/client'
 import { AppInput, AppButton } from '@/shared/ui'
 import { ROUTES } from '@/shared/constants/routes'
 
@@ -37,11 +37,10 @@ const ForgotPasswordForm = () => {
         return
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-      await axios.post(`${apiUrl}/auth/forgot-password`, { email }, { withCredentials: true })
+      await apiClient.post('/auth/forgot-password', { email })
       setSuccess(true)
-    } catch {
-      setError('Something went wrong. Please try again.')
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }

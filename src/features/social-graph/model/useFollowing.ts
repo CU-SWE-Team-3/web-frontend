@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/client";
 import { FollowNode } from "./types";
+import { useAuthStore } from "@/features/auth/model/useAuthStore";
 
 /**
  * GET /network/{userId}/following
@@ -13,6 +14,15 @@ export const useFollowing = (userId: string) => {
     queryKey: ["network", "following", userId],
     queryFn: async () => {
       let targetId = userId;
+      const currentUser = useAuthStore.getState().user;
+      const currentUserIds = new Set(
+        [
+          currentUser?.id,
+          (currentUser as any)?._id,
+          currentUser?.username,
+          currentUser?.permalink,
+        ].filter(Boolean),
+      );
 
       // Resolve permalink to _id if it's not a standard Mongo ObjectId
       if (userId.length !== 24) {
@@ -29,15 +39,26 @@ export const useFollowing = (userId: string) => {
       });
 
       // v1.10 envelope: { success, count, data: ArtistSummary[] }
-      const raw: any[] = data.data ?? data;
+      const raw: any[] = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.following)
+          ? data.data.following
+          : Array.isArray(data?.following)
+            ? data.following
+            : Array.isArray(data)
+              ? data
+              : [];
+
+      const isViewingOwnFollowing = currentUserIds.has(userId) || currentUserIds.has(targetId);
+
       return raw.map((u: any) => ({
         id: u._id || u.id,
         username: u.permalink || u.username || "",
-        displayName: u.displayName || "",
+        displayName: u.displayName || u.username || u.permalink || "",
         avatarUrl: u.avatarUrl || null,
         followerCount: u.followerCount ?? u.followersCount ?? u.followers_count ?? 0,
         followingCount: u.followingCount ?? 0,
-        isFollowing: u.isFollowing ?? false,
+        isFollowing: u.isFollowing ?? isViewingOwnFollowing,
       }));
     },
     enabled: !!userId,

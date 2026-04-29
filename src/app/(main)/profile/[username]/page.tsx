@@ -213,10 +213,10 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
 
   // Helper: render a repost card
   const renderRepostCard = (repost: any) => {
-    const track = repost.track || repost;
+    const track = repost.track || repost.target || repost;
     return (
       <ProfileTrackCard
-        key={`repost-${repost.id || track.id || track._id}`}
+        key={`repost-${repost.id || repost._id || track.id || track._id}`}
         track={{
           id: track._id || track.id,
           permalink: track.permalink || track.id || track._id || '',
@@ -231,9 +231,9 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
           artworkUrl: track.artworkUrl || '',
           waveform: track.waveform || [],
           duration: track.duration || '0:00',
-          createdAt: track.createdAt || repost.repostedAt || '',
-          streamUrl: track.streamUrl || track.hlsUrl || track.audioUrl || '',
-          hlsUrl: track.hlsUrl || track.audioUrl || '',
+          createdAt: track.createdAt || repost.repostDate || repost.repostedAt || '',
+          streamUrl: track.streamUrl || track.hlsUrl || track.audioUrl || track.audio_url || '',
+          hlsUrl: track.hlsUrl || track.streamUrl || track.audioUrl || track.audio_url || '',
           playCount: track.playCount ?? 0,
           likeCount: track.likeCount ?? 0,
           repostCount: track.repostCount ?? 0,
@@ -354,8 +354,8 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
       merged.push({ type: 'track', data: track, date: track.createdAt || '' });
     }
     for (const repost of userReposts) {
-      const t = repost.track || repost;
-      merged.push({ type: 'repost', data: repost, date: (repost as any).repostedAt || t.createdAt || '' });
+      const t = repost.track || repost.target || repost;
+      merged.push({ type: 'repost', data: repost, date: (repost as any).repostDate || (repost as any).repostedAt || t.createdAt || '' });
     }
 
     // Sort newest first

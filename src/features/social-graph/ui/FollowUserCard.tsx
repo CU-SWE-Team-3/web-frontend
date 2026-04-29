@@ -36,6 +36,7 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
   const unfollowMutation = useUnfollowUser();
 
   const toggleFollow = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     
     if (isFollowing) {

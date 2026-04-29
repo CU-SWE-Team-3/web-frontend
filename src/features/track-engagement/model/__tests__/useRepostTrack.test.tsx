@@ -4,6 +4,7 @@ import { repostTrack } from '../../api/engagementApi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { USER_REPOSTS_QUERY_KEY } from '../useUserReposts';
+import { FEED_QUERY_KEY } from '@/features/feed/model/feedQueries';
 import React from 'react';
 
 vi.mock('../../api/engagementApi', () => ({
@@ -38,5 +39,6 @@ describe('useRepostTrack', () => {
 
     expect(repostTrack).toHaveBeenCalledWith('track-123');
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: USER_REPOSTS_QUERY_KEY });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: FEED_QUERY_KEY });
   });
 });

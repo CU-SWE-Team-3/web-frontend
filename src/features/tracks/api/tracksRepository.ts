@@ -126,6 +126,37 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
   };
 }
 
+function extractTrackArray(payload: any): any[] {
+  const candidates = [
+    payload?.data?.data?.tracks,
+    payload?.data?.tracks,
+    payload?.data?.items,
+    payload?.data?.results,
+    payload?.tracks,
+    payload?.items,
+    payload?.results,
+    payload?.data,
+    payload,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+}
+
+function extractTrackObject(payload: any): any {
+  return (
+    payload?.data?.data?.track ||
+    payload?.data?.track ||
+    payload?.track ||
+    payload?.data?.data ||
+    payload?.data ||
+    payload
+  );
+}
+
 export const tracksRepository = {
   async uploadTrack(
     payload: UploadTrackInput,
@@ -289,7 +320,7 @@ export const tracksRepository = {
       console.log('[tracksRepository] getTracks: fetching from API via /tracks/my-tracks');
       const response = await apiClient.get('/tracks/my-tracks');
       // v1.10: envelope is { success, count, data: Track[] } — array lives directly in data.data
-      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+      const apiTracks = extractTrackArray(response.data);
 
       if (Array.isArray(apiTracks)) {
         return apiTracks.map((t: any) => mapApiTrack(t));
@@ -307,7 +338,7 @@ export const tracksRepository = {
         console.log('[tracksRepository] getTracks: fallback via /profile/' + userId + '/tracks');
         const response = await apiClient.get(`/profile/${userId}/tracks`);
         // v1.10 envelope: { success, data: { total, page, totalPages, tracks: Track[] } }
-        const apiTracks = response.data?.data?.tracks || response.data?.data || response.data?.tracks || [];
+        const apiTracks = extractTrackArray(response.data);
 
         if (Array.isArray(apiTracks)) {
           return apiTracks.map((t: any) => mapApiTrack(t));
@@ -335,7 +366,7 @@ export const tracksRepository = {
         console.log('[tracksRepository] Fetching own tracks from API:', '/tracks/my-tracks');
         const response = await apiClient.get('/tracks/my-tracks');
         // v1.10 envelope: { success, count, data: Track[] }
-        const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+        const apiTracks = extractTrackArray(response.data);
 
         if (Array.isArray(apiTracks)) {
           return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
@@ -365,12 +396,7 @@ export const tracksRepository = {
           console.log('[tracksRepository] Attempting to fetch tracks from API:', endpoint);
           const response = await apiClient.get(endpoint);
           // v1.10 envelope: { success, data: { total, page, totalPages, tracks: Track[] } }
-          const apiTracks =
-            response.data?.data?.tracks ||
-            response.data?.data ||
-            response.data?.tracks ||
-            response.data ||
-            [];
+          const apiTracks = extractTrackArray(response.data);
           if (Array.isArray(apiTracks) && apiTracks.length > 0) {
             console.log(`[tracksRepository] API returned ${apiTracks.length} tracks using endpoint: ${endpoint}`);
             return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
@@ -394,7 +420,7 @@ export const tracksRepository = {
     try {
       console.log('[tracksRepository] Fetching track from API by permalink:', identifier);
       const response = await apiClient.get(`/tracks/${identifier}`);
-      const t = response.data?.data?.track || response.data?.data || response.data;
+      const t = extractTrackObject(response.data);
       if (t) {
         return mapApiTrack(t);
       }
@@ -405,7 +431,7 @@ export const tracksRepository = {
     // ── Fallback 1: check the logged-in user's own tracks ──
     try {
       const fallbackResponse = await apiClient.get('/tracks/my-tracks');
-      const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
+      const apiTracks = extractTrackArray(fallbackResponse.data);
       if (Array.isArray(apiTracks)) {
         const foundTrack = apiTracks.find((t: any) =>
           (t.permalink || t._id || t.id) === identifier ||
@@ -428,7 +454,7 @@ export const tracksRepository = {
     for (const endpoint of altEndpoints) {
       try {
         const res = await apiClient.get(endpoint);
-        const t = res.data?.data?.track || res.data?.data || res.data;
+        const t = extractTrackObject(res.data);
         if (t && (t._id || t.id)) {
           console.log(`[tracksRepository] Track found via ${endpoint}`);
           return mapApiTrack(t);
@@ -448,7 +474,7 @@ export const tracksRepository = {
     for (const endpoint of userTrackEndpoints) {
       try {
         const res = await apiClient.get(endpoint);
-        const list = res.data?.data || res.data?.tracks || res.data || [];
+        const list = extractTrackArray(res.data);
         if (Array.isArray(list)) {
           const found = list.find((t: any) =>
             (t.permalink || t._id || t.id) === identifier ||
@@ -547,7 +573,7 @@ export const tracksRepository = {
       const response = await apiClient.get('/tracks/search', {
         params: { q: query, type: 'tracks' }
       });
-      const apiTracks = response.data?.data?.tracks || [];
+      const apiTracks = extractTrackArray(response.data);
       return apiTracks.map((t: any) => mapApiTrack(t));
     } catch (err) {
       console.warn('[tracksRepository] searchTracks failed:', err);
