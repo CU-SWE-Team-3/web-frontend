@@ -67,6 +67,7 @@ export interface NotificationActor {
   avatarUrl: string | null
   permalink?: string
   isPremium?: boolean
+  isFollowing?: boolean
 }
 
 export interface NotificationTarget {
@@ -93,12 +94,19 @@ export interface Notification {
 
 export interface NotificationPreferences {
   pushEnabled: boolean
+  emailEnabled?: boolean
   allowLikes: boolean
+  allowLikesEmail?: boolean
   allowReposts: boolean
+  allowRepostsEmail?: boolean
   allowComments: boolean
+  allowCommentsEmail?: boolean
   allowFollows: boolean
+  allowFollowsEmail?: boolean
   allowMessages: boolean
+  allowMessagesEmail?: boolean
   allowNewTracks: boolean
+  allowNewTracksEmail?: boolean
 }
 
 export interface NotificationFeedResponse {

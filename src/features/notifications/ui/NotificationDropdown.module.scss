@@ -107,6 +107,13 @@
   background: var(--sc-gray-700);
   overflow: hidden;
   flex-shrink: 0;
+  display: block;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
 }
 
 .avatarImg {

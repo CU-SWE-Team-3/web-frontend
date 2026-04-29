@@ -2,7 +2,10 @@
 
 import { create } from 'zustand'
 import type { NotificationPreferences } from '@/shared/types'
-import { updateNotificationPreferences as apiUpdatePreferences } from '../api/notificationApi'
+import { 
+  updateNotificationPreferences as apiUpdatePreferences,
+  fetchNotificationPreferences as apiFetchPreferences 
+} from '../api/notificationApi'
 
 // ─── Notification Preferences Store ─────────────────────────────────────────────
 // Maps to the SoundCloud Settings > Notifications tab (Activities + Updates)
@@ -30,6 +33,7 @@ export interface NotificationSettingsState {
   isDirty: boolean
 
   // Actions
+  fetchPreferences: () => Promise<void>
   toggleActivity: (key: string, channel: 'email' | 'devices', value: boolean | string) => void
   toggleUpdate: (key: string, channel: 'email' | 'devices', value: boolean) => void
   savePreferences: () => Promise<void>
@@ -58,6 +62,29 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
   updates: { ...DEFAULT_UPDATES },
   isLoading: false,
   isDirty: false,
+
+  fetchPreferences: async () => {
+    set({ isLoading: true })
+    try {
+      const prefs = await apiFetchPreferences()
+      set((state) => ({
+        activities: {
+          ...state.activities,
+          newFollower: { email: prefs.allowFollowsEmail ?? true, devices: prefs.allowFollows ?? true },
+          repostOfYourPost: { email: prefs.allowRepostsEmail ?? true, devices: prefs.allowReposts ?? true },
+          newPostByFollowedUser: { email: prefs.allowNewTracksEmail ?? true, devices: prefs.allowNewTracks ?? true },
+          likesAndPlaysOnYourPost: { email: prefs.allowLikesEmail ?? true, devices: prefs.allowLikes ?? true },
+          commentOnYourPost: { email: prefs.allowCommentsEmail ?? false, devices: prefs.allowComments ?? true },
+          newMessage: { email: prefs.allowMessagesEmail ?? true, devices: prefs.allowMessages ? 'Everyone' : 'Nobody' },
+        },
+        isDirty: false,
+      }))
+    } catch (err) {
+      console.error('[Notification Preferences] Fetch failed:', err)
+    } finally {
+      set({ isLoading: false })
+    }
+  },
 
   toggleActivity: (key, channel, value) => {
     set((state) => ({
@@ -92,12 +119,19 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
       // Map UI state to API NotificationPreferences
       const prefs: Partial<NotificationPreferences> = {
         pushEnabled: true,
+        emailEnabled: true,
         allowLikes: activities.likesAndPlaysOnYourPost.devices,
+        allowLikesEmail: activities.likesAndPlaysOnYourPost.email,
         allowReposts: activities.repostOfYourPost.devices,
+        allowRepostsEmail: activities.repostOfYourPost.email,
         allowComments: activities.commentOnYourPost.devices,
+        allowCommentsEmail: activities.commentOnYourPost.email,
         allowFollows: activities.newFollower.devices,
+        allowFollowsEmail: activities.newFollower.email,
         allowMessages: activities.newMessage.devices !== 'Nobody',
+        allowMessagesEmail: activities.newMessage.email,
         allowNewTracks: activities.newPostByFollowedUser.devices,
+        allowNewTracksEmail: activities.newPostByFollowedUser.email,
       }
       await apiUpdatePreferences(prefs)
       set({ isDirty: false })

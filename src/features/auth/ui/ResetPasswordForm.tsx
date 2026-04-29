@@ -49,9 +49,9 @@ const ResetPasswordForm = () => {
     setErrors({})
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      await axios.post(
+      await axios.patch(
         `${apiUrl}/auth/reset-password`,
-        { token, newPassword },   // <-- no confirmPassword in body per the spec
+        { token, newPassword },   // <-- no confirmPassword in body per the spec (PATCH per v1.10)
         { withCredentials: true }
       )
       setSuccess(true)

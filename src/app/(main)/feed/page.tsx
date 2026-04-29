@@ -29,7 +29,7 @@ export default function FeedPage() {
   const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
-  
+
   // History & Player for Recently Played
   const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
   const listeningHistory = useHistoryStore((st) => st.listeningHistory);
@@ -50,7 +50,7 @@ export default function FeedPage() {
       try {
         setLoading(true);
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        
+
         // 1. Fetch Feed
         try {
           const feedRes = await apiClient.get(`/network/feed`, { withCredentials: true });
@@ -78,7 +78,7 @@ export default function FeedPage() {
         setLoading(false);
       }
     }
-    
+
     fetchData();
   }, []);
 
@@ -97,7 +97,7 @@ export default function FeedPage() {
   const handleFollowToggle = async (artistId: string) => {
     if (!isAuthenticated) return;
     const currentlyFollowing = followingMap[artistId];
-    
+
     // Optimistic UI update
     setFollowingMap(prev => ({ ...prev, [artistId]: !currentlyFollowing }));
 
@@ -106,7 +106,7 @@ export default function FeedPage() {
         await apiClient.delete(`/network/${artistId}/follow`, { withCredentials: true });
       } else {
         await apiClient.post(`/network/${artistId}/follow`, {}, { withCredentials: true });
-        
+
         // Optimistic injection into my following list
         const authState = useAuthStore.getState();
         const myId = (authState.user as any)?._id || authState.user?.id;
@@ -185,41 +185,41 @@ export default function FeedPage() {
                   <div key={track._id} data-testid="feed-track-item">
                     <FeedTrackCard
                       title={track.title}
-                    artist={track.artist?.displayName || 'Unknown Artist'}
-                    coverUrl={track.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'}
-                    timeAgo={new Date(item.createdAt).toLocaleDateString()}
-                    plays={track.playCount || 0}
-                    likes={liked ? (track.likeCount || 0) + 1 : (track.likeCount || 0)}
-                    reposts={track.repostCount || 0}
-                    comments={track.commentCount || 0}
-                    liked={liked}
-                    audioUrl={track.hlsUrl || track.streamUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                    actionsSlot={
-                      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                        <button
-                          data-testid="track-card-like-button"
-                          onClick={() => {
-                            setFeedLikedSet((prev: Set<string>) => {
-                              const next = new Set(prev);
-                              if (next.has(track._id)) next.delete(track._id);
-                              else next.add(track._id);
-                              return next;
-                            });
-                          }}
-                          style={{
-                            background: liked ? 'var(--sc-primary, #ff5500)' : 'transparent',
-                            border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                            color: liked ? '#fff' : '#999',
-                            borderRadius: 4, padding: '4px 10px',
-                            fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                          }}
-                        >
-                          {liked ? '♥ Liked' : '♡ Like'}
-                        </button>
-                      </div>
-                    }
-                  />
+                      artist={track.artist?.displayName || 'Unknown Artist'}
+                      coverUrl={track.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'}
+                      timeAgo={new Date(item.createdAt).toLocaleDateString()}
+                      plays={track.playCount || 0}
+                      likes={liked ? (track.likeCount || 0) + 1 : (track.likeCount || 0)}
+                      reposts={track.repostCount || 0}
+                      comments={track.commentCount || 0}
+                      liked={liked}
+                      audioUrl={track.hlsUrl || track.streamUrl}
+                      onPlay={() => handlePlayTrack(track)}
+                      actionsSlot={
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                          <button
+                            data-testid="track-card-like-button"
+                            onClick={() => {
+                              setFeedLikedSet((prev: Set<string>) => {
+                                const next = new Set(prev);
+                                if (next.has(track._id)) next.delete(track._id);
+                                else next.add(track._id);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              background: liked ? 'var(--sc-primary, #ff5500)' : 'transparent',
+                              border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                              color: liked ? '#fff' : '#999',
+                              borderRadius: 4, padding: '4px 10px',
+                              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                            }}
+                          >
+                            {liked ? '♥ Liked' : '♡ Like'}
+                          </button>
+                        </div>
+                      }
+                    />
                   </div>
                 );
               })}
@@ -265,7 +265,7 @@ export default function FeedPage() {
                           {fmt(artist.followerCount || 0)} followers
                         </div>
                       </div>
-                      <button 
+                      <button
                         data-testid="feed-artist-follow-button"
                         onClick={() => handleFollowToggle(artist._id)}
                         style={{
@@ -304,7 +304,7 @@ export default function FeedPage() {
                 </Link>
               )}
             </div>
-            
+
             {likedTracksList && likedTracksList.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {likedTracksList.slice(0, 3).map((track: any) => (
@@ -318,7 +318,7 @@ export default function FeedPage() {
                     reposts={track.repostCount}
                     comments={track.commentCount}
                     isLiked={track.isLiked ?? true}
-                    onPlay={() => {}}
+                    onPlay={() => { }}
                   />
                 ))}
               </div>
@@ -430,7 +430,7 @@ function SidebarTrackRow({
             onClick={onPlay}
           >
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="6,4 20,12 6,20"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="6,4 20,12 6,20" /></svg>
             </div>
           </div>
         )}
@@ -458,7 +458,7 @@ function SidebarTrackRow({
             style={{ background: liked ? '#ff5500' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'white' : 'none'} stroke="white" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
           <div style={{ position: 'relative' }} ref={menuRef}>
@@ -467,7 +467,7 @@ function SidebarTrackRow({
               style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
               <svg width="14" height="4" viewBox="0 0 16 4" fill="white">
-                <circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/>
+                <circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" /><circle cx="14" cy="2" r="1.5" />
               </svg>
             </button>
 
@@ -477,13 +477,13 @@ function SidebarTrackRow({
                 borderRadius: 6, padding: '4px 0', zIndex: 100, minWidth: 160, boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                 display: 'flex', flexDirection: 'column'
               }}>
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg>} label="Repost" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>} label="Share" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>} label="Copy Link" />
+                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" /></svg>} label="Repost" />
+                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" /></svg>} label="Share" />
+                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>} label="Copy Link" />
                 <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
-                <DropdownItem 
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4 4-4 4M19 14H5M5 6h14"/></svg>} 
-                  label="Add to Next up" 
+                <DropdownItem
+                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4 4-4 4M19 14H5M5 6h14" /></svg>}
+                  label="Add to Next up"
                   onClick={() => {
                     addToQueue({
                       id: title + artist, // Fallback if no id, though title+artist is better than nothing
@@ -494,8 +494,8 @@ function SidebarTrackRow({
                     setMenuOpen(false);
                   }}
                 />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>} label="Add to Playlist" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>} label="Station" />
+                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>} label="Add to Playlist" />
+                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>} label="Station" />
               </div>
             )}
           </div>

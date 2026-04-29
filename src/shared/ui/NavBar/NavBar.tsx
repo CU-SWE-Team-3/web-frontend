@@ -34,7 +34,7 @@ export const NavBar: FC<NavBarProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // ── Notification state ──
-  const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen } = useNotificationStore();
+  const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen, markAllRead } = useNotificationStore();
   const notifRef = useRef<HTMLDivElement>(null);
 
   // ── More dropdown state ──
@@ -75,8 +75,13 @@ export const NavBar: FC<NavBarProps> = ({
   };
 
   const handleBellClick = useCallback(() => {
-    setNotifDropdownOpen(!isDropdownOpen);
-  }, [isDropdownOpen, setNotifDropdownOpen]);
+    const opening = !isDropdownOpen;
+    setNotifDropdownOpen(opening);
+    // Clear the red dot as soon as the user opens the notification panel
+    if (opening && unreadCount > 0) {
+      markAllRead();
+    }
+  }, [isDropdownOpen, setNotifDropdownOpen, markAllRead, unreadCount]);
 
   return (
   <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
