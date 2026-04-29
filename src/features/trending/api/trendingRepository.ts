@@ -10,7 +10,6 @@ function getRankDirection(rankChange?: number, isNew?: boolean): RankDirection {
 }
 
 function mapTrendingTrack(raw: any, index: number): TrendingTrack {
-  // The API may return an explicit rank, or we derive it from array position
   const rank = typeof raw.rank === 'number' ? raw.rank : index + 1
   const rankChange = typeof raw.rankChange === 'number' ? raw.rankChange : undefined
   const isNew = raw.isNew === true
@@ -20,7 +19,8 @@ function mapTrendingTrack(raw: any, index: number): TrendingTrack {
     title: raw.title || 'Untitled',
     permalink: raw.permalink || raw._id || '',
     artworkUrl: raw.artworkUrl || undefined,
-    hlsUrl: raw.hlsUrl || undefined,
+    // TrendingTrack from API does NOT include hlsUrl — it must be fetched via /player/{id}/stream
+    hlsUrl: raw.hlsUrl || raw.streamUrl || undefined,
     waveform: Array.isArray(raw.waveform) ? raw.waveform : undefined,
     duration: typeof raw.duration === 'number' ? raw.duration : undefined,
     genre: raw.genre || '',
@@ -46,27 +46,20 @@ function mapTrendingTrack(raw: any, index: number): TrendingTrack {
 
 export const trendingRepository = {
   /**
-   * GET /tracks/trending
-   * Returns up to 50 tracks ranked by recent play count acceleration.
-   * Optionally filtered by genre via ?genre=<genre>.
-   *
-   * Response shape: { data: TrendingTrack[] } or TrendingTrack[]
+   * GET /discovery/trending?genre=<genre>&limit=<limit>
+   * Returns tracks sorted by viralScore descending.
+   * YAML response shape: { success, results, data: { trending: TrendingTrack[] } }
    */
-  async getTrending(genre?: string, limit = 50): Promise<TrendingTrack[]> {
+  async getTrending(genre?: string, limit = 20): Promise<TrendingTrack[]> {
     try {
       const params: Record<string, string | number> = { limit }
-      // The v1.10 API expects genre in the query for filtering
       if (genre && genre !== 'all') params.genre = genre
 
-      const { data } = await apiClient.get('/discovery/trending', {
-        params,
-      })
+      const { data } = await apiClient.get('/discovery/trending', { params })
 
-      // Shape: { status: "success", data: { trending: [...] } }
-      const raw: any[] = data?.data?.trending ?? (Array.isArray(data?.data) ? data.data : []);
-
+      // YAML: data.data.trending
+      const raw: any[] = data?.data?.trending ?? []
       if (!Array.isArray(raw)) return []
-
       return raw.map((item, i) => mapTrendingTrack(item, i))
     } catch (err) {
       console.warn('[trendingRepository] GET /discovery/trending failed:', err)
@@ -75,35 +68,67 @@ export const trendingRepository = {
   },
 
   /**
+   * GET /discovery/genre/{genre}
+   * Genre-based station: tracks matching a specific genre sorted by viralScore.
+   * YAML response shape: { status, results, data: { tracks: TrendingTrack[] } }
+   */
+  async getGenreStation(genre: string): Promise<TrendingTrack[]> {
+    try {
+      const encodedGenre = encodeURIComponent(genre)
+      const { data } = await apiClient.get(`/discovery/genre/${encodedGenre}`)
+
+      // YAML: data.data.tracks
+      const raw: any[] = data?.data?.tracks ?? []
+      if (!Array.isArray(raw)) return []
+      return raw.map((item, i) => mapTrendingTrack(item, i))
+    } catch (err) {
+      console.warn(`[trendingRepository] GET /discovery/genre/${genre} failed:`, err)
+      return []
+    }
+  },
+
+  /**
    * GET /discovery/curated
-   * Returns curated "buckets" for the home page (e.g. "Trending Folk", "Fresh Finds").
+   * Returns themed editorial track collections.
+   * YAML response shape: { status, results, data: { curated: DiscoveryStation[] } }
    */
   async getEditorialBuckets(): Promise<any[]> {
     try {
       const { data } = await apiClient.get('/discovery/curated')
-      // Try to find the array of buckets in various possible locations in the response
-      const rawData = data?.data;
-      if (Array.isArray(rawData)) return rawData;
-      if (Array.isArray(rawData?.curated)) return rawData.curated;
-      if (Array.isArray(rawData?.editorial)) return rawData.editorial;
-      if (Array.isArray(rawData?.buckets)) return rawData.buckets;
-      
-      console.warn('[trendingRepository] Could not parse curated buckets array from response:', data);
-      return [];
+
+      // YAML: data.data.curated
+      const curated = data?.data?.curated
+      if (Array.isArray(curated)) return curated
+
+      // Fallbacks
+      const rawData = data?.data
+      if (Array.isArray(rawData)) return rawData
+      if (Array.isArray(rawData?.editorial)) return rawData.editorial
+      if (Array.isArray(rawData?.buckets)) return rawData.buckets
+
+      return []
     } catch (err) {
       console.warn('[trendingRepository] GET /discovery/curated failed:', err)
       return []
     }
   },
-  
+
   /**
    * GET /discovery/mixed-for-you
-   * Returns personalized "Mix" stations for the authenticated user.
+   * Returns personalized stations built from user's taste.
+   * YAML response shape: { status, results, data: { stations: DiscoveryStation[] } }
    */
   async getMixedForYou(): Promise<any[]> {
     try {
       const { data } = await apiClient.get('/discovery/mixed-for-you')
-      return data?.data?.stations ?? data?.data ?? []
+
+      // YAML: data.data.stations
+      const stations = data?.data?.stations
+      if (Array.isArray(stations)) return stations
+
+      // Fallbacks
+      if (Array.isArray(data?.data)) return data.data
+      return []
     } catch (err) {
       console.warn('[trendingRepository] GET /discovery/mixed-for-you failed:', err)
       return []
@@ -111,31 +136,59 @@ export const trendingRepository = {
   },
 
   /**
-   * GET /discovery/more-of-what-you-like
+   * GET /discovery/more-like-liked
    * Returns track recommendations based on user's recent likes.
+   * YAML response shape: { status, results, data: { tracks: TrendingTrack[], basedOn, genres } }
    */
   async getMoreOfWhatYouLike(): Promise<TrendingTrack[]> {
     try {
-      const { data } = await apiClient.get('/discovery/more-of-what-you-like')
-      const raw = data?.data?.tracks ?? []
-      return raw.map((item: any, i: number) => mapTrendingTrack(item, i))
+      const { data } = await apiClient.get('/discovery/more-like-liked')
+
+      // YAML: data.data.tracks
+      const raw = data?.data?.tracks
+      if (Array.isArray(raw)) return raw.map((item: any, i: number) => mapTrendingTrack(item, i))
+
+      // Fallback: maybe data.data is the array directly
+      if (Array.isArray(data?.data)) return (data.data as any[]).map((item, i) => mapTrendingTrack(item, i))
+      return []
     } catch (err) {
-      console.warn('[trendingRepository] GET /discovery/more-of-what-you-like failed:', err)
+      console.warn('[trendingRepository] GET /discovery/more-like-liked failed:', err)
       return []
     }
   },
 
   /**
-   * GET /discovery/suggested-artists
+   * GET /network/suggested
    * Returns personalized user/artist suggestions.
+   * YAML response shape: { status, results, data: { users: User[] } } or { data: User[] }
    */
   async getSuggestedArtists(): Promise<any[]> {
     try {
       const { data } = await apiClient.get('/network/suggested')
-      return data?.data ?? []
+
+      // Try data.data.users first, then data.data, then data
+      const users = data?.data?.users ?? data?.data ?? data
+      if (Array.isArray(users)) return users
+      return []
     } catch (err) {
       console.warn('[trendingRepository] GET /network/suggested failed:', err)
       return []
+    }
+  },
+
+  /**
+   * GET /player/{id}/stream
+   * Returns the HLS streaming URL for a track.
+   * YAML response shape: { status, data: { streamUrl, duration, format, ... } }
+   * This is the ONLY way to get a playable stream URL for feed/search tracks.
+   */
+  async getStreamUrl(trackId: string): Promise<string | null> {
+    try {
+      const { data } = await apiClient.get(`/player/${trackId}/stream`)
+      return data?.data?.streamUrl ?? data?.data?.hlsUrl ?? null
+    } catch (err) {
+      console.warn(`[trendingRepository] GET /player/${trackId}/stream failed:`, err)
+      return null
     }
   },
 }

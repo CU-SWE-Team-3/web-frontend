@@ -15,6 +15,7 @@ export interface FeedTrack {
   permalink: string
   artworkUrl?: string
   hlsUrl?: string
+  streamUrl?: string
   waveform?: number[]
   duration?: number
   genre?: string
@@ -43,4 +44,5 @@ export interface SuggestedArtist {
   avatarUrl?: string
   followerCount?: number
   followingCount?: number
+  trackCount?: number
 }
