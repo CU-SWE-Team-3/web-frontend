@@ -8,7 +8,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import apiClient from '@/shared/api/client';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { usePlayerStore, type Track } from '@/features/player/model/playerStore';
-import { useEditorial, useMixedForYou, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
+import { useEditorial, useGenreStation, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
 import { matchesStationId } from '@/features/trending/lib/stationLinks';
 
 function fmt(n?: number): string {
@@ -112,9 +112,66 @@ export default function DiscoverSetPage() {
 
   const { data: mixedData, isLoading: isMixedLoading } = useMixedForYou();
   const { data: curatedBuckets, isLoading: isCuratedLoading } = useEditorial();
+  const { data: moreOfWhatYouLike, isLoading: isMoreLoading } = useMoreOfWhatYouLike();
+  const { data: trendingElectronic, isLoading: isElectronicLoading } = useGenreStation('Electronic');
+  const { data: trendingHiphop, isLoading: isHiphopLoading } = useGenreStation('Hiphop & rap');
+  const { data: trendingPop, isLoading: isPopLoading } = useGenreStation('Pop');
   const { data: suggestedArtists } = useSuggestedArtists();
 
   const stationEntry = useMemo(() => {
+    const moreLike = moreOfWhatYouLike?.length ? [{
+      station: {
+        id: 'more-of-what-you-like',
+        title: 'More of what you like',
+        description: 'A station based on tracks you already like',
+        artworkUrl: moreOfWhatYouLike[0]?.artworkUrl,
+        tracks: moreOfWhatYouLike,
+      },
+      index: 0,
+      prefix: 'station',
+      source: 'station',
+    }] : [];
+    const genres = [
+      {
+        station: {
+          id: 'genre-electronic',
+          title: 'Electronic',
+          description: 'Trending Music',
+          artworkUrl: trendingElectronic?.[0]?.artworkUrl,
+          tracks: trendingElectronic || [],
+          genre: 'Electronic',
+        },
+        index: 0,
+        prefix: 'station',
+        source: 'station',
+      },
+      {
+        station: {
+          id: 'genre-hiphop-rap',
+          title: 'Hip-hop & Rap',
+          description: 'Trending Music',
+          artworkUrl: trendingHiphop?.[0]?.artworkUrl,
+          tracks: trendingHiphop || [],
+          genre: 'Hip-hop & Rap',
+        },
+        index: 1,
+        prefix: 'station',
+        source: 'station',
+      },
+      {
+        station: {
+          id: 'genre-pop',
+          title: 'Pop',
+          description: 'Trending Music',
+          artworkUrl: trendingPop?.[0]?.artworkUrl,
+          tracks: trendingPop || [],
+          genre: 'Pop',
+        },
+        index: 2,
+        prefix: 'station',
+        source: 'station',
+      },
+    ].filter((entry) => entry.station.tracks.length > 0);
     const mixed = (mixedData || []).map((station: any, index: number) => ({
       station,
       index,
@@ -127,12 +184,12 @@ export default function DiscoverSetPage() {
       prefix: 'set',
       source: 'set',
     }));
-    return [...mixed, ...curated].find((entry) =>
+    return [...moreLike, ...genres, ...mixed, ...curated].find((entry) =>
       matchesStationId(entry.station, entry.index, setId, entry.prefix),
     );
-  }, [curatedBuckets, mixedData, setId]);
+  }, [curatedBuckets, mixedData, moreOfWhatYouLike, setId, trendingElectronic, trendingHiphop, trendingPop]);
 
-  const isLoading = isMixedLoading || isCuratedLoading;
+  const isLoading = isMixedLoading || isCuratedLoading || isMoreLoading || isElectronicLoading || isHiphopLoading || isPopLoading;
   const station = stationEntry?.station;
   const tracks = Array.isArray(station?.tracks) ? station.tracks : [];
   const title = station?.title || 'Your Mix';
