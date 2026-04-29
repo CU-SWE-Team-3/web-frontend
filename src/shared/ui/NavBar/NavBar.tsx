@@ -145,7 +145,7 @@ export const NavBar: FC<NavBarProps> = ({
       {isAuthenticated ? (
         <>
           <span className={s.tryProLink}>Try Artist Pro</span>
-          <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
+          <Link href={ROUTES.ARTIST_STUDIO} className={s.navTextLink}>For Artists</Link>
           <button className={s.navTextLink} onClick={onUpload} data-testid="navbar-upload-button">Upload</button>
           <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED} data-testid="navbar-user-avatar">
             <div className={s.avatarSmall}>
@@ -223,7 +223,7 @@ export const NavBar: FC<NavBarProps> = ({
                 <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-copyright">Copyright</Link>
                 <div className={s.dropdownDivider} />
                 <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-mobile-apps">Mobile apps</Link>
-                <Link href={ROUTES.FOR_ARTISTS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-artist-membership">Artist Membership</Link>
+                <Link href={ROUTES.ARTIST_STUDIO} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-artist-membership">Artist Membership</Link>
                 <div className={s.dropdownDivider} />
                 <Link href={ROUTES.SETTINGS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-settings">Settings</Link>
                 <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-more-signout">Sign out</button>
@@ -250,7 +250,7 @@ export const NavBar: FC<NavBarProps> = ({
                 <Link href={ROUTES.FEED} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Feed</Link>
                 <Link href={ROUTES.LIBRARY} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Library</Link>
                 <div className={s.mobileDivider} />
-                <Link href={ROUTES.FOR_ARTISTS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>For Artists</Link>
+                <Link href={ROUTES.ARTIST_STUDIO} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>For Artists</Link>
                 <button className={s.mobileMenuItem} onClick={() => { setMobileMenuOpen(false); onUpload?.(); }}>Upload</button>
                 <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                 <Link href={ROUTES.MY_TRACKS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>My Tracks</Link>

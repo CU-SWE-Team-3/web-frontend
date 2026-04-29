@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { AppButton } from "@/shared/ui";
 import { Pause, Play } from "lucide-react";
@@ -43,6 +43,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
+  const isSeekingRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -59,17 +60,17 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     // Top half is solid grey, bottom half is semi-transparent grey acting as reflection
     const waveGradient = ctx.createLinearGradient(0, 0, 0, 80);
     waveGradient.addColorStop(0, '#999999');
-    waveGradient.addColorStop(0.5, '#999999');
-    waveGradient.addColorStop(0.5, 'transparent');
-    waveGradient.addColorStop(0.52, 'rgba(153, 153, 153, 0.4)');
+    waveGradient.addColorStop(0.65, '#999999');
+    waveGradient.addColorStop(0.65, 'transparent');
+    waveGradient.addColorStop(0.67, 'rgba(153, 153, 153, 0.4)');
     waveGradient.addColorStop(1, 'rgba(153, 153, 153, 0.4)');
 
     // Top half is solid orange, bottom half is semi-transparent orange acting as reflection
     const progGradient = ctx.createLinearGradient(0, 0, 0, 80);
     progGradient.addColorStop(0, '#f97316');
-    progGradient.addColorStop(0.5, '#f97316');
-    progGradient.addColorStop(0.5, 'transparent');
-    progGradient.addColorStop(0.52, 'rgba(249, 115, 22, 0.4)');
+    progGradient.addColorStop(0.65, '#f97316');
+    progGradient.addColorStop(0.65, 'transparent');
+    progGradient.addColorStop(0.67, 'rgba(249, 115, 22, 0.4)');
     progGradient.addColorStop(1, 'rgba(249, 115, 22, 0.4)');
 
     const style = getComputedStyle(document.documentElement);
@@ -81,9 +82,9 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       progressColor: progGradient,
       cursorColor,
       cursorWidth: 1, // thinner cursor like SC
-      barWidth: 2, // thinner bars like SC
-      barRadius: 2,
-      barGap: 1.5, // closer bars like SC
+      barWidth: 1.5, // denser bars
+      barRadius: 1,
+      barGap: 1, // closer bars like SC
       height: 80,
       normalize: true,
     });
@@ -114,6 +115,27 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
 
+    const syncWaveformSeek = (time?: number) => {
+      const seekTime = typeof time === 'number' ? time : ws.getCurrentTime();
+      setCurrentTime(seekTime);
+      onTimeUpdate?.(seekTime);
+
+      const store = usePlayerStore.getState();
+      const isThisTrack = trackMeta && store.currentTrack?.id === trackMeta.id;
+      if (isThisTrack) {
+        const dur = ws.getDuration();
+        if (dur > 0) store.setDuration(dur);
+        // Set seeking guard — cleared by 'playerbar-seeked' event from GlobalAudioEngine
+        isSeekingRef.current = true;
+        store.seek(seekTime);
+        // Tell GlobalAudioEngine to seek the actual <audio> element
+        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: seekTime } }));
+      }
+    };
+
+    (ws.on as any)("seeking", syncWaveformSeek);
+    (ws.on as any)("interaction", syncWaveformSeek);
+
     ws.on("play", () => setIsPlaying(true));
     ws.on("pause", () => setIsPlaying(false));
     ws.on("finish", () => {
@@ -126,14 +148,45 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
 
-    // Determine if we should trust the backend waveform
-    // Some old tracks might have an empty array [0,0,0] or extremely low values [1,1,1] from a failed backend process.
+    // ─── PEAK PROCESSING ───
+    // Trust the backend waveform if it has any data.
     const maxVal = Array.isArray(waveform) && waveform.length > 0 ? Math.max(...waveform) : 0;
-    const hasRealPeaks = maxVal > 5;
+    const hasData = maxVal > 0;
     
-    const peaks = hasRealPeaks
-      ? waveform!.map((v) => v / 100)
-      : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
+    let processedPeaks: number[] = [];
+
+    if (hasData) {
+      // Determine the scale: if maxVal > 1.0, it's likely 0-100 or 0-255.
+      // We divide by the likely max (100 or 255) to normalize to 0-1.
+      const scale = maxVal > 100 ? 255 : (maxVal > 1.0 ? 100 : 1);
+      processedPeaks = waveform!.map(v => v / scale);
+
+      // If the backend provides very few peaks (e.g. 10-20), interpolate them to 180 
+      // so it looks "dense" instead of "boxy".
+      if (processedPeaks.length < 100) {
+        const targetLen = 180;
+        const interpolated: number[] = [];
+        for (let i = 0; i < targetLen; i++) {
+          const pos = (i / (targetLen - 1)) * (processedPeaks.length - 1);
+          const idx = Math.floor(pos);
+          const fraction = pos - idx;
+          const v1 = processedPeaks[idx];
+          const v2 = processedPeaks[Math.min(idx + 1, processedPeaks.length - 1)];
+          interpolated.push(v1 + (v2 - v1) * fraction);
+        }
+        processedPeaks = interpolated;
+      }
+    } else {
+      // Fallback: Generate a high-resolution deterministic waveform
+      processedPeaks = Array.from({ length: 180 }, (_, i) => {
+        const x = i / 180;
+        const p = Math.sin(x * Math.PI * 3) * Math.cos(x * Math.PI * 11) * Math.sin(x * Math.PI * 5);
+        const val = Math.abs(p) * 0.7 + (Math.random() * 0.1) + 0.1;
+        return Math.min(1, val);
+      });
+    }
+
+    const peaks = processedPeaks;
 
     // If audioUrl is a local blob (e.g., during track upload), WaveSurfer can natively decode it to extract highly accurate peaks.
     // If audioUrl is a backend HLS playlist (.m3u8), WaveSurfer CANNOT decode it. Attempting to load it directly would crash silently.
@@ -190,7 +243,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
 
       // Sync Global Player scrubbing -> Waveform visual playhead
-      if (isThisTrack && typeof state.currentTime === 'number') {
+      if (isThisTrack && typeof state.currentTime === 'number' && !isSeekingRef.current) {
         const wsTime = ws.getCurrentTime();
         if (Math.abs(wsTime - state.currentTime) > 0.5) {
           const dur = ws.getDuration();
@@ -201,6 +254,14 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
   }, [trackMeta]);
+
+  // 1b. Listen for confirmed seek completion from the <audio> element
+  // This clears the isSeekingRef reliably after HLS finishes buffering
+  useEffect(() => {
+    const onSeeked = () => { isSeekingRef.current = false; };
+    window.addEventListener('playerbar-seeked', onSeeked);
+    return () => window.removeEventListener('playerbar-seeked', onSeeked);
+  }, []);
 
   // 2. Sync Global Volume (Universal)
   useEffect(() => {

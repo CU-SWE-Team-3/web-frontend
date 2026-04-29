@@ -12,6 +12,7 @@ import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack
 import { useRepostTrack } from '@/features/track-engagement/model/useRepostTrack';
 import { useUnrepostTrack } from '@/features/track-engagement/model/useUnrepostTrack';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useUserReposts } from '@/features/track-engagement/model/useUserReposts';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { WaveformPlayer } from '@/features/tracks/ui/WaveformPlayer';
 
@@ -76,8 +77,17 @@ export default function SearchPage() {
 
   const { mutate: likeTrack } = useLikeTrack();
   const { mutate: unlikeTrack } = useUnlikeTrack();
-  const repostTrack = useRepostTrack();
-  const unrepostTrack = useUnrepostTrack();
+  const repostTrackMut = useRepostTrack();
+  const unrepostTrackMut = useUnrepostTrack();
+
+  const { data: userRepostsData = [] } = useUserReposts(userId);
+  const repostedByMeIds = new Set(
+    (userRepostsData ?? []).map((r: any) =>
+      r.target?._id || r.target?.id || r.track?._id || r.track?.id || ''
+    ).filter(Boolean)
+  );
+  const [localRepostMap, setLocalRepostMap] = useState<Record<string, boolean>>({});
+  const isReposted = (id: string) => localRepostMap[id] ?? repostedByMeIds.has(id);
 
   const handleLikeToggle = (trackId: string) => {
     if (!userId) { router.push('/login'); return; }
@@ -88,9 +98,19 @@ export default function SearchPage() {
     }
   };
 
-  const handleRepost = (trackId: string) => {
+  const handleRepost = (track: TrackResult) => {
     if (!userId) { router.push('/login'); return; }
-    repostTrack.mutate({ trackId });
+    const currently = isReposted(track._id);
+    setLocalRepostMap(prev => ({ ...prev, [track._id]: !currently }));
+    if (currently) {
+      unrepostTrackMut.mutate(track._id, {
+        onError: () => setLocalRepostMap(prev => ({ ...prev, [track._id]: true })),
+      });
+    } else {
+      repostTrackMut.mutate({ trackId: track._id, track: track as any }, {
+        onError: () => setLocalRepostMap(prev => ({ ...prev, [track._id]: false })),
+      });
+    }
   };
 
   const handleCopyLink = (track: TrackResult) => {
@@ -235,6 +255,8 @@ export default function SearchPage() {
                     waveformSlot={
                       <WaveformPlayer 
                         waveform={t.waveform} 
+                        audioUrl={t.hlsUrl}
+                        durationSeconds={t.duration}
                         hidePlayButton 
                         trackMeta={{
                           id: t._id,
@@ -281,11 +303,15 @@ export default function SearchPage() {
                           {isLiked(t._id) ? 'Liked' : 'Like'}
                         </button>
                         <button 
-                          onClick={() => handleRepost(t._id)}
-                          className="flex items-center gap-1.5 px-2 py-1 text-[12px] bg-transparent border border-white/10 rounded text-[#ccc] hover:border-white/30"
+                          onClick={() => handleRepost(t)}
+                          className={`flex items-center gap-1.5 px-2 py-1 text-[12px] border rounded transition-colors ${
+                            isReposted(t._id)
+                              ? 'bg-[rgba(255,85,0,0.2)] border-[#ff5500] text-[#ff5500]'
+                              : 'bg-transparent border-white/10 text-[#ccc] hover:border-white/30'
+                          }`}
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                          Repost
+                          {isReposted(t._id) ? 'Reposted' : 'Repost'}
                         </button>
                       </div>
                     }

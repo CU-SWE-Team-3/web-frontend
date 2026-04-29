@@ -18,6 +18,7 @@ export const GlobalAudioEngine = () => {
   const gainNodeRef = useRef<GainNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const isSeekingRef = useRef(false);
   
   const {
     currentTrack,
@@ -208,6 +209,8 @@ export const GlobalAudioEngine = () => {
   // 2. Audio Event Handlers
   const handleTimeUpdate = () => {
     if (audioRef.current) {
+      // Skip if we are in the middle of a seek — prevents snap-back
+      if (isSeekingRef.current) return;
       const time = audioRef.current.currentTime;
       if (currentTrack?.tier === 'pro' && time >= 30) {
         if (!audioRef.current.paused) {
@@ -271,19 +274,23 @@ export const GlobalAudioEngine = () => {
     if (currentTrack?.tier === 'pro' && time > 30) {
       time = 30; // clamp
     }
+    // Set guard — cleared by native onSeeked event on the <audio> element
+    isSeekingRef.current = true;
+    seek(time);
     if (playbackSource === 'global' && audioRef.current) {
       audioRef.current.currentTime = time;
     }
-    // Dispatch a custom event so the active WaveformPlayer can sync
+    // Dispatch a custom event so the active WaveformPlayer can sync its visuals
     if (playbackSource === 'inline') {
       window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time } }));
     }
-    seek(time);
   };
   
   useEffect(() => {
     const onGlobalSeek = (e: any) => {
       if (e.detail?.time !== undefined && audioRef.current) {
+        // Guard cleared by native onSeeked — no setTimeout needed
+        isSeekingRef.current = true;
         audioRef.current.currentTime = e.detail.time;
       }
     };
@@ -312,6 +319,16 @@ export const GlobalAudioEngine = () => {
         onLoadedMetadata={handleLoadedMetadata}
         onProgress={handleProgress}
         onEnded={handleEnded}
+        onSeeking={() => {
+          isSeekingRef.current = true;
+        }}
+        onSeeked={() => {
+          isSeekingRef.current = false;
+          // Push confirmed position to store
+          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+          // Notify WaveformPlayer to clear its own seeking guard
+          window.dispatchEvent(new CustomEvent('playerbar-seeked'));
+        }}
         crossOrigin="anonymous"
         className="hidden"
       />

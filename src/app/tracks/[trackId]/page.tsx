@@ -124,6 +124,7 @@ const TrackDetailPage: React.FC = () => {
     );
   }
 
+  // BUILD_BREAK: Ensuring latest changes are picked up
   const statusClassMap: Record<Track["status"], string> = {
     Processing: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     Finished: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
@@ -333,7 +334,7 @@ const TrackDetailPage: React.FC = () => {
                 } else {
                   setLocalIsReposted(true);
                   setLocalRepostCount((c) => (c || 0) + 1);
-                  repostMutation.mutate({ trackId: track.id });
+                  repostMutation.mutate({ trackId: track.id, track });
                 }
               }}
               className={`px-3 py-1.5 ml-2 bg-[#151515] border rounded flex items-center justify-center gap-2 transition-colors ${localIsReposted ? 'border-[#ff5500] text-[#ff5500]' : 'border-[#333] hover:border-[#555] text-[#ccc]'}`} 
