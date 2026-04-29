@@ -27,12 +27,6 @@ export const ProfileTabs: FC<ProfileTabsProps> = ({ onEditClick, onShareClick, i
   const globalFollowing = targetUserId ? followStore.followingMap[targetUserId] : undefined;
   const isFollowing = globalFollowing ?? (profile?.isFollowing || false);
 
-  useEffect(() => {
-    if (targetUserId && profile?.isFollowing !== undefined) {
-      followStore.initFollowing(targetUserId, profile.isFollowing);
-    }
-  }, [targetUserId, profile, followStore]);
-
   const [followLoading, setFollowLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
