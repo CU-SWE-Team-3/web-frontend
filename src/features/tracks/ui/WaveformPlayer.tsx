@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { AppButton } from "@/shared/ui";
 import { Pause, Play } from "lucide-react";
@@ -51,27 +51,28 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   const [hoveredComment, setHoveredComment] = useState<WaveformComment | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
+  // ── WaveSurfer init ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
 
-    // Top half is solid grey, bottom half is semi-transparent grey acting as reflection
+    // Grey gradient for unplayed portion
     const waveGradient = ctx.createLinearGradient(0, 0, 0, 80);
-    waveGradient.addColorStop(0, '#999999');
-    waveGradient.addColorStop(0.5, '#999999');
-    waveGradient.addColorStop(0.5, 'transparent');
-    waveGradient.addColorStop(0.52, 'rgba(153, 153, 153, 0.4)');
-    waveGradient.addColorStop(1, 'rgba(153, 153, 153, 0.4)');
+    waveGradient.addColorStop(0, "#999999");
+    waveGradient.addColorStop(0.5, "#999999");
+    waveGradient.addColorStop(0.5, "transparent");
+    waveGradient.addColorStop(0.52, "rgba(153, 153, 153, 0.4)");
+    waveGradient.addColorStop(1, "rgba(153, 153, 153, 0.4)");
 
-    // Top half is solid orange, bottom half is semi-transparent orange acting as reflection
+    // Orange gradient for played portion
     const progGradient = ctx.createLinearGradient(0, 0, 0, 80);
-    progGradient.addColorStop(0, '#f97316');
-    progGradient.addColorStop(0.5, '#f97316');
-    progGradient.addColorStop(0.5, 'transparent');
-    progGradient.addColorStop(0.52, 'rgba(249, 115, 22, 0.4)');
-    progGradient.addColorStop(1, 'rgba(249, 115, 22, 0.4)');
+    progGradient.addColorStop(0, "#f97316");
+    progGradient.addColorStop(0.5, "#f97316");
+    progGradient.addColorStop(0.5, "transparent");
+    progGradient.addColorStop(0.52, "rgba(249, 115, 22, 0.4)");
+    progGradient.addColorStop(1, "rgba(249, 115, 22, 0.4)");
 
     const style = getComputedStyle(document.documentElement);
     const cursorColor = style.getPropertyValue("--sc-wave-cursor").trim() || "#ffffff";
@@ -81,26 +82,28 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       waveColor: waveGradient,
       progressColor: progGradient,
       cursorColor,
-      cursorWidth: 1, // thinner cursor like SC
-      barWidth: 2, // thinner bars like SC
+      cursorWidth: 1,
+      barWidth: 2,
       barRadius: 2,
-      barGap: 1.5, // closer bars like SC
+      barGap: 1.5,
       height: 80,
       normalize: true,
+      dragToSeek: true,   // ← enables click-AND-drag seeking on the waveform
     });
 
     wavesurferRef.current = ws;
-    
-    // Set initial volume
+
+    // Set initial volume from global store
     const globalState = usePlayerStore.getState();
     ws.setVolume(globalState.isMuted ? 0 : globalState.volume);
+
+    // ── Events ───────────────────────────────────────────────────────────────
 
     ws.on("ready", () => {
       setIsReady(true);
       const dur = ws.getDuration();
       setDuration(dur);
-      // If this waveform is active, push duration to the global player bar
-      if (usePlayerStore.getState().playbackSource === 'inline') {
+      if (usePlayerStore.getState().playbackSource === "inline") {
         usePlayerStore.getState().setDuration(dur);
       }
     });
@@ -109,14 +112,14 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       const time = ws.getCurrentTime();
       setCurrentTime(time);
       onTimeUpdate?.(time);
-      // Sync to global player bar if this waveform is the active source
-      if (usePlayerStore.getState().playbackSource === 'inline') {
+      if (usePlayerStore.getState().playbackSource === "inline") {
         usePlayerStore.getState().setCurrentTime(time);
       }
     });
 
+    // Fires on click AND on drag-end (because dragToSeek: true)
     const syncWaveformSeek = (time?: number) => {
-      const seekTime = typeof time === 'number' ? time : ws.getCurrentTime();
+      const seekTime = typeof time === "number" ? time : ws.getCurrentTime();
       setCurrentTime(seekTime);
       onTimeUpdate?.(seekTime);
 
@@ -125,11 +128,10 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       if (isThisTrack) {
         const dur = ws.getDuration();
         if (dur > 0) store.setDuration(dur);
-        // Set seeking guard — cleared by 'playerbar-seeked' event from GlobalAudioEngine
+        // Guard cleared by 'playerbar-seeked' from GlobalAudioEngine's onSeeked
         isSeekingRef.current = true;
         store.seek(seekTime);
-        // Tell GlobalAudioEngine to seek the actual <audio> element
-        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: seekTime } }));
+        window.dispatchEvent(new CustomEvent("playerbar-seek", { detail: { time: seekTime } }));
       }
     };
 
@@ -142,51 +144,38 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       setIsPlaying(false);
       setCurrentTime(0);
       onTimeUpdate?.(0);
-      // Trigger the global player's next track logic (handles repeat/shuffle)
-      if (usePlayerStore.getState().playbackSource === 'inline') {
+      if (usePlayerStore.getState().playbackSource === "inline") {
         usePlayerStore.getState().nextTrack();
       }
     });
 
-    // Determine if we should trust the backend waveform
-    // Some old tracks might have an empty array [0,0,0] or extremely low values [1,1,1] from a failed backend process.
+    // ── Load audio / peaks ───────────────────────────────────────────────────
     const maxVal = Array.isArray(waveform) && waveform.length > 0 ? Math.max(...waveform) : 0;
     const hasRealPeaks = maxVal > 5;
-    
     const peaks = hasRealPeaks
       ? waveform!.map((v) => v / 100)
       : Array.from({ length: 80 }, (_, i) => (14 + ((i * 11) % 52)) / 100);
 
-    // If audioUrl is a local blob (e.g., during track upload), WaveSurfer can natively decode it to extract highly accurate peaks.
-    // If audioUrl is a backend HLS playlist (.m3u8), WaveSurfer CANNOT decode it. Attempting to load it directly would crash silently.
-    // Therefore, for anything other than a blob URL, we MUST create a silent dummy audio buffer and pass the pre-calculated peaks.
-    // This also elegantly prevents double-audio because the Global Player handles actual m3u8 playback.
-    if (audioUrl && audioUrl.startsWith('blob:')) {
+    if (audioUrl && audioUrl.startsWith("blob:")) {
       ws.load(audioUrl);
     } else {
       const sampleRate = 44100;
       const fakeDuration = durationSeconds && durationSeconds > 0 ? durationSeconds : 30;
       const buffer = new AudioContext().createBuffer(1, sampleRate * fakeDuration, sampleRate);
       const channelData = buffer.getChannelData(0);
-      for (let i = 0; i < channelData.length; i++) channelData[i] = 0; // Silent audio
+      for (let i = 0; i < channelData.length; i++) channelData[i] = 0;
 
       const blob = bufferToWaveBlob(buffer);
       const dummyUrl = URL.createObjectURL(blob);
-      
-      // Load the silent audio and explicitly declare the visual peaks and duration!
       ws.load(dummyUrl, [peaks], fakeDuration);
     }
 
     return () => {
-      try {
-        ws.destroy();
-      } catch (err) {
-        // Ignore abort errors on cleanup
-      }
+      try { ws.destroy(); } catch (_) { /* ignore */ }
     };
   }, [audioUrl, waveform]);
 
-  // 1. Sync Play/Pause and scrubbing (Track-specific)
+  // ── 1. Sync Play/Pause + global scrubbing → waveform visual ───────────────
   useEffect(() => {
     if (!trackMeta) return;
 
@@ -196,13 +185,9 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
       const isThisTrack = state.currentTrack?.id === trackMeta.id;
 
-      // Sync Play/Pause
       if (isThisTrack) {
-        if (state.isPlaying && !ws.isPlaying()) {
-          ws.play();
-        } else if (!state.isPlaying && ws.isPlaying()) {
-          ws.pause();
-        }
+        if (state.isPlaying && !ws.isPlaying()) ws.play();
+        else if (!state.isPlaying && ws.isPlaying()) ws.pause();
       } else {
         if (ws.isPlaying()) {
           ws.stop();
@@ -211,28 +196,25 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         }
       }
 
-      // Sync Global Player scrubbing -> Waveform visual playhead
-      if (isThisTrack && typeof state.currentTime === 'number' && !isSeekingRef.current) {
+      // Only move playhead when NOT in the middle of a seek
+      if (isThisTrack && typeof state.currentTime === "number" && !isSeekingRef.current) {
         const wsTime = ws.getCurrentTime();
         if (Math.abs(wsTime - state.currentTime) > 0.5) {
           const dur = ws.getDuration();
-          if (dur > 0) {
-            ws.seekTo(state.currentTime / dur);
-          }
+          if (dur > 0) ws.seekTo(state.currentTime / dur);
         }
       }
     });
   }, [trackMeta]);
 
-  // 1b. Listen for confirmed seek completion from the <audio> element
-  // This clears the isSeekingRef reliably after HLS finishes buffering
+  // ── 1b. Clear seek guard when audio element confirms seek complete ─────────
   useEffect(() => {
     const onSeeked = () => { isSeekingRef.current = false; };
-    window.addEventListener('playerbar-seeked', onSeeked);
-    return () => window.removeEventListener('playerbar-seeked', onSeeked);
+    window.addEventListener("playerbar-seeked", onSeeked);
+    return () => window.removeEventListener("playerbar-seeked", onSeeked);
   }, []);
 
-  // 2. Sync Global Volume (Universal)
+  // ── 2. Sync Global Volume ─────────────────────────────────────────────────
   useEffect(() => {
     return usePlayerStore.subscribe((state) => {
       const ws = wavesurferRef.current;
@@ -242,23 +224,20 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   }, []);
 
   const togglePlay = () => {
-    if (wavesurferRef.current) {
-      wavesurferRef.current.playPause();
-    }
-    // Also push to global player bar if track metadata is available
+    if (wavesurferRef.current) wavesurferRef.current.playPause();
     if (trackMeta && !isPlaying) {
       const store = usePlayerStore.getState();
-      store.play({
-        id: trackMeta.id,
-        title: trackMeta.title,
-        artist: trackMeta.artist,
-        artworkUrl: trackMeta.artworkUrl || '/placeholder.png',
-        hlsUrl: trackMeta.hlsUrl || audioUrl,
-      }, 'inline');
-      
-      usePlayerStore.setState({ 
-        duration: wavesurferRef.current?.getDuration() || 0,
-      });
+      store.play(
+        {
+          id: trackMeta.id,
+          title: trackMeta.title,
+          artist: trackMeta.artist,
+          artworkUrl: trackMeta.artworkUrl || "/placeholder.png",
+          hlsUrl: trackMeta.hlsUrl || audioUrl,
+        },
+        "inline"
+      );
+      usePlayerStore.setState({ duration: wavesurferRef.current?.getDuration() || 0 });
     } else if (isPlaying) {
       usePlayerStore.getState().pause();
     }
@@ -270,13 +249,13 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Calculate marker positions as % of duration
-  const commentMarkers = isReady && duration > 0
-    ? comments.map((c) => ({
-        ...c,
-        position: Math.min((c.timestampSeconds / duration) * 100, 100),
-      }))
-    : [];
+  const commentMarkers =
+    isReady && duration > 0
+      ? comments.map((c) => ({
+          ...c,
+          position: Math.min((c.timestampSeconds / duration) * 100, 100),
+        }))
+      : [];
 
   return (
     <div data-testid="waveform-player" className="w-full">
@@ -299,29 +278,19 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         <div className="flex-1 min-w-0 pointer-events-auto relative">
           <div ref={containerRef} className="w-full" />
 
-          {/* ── Comment avatar markers ON the waveform ── */}
           {commentMarkers.length > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 20,
-                pointerEvents: 'none',
-              }}
-            >
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 20, pointerEvents: "none" }}>
               {commentMarkers.map((marker) => (
                 <div
                   key={marker.id}
                   data-testid={`comment-marker-${marker.id}`}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: `${marker.position}%`,
                     bottom: 0,
-                    transform: 'translateX(-50%)',
-                    cursor: 'pointer',
-                    pointerEvents: 'auto',
+                    transform: "translateX(-50%)",
+                    cursor: "pointer",
+                    pointerEvents: "auto",
                     zIndex: 10,
                   }}
                   onMouseEnter={(e) => {
@@ -331,25 +300,24 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
                   }}
                   onMouseLeave={() => setHoveredComment(null)}
                 >
-                  {/* Circle avatar marker */}
                   <div
                     style={{
                       width: 20,
                       height: 20,
-                      borderRadius: '50%',
+                      borderRadius: "50%",
                       background: marker.avatarUrl
                         ? `url(${marker.avatarUrl}) center/cover`
-                        : 'linear-gradient(135deg, #f97316, #8b5cf6)',
-                      border: '2px solid rgba(255,255,255,0.3)',
-                      transition: 'transform 150ms ease, box-shadow 150ms ease',
+                        : "linear-gradient(135deg, #f97316, #8b5cf6)",
+                      border: "2px solid rgba(255,255,255,0.3)",
+                      transition: "transform 150ms ease, box-shadow 150ms ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.3)';
-                      e.currentTarget.style.boxShadow = '0 0 6px rgba(255,85,0,0.6)';
+                      e.currentTarget.style.transform = "scale(1.3)";
+                      e.currentTarget.style.boxShadow = "0 0 6px rgba(255,85,0,0.6)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   />
                 </div>
@@ -357,56 +325,52 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
             </div>
           )}
 
-          {/* ── Username label below waveform (shows first commenter) ── */}
           {commentMarkers.length > 0 && (
             <div
               style={{
-                position: 'absolute',
+                position: "absolute",
                 left: `${commentMarkers[0].position}%`,
                 bottom: 18,
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                alignItems: 'center',
+                transform: "translateX(-50%)",
+                display: "flex",
+                alignItems: "center",
                 gap: 4,
-                whiteSpace: 'nowrap',
+                whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: '#ccc', fontSize: 11, fontWeight: 500 }}>
+              <span style={{ color: "#ccc", fontSize: 11, fontWeight: 500 }}>
                 {commentMarkers[0].username}
               </span>
             </div>
           )}
 
-          {/* Comment tooltip on hover */}
           {hoveredComment && (
             <div
               data-testid="comment-tooltip"
               style={{
-                position: 'fixed',
+                position: "fixed",
                 left: tooltipPos.x,
                 top: tooltipPos.y - 8,
-                transform: 'translate(-50%, -100%)',
-                background: '#1a1a1a',
-                border: '1px solid #333',
+                transform: "translate(-50%, -100%)",
+                background: "#1a1a1a",
+                border: "1px solid #333",
                 borderRadius: 6,
-                padding: '6px 10px',
+                padding: "6px 10px",
                 maxWidth: 220,
                 zIndex: 100,
-                pointerEvents: 'none',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+                pointerEvents: "none",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
               }}
             >
-              <div style={{ color: '#ccc', fontSize: 11, fontWeight: 600 }}>
-                {hoveredComment.username}
-              </div>
-              <div style={{ color: '#999', fontSize: 12, marginTop: 2 }}>
-                {hoveredComment.text}
-              </div>
+              <div style={{ color: "#ccc", fontSize: 11, fontWeight: 600 }}>{hoveredComment.username}</div>
+              <div style={{ color: "#999", fontSize: 12, marginTop: 2 }}>{hoveredComment.text}</div>
             </div>
           )}
 
           <div className="mt-2 flex justify-between text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-            <span data-testid="waveform-current-time" style={{ color: '#f50' }}>{formatTime(currentTime)}</span>
+            <span data-testid="waveform-current-time" style={{ color: "#f50" }}>
+              {formatTime(currentTime)}
+            </span>
             <span data-testid="waveform-duration">{isReady ? formatTime(duration) : "0:00"}</span>
           </div>
         </div>
@@ -443,8 +407,7 @@ function bufferToWaveBlob(abuffer: AudioBuffer) {
   setUint32(0x61746164);
   setUint32(length - pos - 4);
 
-  for (i = 0; i < abuffer.numberOfChannels; i++)
-    channels.push(abuffer.getChannelData(i));
+  for (i = 0; i < abuffer.numberOfChannels; i++) channels.push(abuffer.getChannelData(i));
 
   while (pos < length) {
     for (i = 0; i < numOfChan; i++) {
