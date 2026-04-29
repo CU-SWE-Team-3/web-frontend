@@ -89,7 +89,13 @@ export async function getAdminUsers(params?: {
   status?: 'Active' | 'Suspended' | 'Deleted'
 }) {
   const res = await apiClient.get('/admin/users', { params })
-  return res.data as {
+  const payload = res.data
+  const users = extractAdminUsers(payload)
+  return {
+    ...payload,
+    total: payload?.total ?? payload?.results ?? users.length,
+    data: users,
+  } as {
     success: boolean
     total: number
     pages: number
@@ -129,12 +135,46 @@ export async function getAdminTracks(params?: {
   uploadDate?: 'All Time' | '7days' | '30days'
 }) {
   const res = await apiClient.get('/admin/tracks', { params })
-  return res.data as {
+  const payload = res.data
+  const tracks = extractAdminTracks(payload)
+  return {
+    ...payload,
+    total: payload?.total ?? payload?.results ?? tracks.length,
+    data: tracks,
+  } as {
     success: boolean
     total: number
     pages: number
     data: AdminTrack[]
   }
+}
+
+function extractAdminUsers(payload: any): AdminUser[] {
+  const candidates = [
+    payload?.data,
+    payload?.data?.users,
+    payload?.data?.docs,
+    payload?.data?.items,
+    payload?.users,
+    payload?.docs,
+    payload?.items,
+  ]
+
+  return candidates.find(Array.isArray) ?? []
+}
+
+function extractAdminTracks(payload: any): AdminTrack[] {
+  const candidates = [
+    payload?.data,
+    payload?.data?.tracks,
+    payload?.data?.docs,
+    payload?.data?.items,
+    payload?.tracks,
+    payload?.docs,
+    payload?.items,
+  ]
+
+  return candidates.find(Array.isArray) ?? []
 }
 
 /** PATCH /admin/tracks/{id}/hide — hide a track (admin only) */

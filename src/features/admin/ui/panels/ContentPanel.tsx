@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { AdminTable } from '../components/AdminTable'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { showAdminToast } from '../components/AdminToast'
@@ -8,9 +8,12 @@ import {
   useHideTrack, useRestoreTrack, useSuspendUser, useRestoreUser,
   useAdminTracks, useAdminUsers,
 } from '../../hooks/useAdminModeration'
-import type { AdminUser } from '../../hooks/useAdminModeration'
+import type { AdminTrack, AdminUser } from '../../hooks/useAdminModeration'
 
 type ContentTab = 'tracks' | 'accounts'
+type TrackStatusFilter = 'all' | 'Published' | 'Draft'
+type UploadDateFilter = 'all' | '7days' | '30days'
+type AccountStatusFilter = 'all' | 'Active' | 'Suspended' | 'Deleted'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NOTE FOR BACKEND TEAM:
@@ -41,6 +44,15 @@ export default function ContentPanel() {
   const [activeTab, setActiveTab] = useState<ContentTab>('tracks')
   const [trackSearch, setTrackSearch] = useState('')
   const [debouncedTrackSearch, setDebouncedTrackSearch] = useState('')
+  const [trackGenre, setTrackGenre] = useState('all')
+  const [trackStatus, setTrackStatus] = useState<TrackStatusFilter>('all')
+  const [trackUploadDate, setTrackUploadDate] = useState<UploadDateFilter>('all')
+  const [appliedTrackFilters, setAppliedTrackFilters] = useState({
+    search: '',
+    genre: 'all',
+    status: 'all' as TrackStatusFilter,
+    uploadDate: 'all' as UploadDateFilter,
+  })
   const [selectedTrackIds, setSelectedTrackIds] = useState<Set<string>>(new Set())
   const [confirmModal, setConfirmModal] = useState<{
     type: 'hide' | 'restore-track' | 'suspend' | 'restore-user' | 'bulk-hide'
@@ -50,6 +62,11 @@ export default function ContentPanel() {
 
   const [userSearch, setUserSearch] = useState('')
   const [debouncedUserSearch, setDebouncedUserSearch] = useState('')
+  const [accountStatus, setAccountStatus] = useState<AccountStatusFilter>('all')
+  const [appliedUserFilters, setAppliedUserFilters] = useState({
+    search: '',
+    status: 'all' as AccountStatusFilter,
+  })
 
   const hideTrack = useHideTrack()
   const restoreTrack = useRestoreTrack()
@@ -62,21 +79,61 @@ export default function ContentPanel() {
     return () => clearTimeout(t)
   }, [trackSearch])
 
+  useEffect(() => {
+    setAppliedTrackFilters((prev) => ({ ...prev, search: debouncedTrackSearch }))
+  }, [debouncedTrackSearch])
+
   // Debounce user search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedUserSearch(userSearch), 400)
     return () => clearTimeout(t)
   }, [userSearch])
 
+  useEffect(() => {
+    setAppliedUserFilters((prev) => ({ ...prev, search: debouncedUserSearch }))
+  }, [debouncedUserSearch])
+
   const { data: tracksData, isLoading: tracksLoading } = useAdminTracks({
-    search: debouncedTrackSearch || undefined,
+    search: appliedTrackFilters.search || undefined,
+    genre: appliedTrackFilters.genre !== 'all' ? appliedTrackFilters.genre : undefined,
+    status: appliedTrackFilters.status !== 'all' ? appliedTrackFilters.status : undefined,
+    uploadDate: appliedTrackFilters.uploadDate !== 'all' ? appliedTrackFilters.uploadDate : undefined,
   })
-  const tracks = tracksData?.data ?? []
+  const tracks = useMemo(
+    () => filterTracks(tracksData?.data ?? [], appliedTrackFilters),
+    [tracksData?.data, appliedTrackFilters]
+  )
 
   const { data: usersData, isLoading: usersLoading } = useAdminUsers({
-    search: debouncedUserSearch || undefined,
+    search: appliedUserFilters.search || undefined,
+    status: appliedUserFilters.status !== 'all' ? appliedUserFilters.status : undefined,
   })
-  const users = usersData?.data ?? []
+  const users = useMemo(
+    () => filterUsers(usersData?.data ?? [], appliedUserFilters),
+    [usersData?.data, appliedUserFilters]
+  )
+
+  const genreOptions = useMemo(() => {
+    const values = new Set((tracksData?.data ?? []).map((track) => track.genre).filter(Boolean))
+    return ['all', ...Array.from(values).sort()] as string[]
+  }, [tracksData?.data])
+
+  const applyTrackFilters = () => {
+    setAppliedTrackFilters({
+      search: trackSearch.trim(),
+      genre: trackGenre,
+      status: trackStatus,
+      uploadDate: trackUploadDate,
+    })
+    setSelectedTrackIds(new Set())
+  }
+
+  const applyUserFilters = () => {
+    setAppliedUserFilters({
+      search: userSearch.trim(),
+      status: accountStatus,
+    })
+  }
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -158,10 +215,39 @@ export default function ContentPanel() {
               onChange={setTrackSearch}
               placeholder="Search tracks..."
             />
-            <FilterSelect label="Genre: All" />
-            <FilterSelect label="Upload Date: All Time" />
-            <FilterSelect label="Status: All Statuses" />
-            <button style={{
+            <FilterSelect
+              id="admin-track-genre"
+              label="Genre"
+              value={trackGenre}
+              onChange={setTrackGenre}
+              options={genreOptions.map((genre) => ({
+                value: genre,
+                label: genre === 'all' ? 'All' : genre,
+              }))}
+            />
+            <FilterSelect
+              id="admin-track-upload-date"
+              label="Upload Date"
+              value={trackUploadDate}
+              onChange={(value) => setTrackUploadDate(value as UploadDateFilter)}
+              options={[
+                { value: 'all', label: 'All Time' },
+                { value: '7days', label: 'Last 7 days' },
+                { value: '30days', label: 'Last 30 days' },
+              ]}
+            />
+            <FilterSelect
+              id="admin-track-status"
+              label="Status"
+              value={trackStatus}
+              onChange={(value) => setTrackStatus(value as TrackStatusFilter)}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'Published', label: 'Published' },
+                { value: 'Draft', label: 'Draft / Hidden' },
+              ]}
+            />
+            <button onClick={applyTrackFilters} style={{
               marginLeft: 'auto', background: '#ff5500', color: '#fff',
               border: 'none', borderRadius: 6, padding: '0.65rem 1.25rem',
               fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
@@ -169,6 +255,17 @@ export default function ContentPanel() {
             }}>
               Apply Filters
             </button>
+            {selectedTrackIds.size > 0 && (
+              <button
+                onClick={() => setConfirmModal({ type: 'bulk-hide', ids: Array.from(selectedTrackIds) })}
+                style={{
+                  background: '#ef4444', color: '#fff', border: 'none', borderRadius: 6,
+                  padding: '0.65rem 1rem', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                }}
+              >
+                Hide selected ({selectedTrackIds.size})
+              </button>
+            )}
           </div>
 
           <AdminTable
@@ -182,7 +279,7 @@ export default function ContentPanel() {
               setSelectedTrackIds(checked ? new Set(tracks.map((t) => t._id)) : new Set())
             }}
             renderRow={(track) => {
-              const isHidden = track.moderationStatus === 'Hidden_By_Admin'
+              const isHidden = getTrackStatus(track) === 'Draft'
               const isSelected = selectedTrackIds.has(track._id)
               return (
                 <tr
@@ -271,6 +368,26 @@ export default function ContentPanel() {
               onChange={setUserSearch}
               placeholder="Search users..."
             />
+            <FilterSelect
+              id="admin-user-status"
+              label="Status"
+              value={accountStatus}
+              onChange={(value) => setAccountStatus(value as AccountStatusFilter)}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'Active', label: 'Active' },
+                { value: 'Suspended', label: 'Suspended' },
+                { value: 'Deleted', label: 'Deleted' },
+              ]}
+            />
+            <button onClick={applyUserFilters} style={{
+              marginLeft: 'auto', background: '#ff5500', color: '#fff',
+              border: 'none', borderRadius: 6, padding: '0.65rem 1.25rem',
+              fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(255,85,0,0.3)',
+            }}>
+              Apply Filters
+            </button>
           </div>
 
           <AdminTable
@@ -403,19 +520,115 @@ function SearchInput({ value, onChange, placeholder, id }: {
   )
 }
 
-function FilterSelect({ label }: { label: string }) {
+function FilterSelect({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: Array<{ value: string; label: string }>
+}) {
   return (
-    <div style={{
-      background: '#1a1a1a', border: '1px solid #333', borderRadius: 6,
-      color: '#999', padding: '0.65rem 1rem', fontSize: '0.8rem', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: '0.5rem',
-    }}>
-      {label}
-      <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <span style={{ position: 'absolute', left: 12, color: '#777', fontSize: '0.75rem', pointerEvents: 'none' }}>
+        {label}:
+      </span>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        style={{
+          appearance: 'none',
+          background: '#1a1a1a',
+          border: '1px solid #333',
+          borderRadius: 6,
+          color: '#bbb',
+          padding: '0.65rem 2rem 0.65rem 4.8rem',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+          minWidth: 136,
+          outline: 'none',
+        }}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        width="10"
+        height="10"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+        style={{ position: 'absolute', right: 12, color: '#777', pointerEvents: 'none' }}
+      >
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
-    </div>
+    </label>
   )
+}
+
+function filterTracks(
+  tracks: AdminTrack[],
+  filters: { search: string; genre: string; status: TrackStatusFilter; uploadDate: UploadDateFilter }
+) {
+  const search = filters.search.trim().toLowerCase()
+  const now = Date.now()
+
+  return tracks.filter((track) => {
+    const artistName = track.artist?.displayName ?? ''
+    const matchesSearch = !search
+      || track.title?.toLowerCase().includes(search)
+      || artistName.toLowerCase().includes(search)
+      || track.permalink?.toLowerCase().includes(search)
+
+    const matchesGenre = filters.genre === 'all' || track.genre === filters.genre
+    const matchesStatus = filters.status === 'all' || getTrackStatus(track) === filters.status
+
+    let matchesDate = true
+    if (filters.uploadDate !== 'all') {
+      const created = track.createdAt ? new Date(track.createdAt).getTime() : Number.NaN
+      const days = filters.uploadDate === '7days' ? 7 : 30
+      matchesDate = Number.isFinite(created) && now - created <= days * 24 * 60 * 60 * 1000
+    }
+
+    return matchesSearch && matchesGenre && matchesStatus && matchesDate
+  })
+}
+
+function filterUsers(
+  users: AdminUser[],
+  filters: { search: string; status: AccountStatusFilter }
+) {
+  const search = filters.search.trim().toLowerCase()
+
+  return users.filter((user) => {
+    const matchesSearch = !search
+      || user.displayName?.toLowerCase().includes(search)
+      || user.permalink?.toLowerCase().includes(search)
+      || user.email?.toLowerCase().includes(search)
+
+    const matchesStatus = filters.status === 'all' || user.accountStatus === filters.status
+    return matchesSearch && matchesStatus
+  })
+}
+
+function getTrackStatus(track: AdminTrack): 'Published' | 'Draft' {
+  const moderationStatus = track.moderationStatus?.toLowerCase()
+  const processingState = track.processingState?.toLowerCase()
+  if (moderationStatus === 'hidden_by_admin' || moderationStatus === 'hidden' || track.isPublic === false) {
+    return 'Draft'
+  }
+  if (processingState === 'draft') return 'Draft'
+  return 'Published'
 }
 
 function ActionIcon({ icon, title, onClick }: { icon: string; title: string; onClick?: () => void }) {
