@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
+import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
 import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
 import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
@@ -26,6 +27,7 @@ export const NavBar: FC<NavBarProps> = ({
   onSearchChange,
 }) => {
   const { user, isAuthenticated } = useAuthStore();
+  const { isPremium } = useSubscriptionStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -118,7 +120,9 @@ export const NavBar: FC<NavBarProps> = ({
     <div className={s.rightSection}>
       {isAuthenticated ? (
         <>
-          <Link href={ROUTES.ARTIST_PRO} className={s.tryProLink} data-testid="navbar-try-artist-pro">Try Artist Pro</Link>
+          {!isPremium && (
+            <Link href={ROUTES.ARTIST_PRO} className={s.tryProLink} data-testid="navbar-try-artist-pro">Try Artist Pro</Link>
+          )}
           <Link href={ROUTES.FOR_ARTISTS} className={s.navTextLink}>For Artists</Link>
           <button className={s.navTextLink} onClick={onUpload} data-testid="navbar-upload-button">Upload</button>
           <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : ROUTES.FEED} data-testid="navbar-user-avatar">
@@ -180,6 +184,7 @@ export const NavBar: FC<NavBarProps> = ({
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="21 8 21 14"/><polyline points="18 11 24 11"/></svg>
                   Who to follow
                 </Link>
+                {!isPremium && (
                 <Link
                   href={ROUTES.FOR_ARTISTS}
                   className={s.dropdownItem}
@@ -189,6 +194,7 @@ export const NavBar: FC<NavBarProps> = ({
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="var(--sc-primary, #f50)"/><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.8 4.8 2.4-7.2-6-4.8h7.6z" fill="#fff"/></svg>
                   Try Artist Pro
                 </Link>
+                )}
                 <Link
                   href={ROUTES.MY_TRACKS}
                   className={s.dropdownItem}

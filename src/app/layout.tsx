@@ -3,6 +3,7 @@ import { Providers } from './providers'
 import './globals.scss'
 
 import { GlobalAudioEngine } from '@/features/player/ui/player/GlobalAudioEngine'
+import { PremiumAdBanner } from '@/shared/ui/PremiumAdBanner/PremiumAdBanner'
 
 export const metadata: Metadata = {
   title: 'BioBeats',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
           <GlobalAudioEngine />
+          <PremiumAdBanner />
         </Providers>
       </body>
     </html>

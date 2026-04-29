@@ -9,34 +9,60 @@
 
 .header {
   height: 52px;
-  border-bottom: 1px solid #e5e5e5;
+  background: #111;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
+  position: relative;
+  z-index: 20;
 }
 
 .logoLink {
   display: flex;
   align-items: center;
+  gap: 8px;
   text-decoration: none;
 }
 
-.headerUser {
+.brandText {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ── Profile Dropdown ── */
+.profileWrapper {
+  position: relative;
+}
+
+.profileBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  color: #333;
+  background: none;
+  border: none;
   cursor: pointer;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 150ms;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .userAvatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #ccc;
+  background: #555;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 
   img {
@@ -46,9 +72,116 @@
   }
 }
 
+.avatarInitial {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profileName {
+  color: #ddd;
+  font-size: 13px;
+}
+
 .chevronIcon {
   color: #888;
-  font-size: 12px;
+  font-size: 11px;
+}
+
+.profileDropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.profileDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 11px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #111;
+  font-family: inherit;
+  transition: background 150ms;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+/* ── Go+ Promo Banner ── */
+.goplusPromoBanner {
+  background: linear-gradient(90deg, #1a7ec8 0%, #3b9de8 100%);
+  padding: 12px 24px;
+  text-align: center;
+}
+
+.goplusPromoText {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+
+  strong {
+    font-weight: 800;
+  }
+}
+
+/* ── Success Banner ───────────────────────────────────────────────────── */
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.successIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.successTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.successSubtext {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 2px 0 0;
 }
 
 .content {
@@ -225,10 +358,20 @@
   border-radius: 4px;
 }
 
-.paypalLogo {
-  font-size: 13px;
-  font-weight: 800;
-  color: #003087;
+/* ── Stripe ─────────────────────────────────────────────────────────────── */
+.stripeLogoWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stripeLogo {
+  font-size: 16px;
+  font-weight: 900;
+  color: #635bff;
+  letter-spacing: -0.5px;
+  text-transform: lowercase;
+  font-style: italic;
 }
 
 .cardIcons {
@@ -253,6 +396,86 @@
   &.maestro { background: #6f6f6f; color: #fff; }
   &.jcb { background: #003087; color: #fff; }
   &.discover { background: #ff6600; color: #fff; }
+}
+
+/* ── Stripe Form ─────────────────────────────────────────────────────────── */
+.stripeForm {
+  background: #fafafa;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stripeFormRow {
+  margin-bottom: 14px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.stripeFormRowSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.stripeLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  letter-spacing: 0.02em;
+}
+
+.stripeInput {
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid #d4d4d4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Inter', monospace;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder {
+    color: #bbb;
+  }
+
+  &:focus {
+    border-color: #635bff;
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+  }
+}
+
+.stripeSecure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #888;
+  margin-top: 14px;
+}
+
+.stripeLockIcon {
+  font-size: 12px;
 }
 
 /* ── Right Column ────────────────────────────────────────────────────────── */
@@ -385,12 +608,18 @@
   }
 
   &.processing {
-    background: #888;
+    background: #635bff;
+    animation: pulse 1.5s infinite;
   }
 
   &.success {
-    background: #16a34a;
+    background: #059669;
   }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .legalNote {
@@ -428,6 +657,20 @@
   a {
     color: #ff5500;
     text-decoration: none;
+  }
+}
+
+.footerSignOutLink {
+  background: none;
+  border: none;
+  color: #ff5500;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 

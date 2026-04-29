@@ -11,22 +11,30 @@ import s from './SubscriptionPage.module.scss';
 
 export default function SubscriptionPage() {
   const { user } = useAuthStore();
-  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, cancel, isLoading, error } =
+  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, mockCancel, error } =
     useSubscriptionStore();
   const [showBanner, setShowBanner] = useState(true);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     syncFromUser(user);
   }, [user, syncFromUser]);
 
-  const handleCancel = async () => {
-    try {
-      await cancel();
-      setCancelSuccess(true);
-    } catch {
-      // error is already set in the store
-    }
+  const handleCancel = () => {
+    // Show confirmation step first
+    setShowCancelConfirm(true);
+  };
+
+  const handleConfirmCancel = () => {
+    // Fully reset to Free plan — no API call
+    mockCancel();
+    setShowCancelConfirm(false);
+    setCancelSuccess(true);
+  };
+
+  const handleDismissCancel = () => {
+    setShowCancelConfirm(false);
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -39,6 +47,7 @@ export default function SubscriptionPage() {
   };
 
   const getPlanDisplay = () => {
+    if (currentPlan === 'Artist') return 'Artist';
     if (currentPlan === 'Pro') return 'Artist Pro';
     if (currentPlan === 'Go+') return 'Go+';
     return 'Basic';
@@ -49,7 +58,7 @@ export default function SubscriptionPage() {
       <NavBar />
 
       {/* ── Announcement Banner ── */}
-      {showBanner && (
+      {showBanner && !isPremium && (
         <div className={s.banner} data-testid="subscription-banner">
           <div className={s.bannerContent}>
             <span className={s.bannerDot} />
@@ -93,7 +102,32 @@ export default function SubscriptionPage() {
           {/* Cancel Success */}
           {cancelSuccess && (
             <div className={s.successMsg} data-testid="subscription-cancel-success">
-              Subscription cancelled. You will retain premium access until your billing cycle ends.
+              Your plan has been cancelled. Your account has been reset to Basic.
+            </div>
+          )}
+
+          {/* Cancel Confirmation Dialog */}
+          {showCancelConfirm && (
+            <div className={s.cancelConfirmCard} data-testid="subscription-cancel-confirm">
+              <p className={s.cancelConfirmText}>
+                Are you sure you want to cancel your plan? You will lose access to all premium features immediately.
+              </p>
+              <div className={s.cancelConfirmActions}>
+                <button
+                  className={s.cancelConfirmYes}
+                  onClick={handleConfirmCancel}
+                  data-testid="subscription-cancel-confirm-yes"
+                >
+                  Yes, cancel plan
+                </button>
+                <button
+                  className={s.cancelConfirmNo}
+                  onClick={handleDismissCancel}
+                  data-testid="subscription-cancel-confirm-no"
+                >
+                  Keep my plan
+                </button>
+              </div>
             </div>
           )}
 
@@ -101,12 +135,24 @@ export default function SubscriptionPage() {
           <div className={s.planCard} data-testid="subscription-plan-card">
             <div className={s.planHeader}>
               <div>
-                <h3 className={s.planName} data-testid="subscription-plan-name">
-                  {getPlanDisplay()}
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h3 className={s.planName} data-testid="subscription-plan-name">
+                    {getPlanDisplay()}
+                  </h3>
+                  {isPremium && (
+                    <span className={s.activeBadge} data-testid="subscription-active-badge">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
                 {currentPlan === 'Free' && (
                   <p className={s.planDescription} data-testid="subscription-plan-description">
                     Artist Pro plans include unlimited upload space and advanced features.
+                  </p>
+                )}
+                {isPremium && !cancelAtPeriodEnd && (
+                  <p className={s.planDescription} data-testid="subscription-plan-active-desc">
+                    You&apos;re currently subscribed to the {getPlanDisplay()} plan. Enjoy all premium features!
                   </p>
                 )}
                 {isPremium && expiresAt && (
@@ -137,23 +183,41 @@ export default function SubscriptionPage() {
                   <button
                     className={s.cancelBtn}
                     onClick={handleCancel}
-                    disabled={isLoading}
+                    disabled={showCancelConfirm}
                     data-testid="subscription-cancel-btn"
                   >
-                    {isLoading ? 'Cancelling...' : 'Cancel plan'}
+                    Cancel plan
                   </button>
                 )
               )}
             </div>
           </div>
 
-          {/* Student Discount */}
-          <div className={s.studentBanner} data-testid="subscription-student-banner">
-            Are you a student?{' '}
-            <Link href={ROUTES.ARTIST_PRO} data-testid="subscription-student-link">
-              Get SoundCloud Go+ for 50% off
+          {/* Go+ Offline Library shortcut */}
+          {currentPlan === 'Go+' && (
+            <Link
+              href={ROUTES.OFFLINE}
+              className={s.offlineCard}
+              data-testid="subscription-offline-card"
+            >
+              <span className={s.offlineCardIcon}>📥</span>
+              <div>
+                <p className={s.offlineCardTitle}>Offline Library</p>
+                <p className={s.offlineCardDesc}>Access your downloaded tracks for listening anywhere.</p>
+              </div>
+              <span className={s.offlineCardArrow}>›</span>
             </Link>
-          </div>
+          )}
+
+          {/* Student Discount / Go+ Promo */}
+          {currentPlan !== 'Go+' && (
+            <div className={s.studentBanner} data-testid="subscription-student-banner">
+              Discover ad-free &amp; offline listening.{' '}
+              <Link href={ROUTES.GO_PLUS} data-testid="subscription-student-link">
+                Get BioBeats Go+ for $0.99 →
+              </Link>
+            </div>
+          )}
 
           {/* Purchase History */}
           <h2 className={s.historyTitle} data-testid="subscription-history-title">

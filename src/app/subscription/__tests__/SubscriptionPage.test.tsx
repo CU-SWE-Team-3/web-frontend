@@ -43,17 +43,16 @@ vi.mock('@/features/auth/model/useAuthStore', () => ({
 
 // Mock subscription store
 const mockSyncFromUser = vi.fn();
-const mockCancel = vi.fn();
+const mockMockCancel = vi.fn();
 
 const mockSubscriptionStore = {
   currentPlan: 'Free' as const,
   isPremium: false,
   expiresAt: null,
   cancelAtPeriodEnd: false,
-  isLoading: false,
   error: null,
   syncFromUser: mockSyncFromUser,
-  cancel: mockCancel,
+  mockCancel: mockMockCancel,
 };
 
 vi.mock('@/features/subscription/model/useSubscriptionStore', () => ({
@@ -86,9 +85,16 @@ describe('SubscriptionPage', () => {
     expect(screen.getByTestId('navbar')).toBeDefined();
   });
 
-  it('renders the announcement banner', () => {
+  it('renders the announcement banner when on Free plan', () => {
     render(<SubscriptionPage />);
     expect(screen.getByTestId('subscription-banner')).toBeDefined();
+  });
+
+  it('hides the announcement banner when on a premium plan', () => {
+    mockSubscriptionStore.currentPlan = 'Pro';
+    mockSubscriptionStore.isPremium = true;
+    render(<SubscriptionPage />);
+    expect(screen.queryByTestId('subscription-banner')).toBeNull();
   });
 
   it('closes the banner when close button is clicked', () => {
@@ -134,6 +140,13 @@ describe('SubscriptionPage', () => {
     expect(screen.getByTestId('subscription-plan-name').textContent).toBe('Artist Pro');
   });
 
+  it('hides Try Artist Pro button when subscribed to Pro', () => {
+    mockSubscriptionStore.currentPlan = 'Pro';
+    mockSubscriptionStore.isPremium = true;
+    render(<SubscriptionPage />);
+    expect(screen.queryByTestId('subscription-try-pro-btn')).toBeNull();
+  });
+
   it('shows cancel button when on Pro plan without cancelAtPeriodEnd', () => {
     mockSubscriptionStore.currentPlan = 'Pro';
     mockSubscriptionStore.isPremium = true;
@@ -160,7 +173,7 @@ describe('SubscriptionPage', () => {
   it('renders the student discount banner', () => {
     render(<SubscriptionPage />);
     expect(screen.getByTestId('subscription-student-banner')).toBeDefined();
-    expect(screen.getByTestId('subscription-student-link').getAttribute('href')).toBe('/artist-pro');
+    expect(screen.getByTestId('subscription-student-link').getAttribute('href')).toBe('/go-plus');
   });
 
   it('renders the purchase history section', () => {
@@ -182,17 +195,42 @@ describe('SubscriptionPage', () => {
     expect(mockSyncFromUser).toHaveBeenCalled();
   });
 
-  it('shows cancel success message after cancellation', async () => {
+  it('shows cancel confirmation dialog when cancel btn is clicked', () => {
     mockSubscriptionStore.currentPlan = 'Pro';
     mockSubscriptionStore.isPremium = true;
-    mockCancel.mockResolvedValueOnce(undefined);
-
     render(<SubscriptionPage />);
-    const cancelBtn = screen.getByTestId('subscription-cancel-btn');
-    fireEvent.click(cancelBtn);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('subscription-cancel-success')).toBeDefined();
-    });
+    fireEvent.click(screen.getByTestId('subscription-cancel-btn'));
+
+    expect(screen.getByTestId('subscription-cancel-confirm')).toBeDefined();
+    expect(screen.getByTestId('subscription-cancel-confirm-yes')).toBeDefined();
+    expect(screen.getByTestId('subscription-cancel-confirm-no')).toBeDefined();
+  });
+
+  it('dismisses confirmation when "Keep my plan" is clicked', () => {
+    mockSubscriptionStore.currentPlan = 'Pro';
+    mockSubscriptionStore.isPremium = true;
+    render(<SubscriptionPage />);
+
+    fireEvent.click(screen.getByTestId('subscription-cancel-btn'));
+    expect(screen.getByTestId('subscription-cancel-confirm')).toBeDefined();
+
+    fireEvent.click(screen.getByTestId('subscription-cancel-confirm-no'));
+    expect(screen.queryByTestId('subscription-cancel-confirm')).toBeNull();
+  });
+
+  it('calls mockCancel and shows success message after confirming cancel', () => {
+    mockSubscriptionStore.currentPlan = 'Pro';
+    mockSubscriptionStore.isPremium = true;
+    render(<SubscriptionPage />);
+
+    fireEvent.click(screen.getByTestId('subscription-cancel-btn'));
+    fireEvent.click(screen.getByTestId('subscription-cancel-confirm-yes'));
+
+    expect(mockMockCancel).toHaveBeenCalled();
+    expect(screen.getByTestId('subscription-cancel-success')).toBeDefined();
+    expect(screen.getByTestId('subscription-cancel-success').textContent).toContain(
+      'Your plan has been cancelled. Your account has been reset to Basic.'
+    );
   });
 });

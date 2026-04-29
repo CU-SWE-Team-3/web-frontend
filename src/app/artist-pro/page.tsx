@@ -1,11 +1,12 @@
 'use client';
 // component-id: ArtistProPage_001
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/shared/constants/routes';
 import { FEATURE_SECTIONS } from '@/features/subscription/types';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import s from './ArtistProPage.module.scss';
 
 const HERO_FEATURES = [
@@ -33,7 +34,32 @@ const HERO_FEATURES = [
 
 export default function ArtistProPage() {
   const router = useRouter();
+  const { user, logout } = useAuthStore();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
+
+  const handleSignOut = async () => {
+    setDropdownOpen(false);
+    await logout();
+    router.push(ROUTES.LOGIN);
+  };
+
+  // Routes to Artist plan specifically
+  const handleGetArtist = useCallback(() => {
+    router.push(`${ROUTES.PAYMENT}?plan=Artist`);
+  }, [router]);
+
+  // Routes to Artist Pro plan (default)
   const handleGetArtistPro = useCallback(() => {
     router.push(ROUTES.PAYMENT);
   }, [router]);
@@ -63,6 +89,47 @@ export default function ArtistProPage() {
 
   return (
     <div className={s.page} data-testid="artist-pro-page">
+
+      {/* ── BioBeats Nav Bar ── */}
+      <header className={s.navBar} data-testid="artist-pro-navbar">
+        <Link href={ROUTES.HOME} className={s.navLogoLink} data-testid="artist-pro-logo">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="#ff5500">
+            <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z" />
+          </svg>
+          <span className={s.navBrandText}>BioBeats</span>
+        </Link>
+
+        {user && (
+          <div ref={dropdownRef} className={s.navProfileWrapper} data-testid="artist-pro-user-info">
+            <button
+              className={s.navProfileBtn}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              data-testid="artist-pro-profile-btn"
+            >
+              <div className={s.navAvatar}>
+                {user.avatarUrl
+                  ? <img src={user.avatarUrl} alt={user.displayName} />
+                  : <span className={s.navAvatarInitial}>{user.displayName?.[0]?.toUpperCase()}</span>
+                }
+              </div>
+              <span className={s.navUserName}>{user.displayName}</span>
+              <span className={s.navChevron}>▾</span>
+            </button>
+            {dropdownOpen && (
+              <div className={s.navDropdown} data-testid="artist-pro-profile-dropdown">
+                <button
+                  className={s.navDropdownItem}
+                  onClick={handleSignOut}
+                  data-testid="artist-pro-signout-btn"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </header>
+
       {/* ── Hero ── */}
       <section className={s.hero} data-testid="artist-pro-hero">
         <div className={s.heroContent}>
@@ -132,11 +199,11 @@ export default function ArtistProPage() {
               <p className={s.planPrice}>
                 EGP 29.99 <span>/ month, billed yearly for EGP 359.88</span>
               </p>
-              <p className={s.planYearly}>or EGP 149.99 / month billed monthly</p>
+              <p className={s.planYearly}>or EGP 29.99 / month billed monthly</p>
               <button
                 data-testid="plan-card-artist-cta"
                 className={`${s.planCtaBtn} ${s.outline}`}
-                onClick={handleGetArtistPro}
+                onClick={handleGetArtist}
               >
                 Get started
               </button>
@@ -179,7 +246,7 @@ export default function ArtistProPage() {
               <p className={`${s.planPrice} ${s.pro}`}>
                 EGP 74.99 <span>/ month, billed yearly for EGP 899.88</span>
               </p>
-              <p className={s.planYearly}>or EGP 149.99 / month billed monthly</p>
+              <p className={s.planYearly}>or EGP 74.99 / month billed monthly</p>
               <button
                 id="artist-pro-plan-cta"
                 data-testid="plan-card-pro-cta"
@@ -253,7 +320,7 @@ export default function ArtistProPage() {
               <button
                 data-testid="compare-artist-cta"
                 className={`${s.compareGetStartedBtn}`}
-                onClick={handleGetArtistPro}
+                onClick={handleGetArtist}
               >
                 Get started
               </button>

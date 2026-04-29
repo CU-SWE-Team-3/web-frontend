@@ -33,14 +33,15 @@ vi.mock('@/features/auth/model/useAuthStore', () => ({
       role: 'Artist',
       createdAt: '2026-01-01T00:00:00.000Z',
     },
+    logout: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
 // Mock subscription store
-const mockCheckout = vi.fn();
+const mockMockCheckout = vi.fn();
 vi.mock('@/features/subscription/model/useSubscriptionStore', () => ({
   useSubscriptionStore: () => ({
-    checkout: mockCheckout,
+    mockCheckout: mockMockCheckout,
     isLoading: false,
     error: null,
   }),
@@ -61,10 +62,10 @@ describe('PaymentPage', () => {
     expect(screen.getByTestId('payment-title').textContent).toBe('Get Artist Pro');
   });
 
-  it('renders the logo linking to feed', () => {
+  it('renders the logo linking to home', () => {
     render(<PaymentPage />);
     const logo = screen.getByTestId('payment-logo');
-    expect(logo.getAttribute('href')).toBe('/feed');
+    expect(logo.getAttribute('href')).toBe('/');
   });
 
   it('renders user info in header', () => {
@@ -94,17 +95,26 @@ describe('PaymentPage', () => {
     const monthly = screen.getByTestId('billing-monthly');
     fireEvent.click(monthly);
     expect(monthly.getAttribute('aria-checked')).toBe('true');
-    expect(screen.getByTestId('payment-total').textContent).toContain('149.99');
+    expect(screen.getByTestId('payment-total').textContent).toContain('74.99');
   });
 
-  it('renders payment method options', () => {
+  it('renders Stripe payment option (no PayPal)', () => {
     render(<PaymentPage />);
+    expect(screen.getByTestId('payment-stripe')).toBeDefined();
     expect(screen.getByTestId('payment-applepay')).toBeDefined();
-    expect(screen.getByTestId('payment-card')).toBeDefined();
-    expect(screen.getByTestId('payment-paypal')).toBeDefined();
+    expect(screen.queryByTestId('payment-paypal')).toBeNull();
   });
 
-  it('renders the review section', () => {
+  it('renders the Stripe card form when Stripe is selected', () => {
+    render(<PaymentPage />);
+    expect(screen.getByTestId('stripe-form')).toBeDefined();
+    expect(screen.getByTestId('stripe-card-number')).toBeDefined();
+    expect(screen.getByTestId('stripe-card-expiry')).toBeDefined();
+    expect(screen.getByTestId('stripe-card-cvc')).toBeDefined();
+    expect(screen.getByTestId('stripe-card-name')).toBeDefined();
+  });
+
+  it('renders the review section with correct yearly total', () => {
     render(<PaymentPage />);
     expect(screen.getByTestId('payment-review')).toBeDefined();
     expect(screen.getByTestId('payment-total').textContent).toContain('899.88');
@@ -116,48 +126,70 @@ describe('PaymentPage', () => {
     expect(btn.textContent).toBe('Buy subscription');
   });
 
-  it('clicking Buy calls checkout and shows processing state', async () => {
-    mockCheckout.mockImplementation(
-      () => new Promise((res) => setTimeout(() => res('https://checkout.stripe.com/test'), 100))
-    );
-
+  it('shows validation error when Stripe form is incomplete', async () => {
     render(<PaymentPage />);
+    const btn = screen.getByTestId('payment-buy-btn');
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('payment-validation-error')).toBeDefined();
+      expect(screen.getByTestId('payment-validation-error').textContent).toContain(
+        'Please fill in all card details correctly'
+      );
+    });
+  });
+
+  it('clicking Buy with valid card data shows processing state', async () => {
+    render(<PaymentPage />);
+
+    // Fill in mock card data
+    fireEvent.change(screen.getByTestId('stripe-card-number'), {
+      target: { value: '4242424242424242' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-expiry'), {
+      target: { value: '1228' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-cvc'), {
+      target: { value: '123' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-name'), {
+      target: { value: 'John Doe' },
+    });
+
     const btn = screen.getByTestId('payment-buy-btn');
     fireEvent.click(btn);
 
     await waitFor(() => {
       expect(screen.getByTestId('payment-buy-btn').textContent).toContain('Processing');
     });
-
-    expect(mockCheckout).toHaveBeenCalledWith('Pro');
-  });
-
-  it('shows error message when checkout fails', async () => {
-    mockCheckout.mockRejectedValueOnce(new Error('You are already an active premium subscriber.'));
-
-    render(<PaymentPage />);
-    const btn = screen.getByTestId('payment-buy-btn');
-    fireEvent.click(btn);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('payment-error')).toBeDefined();
-      expect(screen.getByTestId('payment-error').textContent).toContain(
-        'You are already an active premium subscriber.'
-      );
-    });
   });
 
   it('redirects to /subscription after successful payment', async () => {
-    mockCheckout.mockResolvedValueOnce('https://checkout.stripe.com/test');
     vi.useFakeTimers();
 
     render(<PaymentPage />);
+
+    // Fill in mock card data
+    fireEvent.change(screen.getByTestId('stripe-card-number'), {
+      target: { value: '4242424242424242' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-expiry'), {
+      target: { value: '1228' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-cvc'), {
+      target: { value: '123' },
+    });
+    fireEvent.change(screen.getByTestId('stripe-card-name'), {
+      target: { value: 'John Doe' },
+    });
+
     const btn = screen.getByTestId('payment-buy-btn');
     fireEvent.click(btn);
 
-    // Fast-forward through the 2s processing + 1.2s success delays
+    // Fast-forward through the 2s processing + 1.5s success delays
     await vi.runAllTimersAsync();
 
+    expect(mockMockCheckout).toHaveBeenCalledWith('Pro', 'yearly');
     expect(mockPush).toHaveBeenCalledWith('/subscription');
     vi.useRealTimers();
   });

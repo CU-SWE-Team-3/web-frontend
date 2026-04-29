@@ -1,6 +1,6 @@
 // component-id: SubscriptionTypes_001
 
-export type SubscriptionPlan = 'Free' | 'Pro' | 'Go+';
+export type SubscriptionPlan = 'Free' | 'Artist' | 'Pro' | 'Go+';
 
 export type BillingCycle = 'monthly' | 'yearly';
 
@@ -21,16 +21,22 @@ export interface CancelResponse {
 
 export const PLAN_PRICING = {
   Artist: {
-    monthly: 149.99,
+    monthly: 29.99,
     yearly: 29.99,
     yearlyTotal: 359.88,
     label: 'Artist',
   },
   Pro: {
-    monthly: 149.99,
+    monthly: 74.99,
     yearly: 74.99,
     yearlyTotal: 899.88,
     label: 'Artist Pro',
+  },
+  'Go+': {
+    monthly: 9.99,
+    yearly: 0.99,
+    yearlyTotal: 0.99,
+    label: 'Go+',
   },
 } as const;
 

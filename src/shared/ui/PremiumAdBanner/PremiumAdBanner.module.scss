@@ -1,0 +1,128 @@
+/* component-id: PremiumAdBannerStyles_001 */
+
+.banner {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  border-radius: 14px;
+  padding: 14px 20px 14px 16px;
+
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 20px rgba(255, 85, 0, 0.08);
+
+  backdrop-filter: blur(12px);
+  max-width: 340px;
+
+  /* Slide-in animation */
+  opacity: 0;
+  transform: translateY(20px) translateX(-10px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    pointer-events: auto;
+  }
+
+  /* Subtle floating animation */
+  animation: float 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Dismiss button ── */
+.dismissBtn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #333;
+  border: 1px solid #555;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms, color 150ms, transform 100ms;
+
+  &:hover {
+    background: #ff5500;
+    color: #fff;
+    border-color: #ff5500;
+    transform: scale(1.15);
+  }
+}
+
+/* ── Icon ── */
+.iconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 85, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 85, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 4px rgba(255, 85, 0, 0.2);
+  }
+}
+
+.icon {
+  font-size: 18px;
+}
+
+/* ── Text ── */
+.text {
+  font-size: 13px;
+  color: #ccc;
+  margin: 0;
+  line-height: 1.5;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.subscribeLink {
+  color: #ff5500;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 85, 0, 0.4);
+  transition: color 150ms, border-color 150ms;
+  padding-bottom: 1px;
+
+  &:hover {
+    color: #ff7733;
+    border-bottom-color: #ff7733;
+    border-bottom-style: solid;
+  }
+}

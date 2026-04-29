@@ -30,7 +30,9 @@ export const ROUTES = {
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
   STATIONS: '/stations',
+  GO_PLUS: '/go-plus',
   ARTIST_PRO: '/artist-pro',
   PAYMENT: '/payment',
   SUBSCRIPTION: '/subscription',
+  OFFLINE: '/offline',
 } as const

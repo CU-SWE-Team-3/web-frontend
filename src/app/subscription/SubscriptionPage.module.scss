@@ -122,6 +122,31 @@
   margin: 8px 0 0;
 }
 
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  white-space: nowrap;
+  animation: badgePop 0.3s ease-out;
+}
+
+@keyframes badgePop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .tryProBtn {
   padding: 8px 18px;
   background: #fff;
@@ -307,3 +332,114 @@
   border-radius: 4px;
   margin-bottom: 14px;
 }
+
+/* ── Cancel Confirmation Card ───────────────────────────────────────────── */
+.cancelConfirmCard {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cancelConfirmText {
+  font-size: 13px;
+  color: #fcd34d;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.cancelConfirmActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cancelConfirmYes {
+  padding: 8px 18px;
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 150ms;
+
+  &:hover {
+    background: rgba(220, 38, 38, 0.35);
+    border-color: #f87171;
+  }
+}
+
+.cancelConfirmNo {
+  padding: 8px 18px;
+  background: #333;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 150ms;
+
+  &:hover {
+    background: #444;
+    color: #fff;
+  }
+}
+
+/* ── Offline Card ───────────────────────────────────────────────────────── */
+.offlineCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(59, 157, 232, 0.08);
+  border: 1px solid rgba(59, 157, 232, 0.25);
+  border-radius: 10px;
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: background 150ms, border-color 150ms, transform 100ms;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(59, 157, 232, 0.14);
+    border-color: rgba(59, 157, 232, 0.45);
+    transform: translateX(2px);
+  }
+}
+
+.offlineCardIcon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.offlineCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e0f0ff;
+  margin: 0 0 2px;
+}
+
+.offlineCardDesc {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0;
+}
+
+.offlineCardArrow {
+  margin-left: auto;
+  font-size: 20px;
+  color: rgba(59, 157, 232, 0.7);
+  flex-shrink: 0;
+}
+
