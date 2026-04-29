@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import apiClient from '@/shared/api/client';
 
 // ─── Feature Hooks ────────────────────────────────────────────────────────────
 import { useFeed, useSuggestedArtists } from '@/features/feed';
