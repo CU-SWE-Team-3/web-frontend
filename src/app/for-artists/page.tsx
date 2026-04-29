@@ -87,7 +87,7 @@ export default function ForArtistsPage() {
           }}
         >
           By clicking on any of the &apos;Continue&apos; buttons below, you agree to
-          SoundCloud&apos;s{' '}
+          BioBeats&apos;{' '}
           <span style={{ color: '#ff5500', cursor: 'pointer' }}>Terms of Use</span> and
           acknowledge our{' '}
           <span style={{ color: '#ff5500', cursor: 'pointer' }}>Privacy Policy</span>.

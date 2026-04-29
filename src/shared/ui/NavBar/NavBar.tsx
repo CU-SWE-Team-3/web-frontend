@@ -10,6 +10,7 @@ import { useSubscriptionStore } from '@/features/subscription/model/useSubscript
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
 import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
 import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
+import { BioBeatsLogo } from '@/shared/ui/Brand';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
 
@@ -124,9 +125,7 @@ export const NavBar: FC<NavBarProps> = ({
     {/* Left: Logo + Nav Links */}
     <div className={s.leftSection}>
       <Link href={ROUTES.FEED} className={s.logoLink} data-testid="navbar-logo">
-        <svg width="28" height="28" viewBox="0 0 32 32" fill="var(--sc-primary)">
-          <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
-        </svg>
+        <BioBeatsLogo iconSize={28} textSize={18} />
       </Link>
       <Link href={ROUTES.DASHBOARD} className={`${s.navLink} ${pathname === ROUTES.DASHBOARD ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
       <Link href={ROUTES.FEED} className={`${s.navLink} ${pathname === '/feed' ? s.navLinkActive : ''}`} data-testid="navbar-feed-link">Feed</Link>

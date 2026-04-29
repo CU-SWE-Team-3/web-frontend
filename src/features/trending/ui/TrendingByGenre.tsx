@@ -33,7 +33,7 @@ export const TrendingByGenre: React.FC = () => {
       <div className="flex items-baseline justify-between mb-6">
         <div>
           <h2 className="text-[22px] font-bold text-white mb-1">Trending by genre</h2>
-          <p className="text-sm text-[#999]">The biggest tracks in the SoundCloud community</p>
+          <p className="text-sm text-[#999]">The biggest tracks in the BioBeats community</p>
         </div>
         <Link 
           href={ROUTES.TRENDING} 

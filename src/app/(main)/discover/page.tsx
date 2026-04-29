@@ -13,6 +13,7 @@ import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { SquareTrackCard } from '@/shared/ui/SquareTrackCard';
 import { useEditorial, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists, useGenreStation } from '@/features/trending/model/trendingQueries';
+import { getStationHref } from '@/features/trending/lib/stationLinks';
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -129,7 +130,13 @@ export default function DiscoverPage() {
             >
               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 {mixedData.map((mix: any, i: number) => (
-                  <MixCard key={mix.id || mix._id || i} index={i + 1} mix={mix} onPlay={() => handlePlayBucket(mix)} />
+                  <MixCard
+                    key={mix.id || mix._id || i}
+                    index={i + 1}
+                    mix={mix}
+                    href={getStationHref(mix, i, 'mix')}
+                    onPlay={() => handlePlayBucket(mix)}
+                  />
                 ))}
               </div>
             </DiscoverSection>
@@ -181,17 +188,25 @@ export default function DiscoverPage() {
           {(curatedBuckets && curatedBuckets.length > 0) && (
             <DiscoverSection title="Made for you">
               <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
-                {curatedBuckets.find((b: any) => b.id === 'daily_drops' || b._id === 'daily_drops') && (
-                  <EditorialCard type="DAILY" title="Daily Drops" onPlay={() => handlePlayBucket(curatedBuckets.find((b: any) => b.id === 'daily_drops' || b._id === 'daily_drops'))} />
-                )}
-                {curatedBuckets.find((b: any) => b.id === 'weekly_wave' || b._id === 'weekly_wave') && (
-                  <EditorialCard type="WEEKLY" title="Weekly Wave" onPlay={() => handlePlayBucket(curatedBuckets.find((b: any) => b.id === 'weekly_wave' || b._id === 'weekly_wave'))} />
-                )}
-                {curatedBuckets.filter((b: any) => !['daily_drops', 'weekly_wave'].includes(b.id || b._id)).map((bucket: any) => (
+                {curatedBuckets.map((bucket: any, bucketIndex: number) => {
+                  const bucketId = bucket.id || bucket._id;
+                  if (bucketId !== 'daily_drops' && bucketId !== 'weekly_wave') return null;
+                  return (
+                    <EditorialCard
+                      key={bucketId}
+                      type={bucketId === 'weekly_wave' ? 'WEEKLY' : 'DAILY'}
+                      title={bucketId === 'weekly_wave' ? 'Weekly Wave' : 'Daily Drops'}
+                      href={getStationHref(bucket, bucketIndex, 'set')}
+                      onPlay={() => handlePlayBucket(bucket)}
+                    />
+                  );
+                })}
+                {curatedBuckets.filter((b: any) => !['daily_drops', 'weekly_wave'].includes(b.id || b._id)).map((bucket: any, bucketIndex: number) => (
                   <EditorialCard 
                     key={bucket.id || bucket._id} 
                     type="DAILY" 
                     title={bucket.title} 
+                    href={getStationHref(bucket, bucketIndex, 'set')}
                     onPlay={() => handlePlayBucket(bucket)}
                   />
                 ))}
@@ -576,12 +591,12 @@ function DiscoverSection({ title, children, isLoading, hideIfEmpty = true, viewA
   );
 }
 
-function MixCard({ index, mix, onPlay }: { index: number, mix: any, onPlay: () => void }) {
+function MixCard({ index, mix, href, onPlay }: { index: number, mix: any, href: string, onPlay: () => void }) {
   const colors = ['#5e42a6', '#4a90e2', '#7ed321', '#f5a623', '#d0021b'];
   const color = colors[(index - 1) % colors.length];
 
   return (
-    <div className="min-w-[160px] group cursor-pointer" onClick={onPlay}>
+    <Link href={href} className="min-w-[160px] group block">
       <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
         <img 
           src={mix.artworkUrl || 'https://images.unsplash.com/photo-1514525253344-f24672a06c20?w=200&h=200&fit=crop'} 
@@ -589,6 +604,18 @@ function MixCard({ index, mix, onPlay }: { index: number, mix: any, onPlay: () =
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent pointer-events-none" />
+        <button
+          type="button"
+          aria-label={`Play ${mix.title || `Personal Mix ${index}`}`}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onPlay();
+          }}
+          className="absolute left-2 top-2 w-9 h-9 rounded-full bg-[#ff5500] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" className="ml-0.5"><polygon points="6,4 20,12 6,20" /></svg>
+        </button>
         <div className="absolute inset-x-0 bottom-0 p-2" style={{ background: `linear-gradient(transparent, ${color})` }}>
            <div className="bg-black/80 px-2 py-0.5 rounded-sm inline-block text-[10px] font-black italic tracking-tighter text-white">
              MIX {index}
@@ -597,18 +624,18 @@ function MixCard({ index, mix, onPlay }: { index: number, mix: any, onPlay: () =
       </div>
       <p className="text-[13px] font-medium text-white truncate">{mix.title || `Personal Mix ${index}`}</p>
       <p className="text-[12px] text-[#999] truncate">{mix.description || 'Based on your listening'}</p>
-    </div>
+    </Link>
   );
 }
 
-function EditorialCard({ type, title, onPlay }: { type: 'DAILY' | 'WEEKLY', title: string, onPlay: () => void }) {
+function EditorialCard({ type, title, href, onPlay }: { type: 'DAILY' | 'WEEKLY', title: string, href: string, onPlay: () => void }) {
   const gradient = type === 'DAILY' 
     ? 'from-[#1e3c72] to-[#2a5298]' 
     : 'from-[#ff512f] to-[#dd2476]';
   const label = type === 'DAILY' ? 'DAILY DROPS' : 'WEEKLY WAVE';
 
   return (
-    <div className="min-w-[160px] group cursor-pointer" onClick={onPlay}>
+    <Link href={href} className="min-w-[160px] group block">
       <div className={`w-[160px] h-[160px] rounded-sm overflow-hidden mb-2 relative bg-gradient-to-br ${gradient}`}>
         <div className="absolute inset-0 flex flex-col justify-end p-2 bg-black/20">
           <div className="bg-[#ff5500] px-2 py-0.5 rounded-sm inline-block text-[10px] font-bold text-white w-fit mb-1 shadow-lg">
@@ -619,10 +646,22 @@ function EditorialCard({ type, title, onPlay }: { type: 'DAILY' | 'WEEKLY', titl
         <div className="absolute top-2 right-2">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="white/20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </div>
+        <button
+          type="button"
+          aria-label={`Play ${title}`}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onPlay();
+          }}
+          className="absolute left-2 top-2 w-9 h-9 rounded-full bg-[#ff5500] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" className="ml-0.5"><polygon points="6,4 20,12 6,20" /></svg>
+        </button>
       </div>
       <p className="text-[13px] font-medium text-white truncate">{title}</p>
       <p className="text-[12px] text-[#999] truncate">The best of BioBeats, daily</p>
-    </div>
+    </Link>
   );
 }
 

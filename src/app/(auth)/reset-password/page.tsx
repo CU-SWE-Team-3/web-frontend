@@ -1,11 +1,11 @@
-import { Suspense } from 'react'
-import type { Metadata } from 'next'
-import { ResetPasswordForm } from '@/features/auth'
+import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { ResetPasswordForm } from '@/features/auth';
 
 export const metadata: Metadata = {
-  title: 'New Password — SoundCloud',
-  description: 'Set your new SoundCloud password',
-}
+  title: 'New Password - BioBeats',
+  description: 'Set your new BioBeats password',
+};
 
 export default function ResetPasswordPage() {
   return (
@@ -18,5 +18,5 @@ export default function ResetPasswordPage() {
         <ResetPasswordForm />
       </Suspense>
     </div>
-  )
+  );
 }

@@ -249,7 +249,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
             { label: 'Enable automatic play', checked: autoPlay, set: setAutoPlay },
             { label: 'Show comments', checked: showComments, set: setShowComments },
             { label: 'Show recommendations', checked: showRecommendations, set: setShowRecommendations },
-            { label: 'Show SoundCloud overlays', checked: showOverlays, set: setShowOverlays },
+            { label: 'Show BioBeats overlays', checked: showOverlays, set: setShowOverlays },
           ].map(({ label, checked, set }) => (
             <label key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#ccc', fontSize: 13 }}>
               <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)}
@@ -279,7 +279,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ color: '#999', fontSize: 9 }}>SOUNDCLOUD</span>
+                <span style={{ color: '#999', fontSize: 9 }}>BIOBEATS</span>
                 <button style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 2, padding: '3px 8px', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
                   Share

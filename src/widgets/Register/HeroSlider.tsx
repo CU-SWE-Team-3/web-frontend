@@ -1,23 +1,24 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@/shared/constants/routes';
+import { BioBeatsLogo } from '@/shared/ui/Brand';
 
 const slides = [
   {
     title: "Discover.\nGet Discovered.",
-    subtitle: "Discover your next obsession, or become someone else's. SoundCloud is the only community where fans and artists come together to discover and connect through music.",
-    artist: "DC the Don",
-    badge: "SoundCloud Artist Pro",
-    bg: "/slide1.png"
+    subtitle: "Discover your next obsession, or become someone else's. BioBeats is where fans and artists come together to discover and connect through music.",
+    artist: 'BioBeats Studio',
+    badge: 'Artist Pro',
+    bg: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1600&q=80',
   },
   {
     title: "It all starts with\nan upload.",
-    subtitle: "From bedrooms and broom closets to studios and stadiums, SoundCloud is where you define what's next.",
-    artist: "1900Rugrat",
-    badge: "Ascending Artist",
-    bg: "/slide2.png"
+    subtitle: "From bedrooms and small rooms to studios and stages, BioBeats is where you define what's next.",
+    artist: 'Recording Room',
+    badge: 'Ascending Artist',
+    bg: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1600&q=80',
   },
 ];
 
@@ -45,10 +46,9 @@ export default function HeroSlider() {
         background: '#222',
       }}
     >
-      {/* Background Images */}
       {slides.map((slide, i) => (
         <img
-          key={i}
+          key={slide.bg}
           src={slide.bg}
           alt=""
           data-testid={`hero-slide-image-${i}`}
@@ -65,17 +65,15 @@ export default function HeroSlider() {
         />
       ))}
 
-      {/* Dark gradient overlay */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25), transparent)',
+          background: 'linear-gradient(to right, rgba(0,0,0,0.72), rgba(0,0,0,0.32), rgba(0,0,0,0.08))',
           zIndex: 1,
         }}
       />
 
-      {/* Nav inside hero */}
       <nav
         data-testid="hero-nav"
         style={{
@@ -87,12 +85,7 @@ export default function HeroSlider() {
           padding: '16px 24px 0',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="white">
-            <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
-          </svg>
-          <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>SOUNDCLOUD</span>
-        </div>
+        <BioBeatsLogo iconSize={28} textSize={18} uppercase />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link
             href={ROUTES.LOGIN}
@@ -134,7 +127,6 @@ export default function HeroSlider() {
         </div>
       </nav>
 
-      {/* Content */}
       <div
         style={{
           position: 'relative',
@@ -186,7 +178,6 @@ export default function HeroSlider() {
         </Link>
       </div>
 
-      {/* Slider Dots */}
       <div
         data-testid="hero-slider-dots"
         style={{
@@ -218,7 +209,6 @@ export default function HeroSlider() {
         ))}
       </div>
 
-      {/* Artist Credit */}
       <div
         data-testid="hero-artist-credit"
         style={{
