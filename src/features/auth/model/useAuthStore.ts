@@ -72,26 +72,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isInitialized: true })
       }
     } catch {
-      // DEV BYPASS: Allow frontend development without a real backend
-      console.warn('Backend unavailable: Using local Dev Mock User')
-      set({ 
-        user: { 
-          id: "dev-mock-user", 
-          _id: "dev-mock-user",
-          username: "Local Dev", 
-          displayName: "Local Developer",
-          permalink: "local-dev",
-          email: "dev@biobeats.local", 
-          avatarUrl: undefined,
-          role: "Artist",
-          isPremium: true,
-          followerCount: 0,
-          followingCount: 0,
-          createdAt: new Date().toISOString()
-        } as User, 
-        isAuthenticated: true, 
-        isInitialized: true 
-      })
+      // In production, if backend is unavailable just mark as not authenticated
+      set({ isAuthenticated: false, isInitialized: true })
     }
   },
 }))
