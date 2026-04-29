@@ -245,7 +245,7 @@ export default function UploadPage() {
         <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
       )}
 
-      <main data-testid="upload-page" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 100px" }}>
+      <main data-testid="upload-page" style={{ maxWidth: 900, margin: "0 auto", padding: "clamp(16px, 4vw, 32px) clamp(12px, 3vw, 24px) 100px" }}>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* DROPZONE STATE                                                 */}
@@ -253,11 +253,11 @@ export default function UploadPage() {
         {stage === "dropzone" && (
           <>
             {/* Quota bar */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "#1a1a1a", borderRadius: 8, marginBottom: 32, border: "1px solid #333" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#1a1a1a", borderRadius: 8, marginBottom: 32, border: "1px solid #333", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 <span style={{ fontSize: 13, color: "#ccc" }}>0% of uploads used</span>
-                <div style={{ width: 200, height: 4, background: "#333", borderRadius: 2 }}><div style={{ width: "0%", height: "100%", background: "#f50", borderRadius: 2 }} /></div>
+                <div style={{ width: 140, height: 4, background: "#333", borderRadius: 2 }}><div style={{ width: "0%", height: "100%", background: "#f50", borderRadius: 2 }} /></div>
                 <span style={{ fontSize: 13, color: "#999" }}>0 of 120 minutes</span>
               </div>
               <button style={{ padding: "8px 20px", fontSize: 12, fontWeight: 600, color: "#fff", background: "transparent", border: "1px solid #fff", borderRadius: 100, cursor: "pointer" }}>Get unlimited uploads</button>
@@ -270,7 +270,7 @@ export default function UploadPage() {
 
             {/* Dropzone */}
             <div data-testid="upload-dropzone" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onClick={() => fileInputRef.current?.click()}
-              style={{ padding: "80px 40px", border: `2px dashed ${isDragOver ? "#f50" : "#444"}`, borderRadius: 8, textAlign: "center", cursor: "pointer", transition: "all 200ms", background: isDragOver ? "rgba(255,85,0,0.05)" : "transparent" }}>
+              style={{ padding: "clamp(32px, 8vw, 80px) clamp(16px, 5vw, 40px)", border: `2px dashed ${isDragOver ? "#f50" : "#444"}`, borderRadius: 8, textAlign: "center", cursor: "pointer", transition: "all 200ms", background: isDragOver ? "rgba(255,85,0,0.05)" : "transparent" }}>
               <div style={{ marginBottom: 20 }}>
                 <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
                   <path d="M52 34c0-9.4-7.6-17-17-17-7.5 0-13.8 4.8-16.1 11.5C12.4 29.5 8 34.6 8 40.7 8 47.4 13.4 53 20 53h28c7.7 0 14-6.3 14-14 0-3-1-5.8-2.6-8" stroke="#ccc" strokeWidth="2.5" strokeLinecap="round"/>
@@ -331,11 +331,11 @@ export default function UploadPage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {stage === "form" && (
           <div data-testid="metadata-form">
-            <div style={{ display: "flex", gap: 32, marginTop: 8 }}>
+            <div style={{ display: "flex", gap: 32, marginTop: 8, flexWrap: "wrap" }}>
               {/* ── Left: Artwork ── */}
-              <div style={{ flexShrink: 0 }}>
+              <div style={{ flexShrink: 0, width: '100%', maxWidth: 260 }}>
                 <div data-testid="metadata-artwork-upload" onClick={() => artworkInputRef.current?.click()}
-                  style={{ width: 260, height: 260, background: artworkUrl ? `url(${artworkUrl}) center/cover` : "#1a1a1a", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", border: "1px dashed #555" }}>
+                  style={{ width: '100%', aspectRatio: '1/1', background: artworkUrl ? `url(${artworkUrl}) center/cover` : "#1a1a1a", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", border: "1px dashed #555" }}>
                   {!artworkUrl && (
                     <div style={{ textAlign: "center", color: "#666" }}>
                       <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
@@ -448,7 +448,7 @@ export default function UploadPage() {
 
       {/* ── Bottom bar (form state) ── */}
       {stage === "form" && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#1a1a1a", borderTop: "1px solid #333", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 100 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#1a1a1a", borderTop: "1px solid #333", padding: "12px clamp(12px, 3vw, 24px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, zIndex: 100 }}>
           <p style={{ fontSize: 12, color: "#777" }}>
             By uploading, you confirm that your sounds comply with our <a href="#" style={{ color: "#fff", textDecoration: "underline" }}>Terms of Use</a> and you don&apos;t infringe anyone else&apos;s rights.
           </p>

@@ -143,12 +143,12 @@ const TrackDetailPage: React.FC = () => {
       <div className="bg-[#111] flex-1 pb-12">
         <div data-testid="track-page" className="max-w-[1240px] mx-auto pt-6 px-4">
           {/* Hero Header Section */}
-          <div className="relative mb-6 flex h-[380px] w-full" style={{ background: 'linear-gradient(135deg, #e4e4e4 0%, #b5b5b5 100%)' }}>
-            
+          <div className="relative mb-6 w-full" style={{ background: 'linear-gradient(135deg, #e4e4e4 0%, #b5b5b5 100%)' }}>
+            <div className="flex flex-col md:flex-row md:h-[380px]">
             {/* Left Content Area (Info + Waveform) */}
-            <div className="flex flex-col justify-between flex-1 p-6 z-10 relative">
+            <div className="flex flex-col justify-between flex-1 p-4 md:p-6 z-10 relative min-h-[200px]">
               {/* Top Row: Play button & Information */}
-              <div className="flex justify-between w-full">
+              <div className="flex flex-wrap justify-between w-full gap-2">
                 <div className="flex items-start gap-4">
                   {/* Play Button */}
                   <button 
@@ -174,7 +174,7 @@ const TrackDetailPage: React.FC = () => {
                         setTimeout(() => window.dispatchEvent(new CustomEvent('playerbar-playpause')), 50);
                       }
                     }}
-                    className="w-[60px] h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1"
+                    className="w-[48px] h-[48px] md:w-[60px] md:h-[60px] rounded-full bg-[#ff5500] flex items-center justify-center shrink-0 shadow-lg hover:scale-105 transition-transform mt-1"
                   >
                      {isCurrentTrackPlaying ? (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="ml-0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -185,29 +185,29 @@ const TrackDetailPage: React.FC = () => {
                   
                   {/* Text Info */}
                   <div className="flex flex-col items-start gap-1">
-                    <div className="bg-black/80 px-2 py-1 text-[22px] font-black tracking-tight text-white inline-flex">
+                    <div className="bg-black/80 px-2 py-1 text-[16px] md:text-[22px] font-black tracking-tight text-white inline-flex">
                       {track.title}
                     </div>
-                    <div className="bg-black/80 px-2 py-1 text-[13px] text-[#ccc] inline-flex">
+                    <div className="bg-black/80 px-2 py-1 text-[12px] md:text-[13px] text-[#ccc] inline-flex">
                       {track.artist}
                     </div>
                   </div>
                 </div>
 
                 {/* Right Top Info */}
-                <div className="flex flex-col items-end gap-2 pr-6">
-                  <span className="text-[12px] text-black/60 font-medium">1 month ago</span>
-                  <span className="px-3 py-1 bg-black/40 rounded-full text-[12px] text-white font-bold backdrop-blur-md">
+                <div className="flex flex-row md:flex-col items-center md:items-end gap-2 md:pr-6">
+                  <span className="text-[11px] text-black/60 font-medium">1 month ago</span>
+                  <span className="px-2 py-1 bg-black/40 rounded-full text-[11px] md:text-[12px] text-white font-bold backdrop-blur-md">
                     # {track.genre || "Music"}
                   </span>
-                  <span className="px-3 py-1 bg-black/40 rounded-full text-[12px] text-white font-bold backdrop-blur-md">
+                  <span className="px-2 py-1 bg-black/40 rounded-full text-[11px] md:text-[12px] text-white font-bold backdrop-blur-md">
                     {track.duration}
                   </span>
                 </div>
               </div>
 
               {/* Bottom Row: Waveform */}
-              <div className="w-full mt-auto mr-[20px]" data-testid="track-waveform">
+              <div className="w-full mt-4 md:mt-auto md:mr-[20px]" data-testid="track-waveform">
                 <WaveformPlayer 
                   waveform={track.waveform} 
                   onTimeUpdate={setCurrentPlaybackTime}
@@ -232,8 +232,8 @@ const TrackDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Content Area: Artwork (340x340) */}
-            <div className="w-[340px] h-[340px] shrink-0 m-5 shadow-[0_5px_20px_rgba(0,0,0,0.15)] relative z-20 bg-white">
+            {/* Right Content Area: Artwork */}
+            <div className="w-full md:w-[340px] md:h-[340px] aspect-square md:aspect-auto shrink-0 md:m-5 relative z-20 bg-white" style={{ maxWidth: '100%' }}>
               <img
                 data-testid="track-artwork"
                 src={track.artworkUrl}
@@ -249,7 +249,7 @@ const TrackDetailPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            
+            </div>
           </div>
 
           {/* Main Content Area */}
