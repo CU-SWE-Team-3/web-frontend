@@ -114,6 +114,23 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
 
+    const syncWaveformSeek = (time?: number) => {
+      const seekTime = typeof time === 'number' ? time : ws.getCurrentTime();
+      setCurrentTime(seekTime);
+      onTimeUpdate?.(seekTime);
+
+      const store = usePlayerStore.getState();
+      const isThisTrack = trackMeta && store.currentTrack?.id === trackMeta.id;
+      if (isThisTrack && store.playbackSource === 'inline') {
+        const dur = ws.getDuration();
+        if (dur > 0) store.setDuration(dur);
+        store.seek(seekTime);
+      }
+    };
+
+    (ws.on as any)("seeking", syncWaveformSeek);
+    (ws.on as any)("interaction", syncWaveformSeek);
+
     ws.on("play", () => setIsPlaying(true));
     ws.on("pause", () => setIsPlaying(false));
     ws.on("finish", () => {

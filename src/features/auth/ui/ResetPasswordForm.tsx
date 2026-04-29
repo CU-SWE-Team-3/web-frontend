@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import axios from 'axios'
+import apiClient from '@/shared/api/client'
 import { AppInput, AppButton } from '@/shared/ui'
 import { ROUTES } from '@/shared/constants/routes'
 
@@ -57,15 +57,10 @@ const ResetPasswordForm = () => {
         return
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
-      await axios.patch(
-        `${apiUrl}/auth/reset-password`,
-        { token, newPassword },   // <-- no confirmPassword in body per the spec (PATCH per v1.10)
-        { withCredentials: true }
-      )
+      await apiClient.patch('/auth/reset-password', { token, newPassword }) // no confirmPassword per the spec
       setSuccess(true)
-    } catch {
-      setErrors({ general: 'This link has expired or is invalid. Please request a new reset link.' })
+    } catch (err: any) {
+      setErrors({ general: err?.response?.data?.message || 'This link has expired or is invalid. Please request a new reset link.' })
     } finally {
       setIsLoading(false)
     }

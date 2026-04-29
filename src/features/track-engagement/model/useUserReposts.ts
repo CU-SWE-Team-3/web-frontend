@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getUserReposts } from "../api/engagementApi";
+import type { Track } from "@/features/tracks/model/track";
 
 export const USER_REPOSTS_QUERY_KEY = ["user-reposts"] as const;
 
@@ -9,24 +10,9 @@ export const USER_REPOSTS_QUERY_KEY = ["user-reposts"] as const;
  */
 export interface RepostedTrack {
   repostDate: string;
-  track: {
-    _id: string;
-    id?: string;
-    title: string;
-    artist: {
-      _id: string;
-      displayName: string;
-      permalink: string;
-      avatarUrl: string;
-    };
-    audioUrl?: string;
-    artworkUrl?: string;
-    duration: number;
-    playCount: number;
-    likeCount: number;
-    repostCount: number;
-    createdAt: string;
-  };
+  targetModel?: string;
+  target?: Track;
+  track: Track;
 }
 
 export const useUserReposts = (userId: string) => {
