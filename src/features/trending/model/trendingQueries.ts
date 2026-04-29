@@ -44,3 +44,33 @@ export function useEditorial() {
     refetchOnWindowFocus: false,
   })
 }
+
+// ─── useMixedForYou ───────────────────────────────────────────────────────────
+export function useMixedForYou() {
+  return useQuery<any[], Error>({
+    queryKey: ['mixed-for-you'] as const,
+    queryFn: () => trendingRepository.getMixedForYou(),
+    staleTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+}
+
+// ─── useMoreOfWhatYouLike ─────────────────────────────────────────────────────
+export function useMoreOfWhatYouLike() {
+  return useQuery<TrendingTrack[], Error>({
+    queryKey: ['more-of-what-you-like'] as const,
+    queryFn: () => trendingRepository.getMoreOfWhatYouLike(),
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+}
+
+// ─── useSuggestedArtists ──────────────────────────────────────────────────────
+export function useSuggestedArtists() {
+  return useQuery<any[], Error>({
+    queryKey: ['suggested-artists'] as const,
+    queryFn: () => trendingRepository.getSuggestedArtists(),
+    staleTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+}

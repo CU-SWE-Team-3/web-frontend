@@ -16,7 +16,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace(ROUTES.FEED)
+      router.replace(ROUTES.HOME)
     }
   }, [isAuthenticated, router])
 
