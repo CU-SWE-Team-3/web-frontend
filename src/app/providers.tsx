@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthHydrator } from '@/features/auth/ui/AuthHydrator';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
-import { connectSocket, disconnectSocket, getSocket } from '@/shared/socket';
+import { connectSocket, disconnectSocket } from '@/shared/socket';
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
+import { ROUTES } from '@/shared/constants/routes';
 
 /**
  * Gate that waits until auth hydration is complete before rendering children.
@@ -107,6 +109,28 @@ function SocketProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminRouteGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const isAdmin = user?.role?.toLowerCase?.() === 'admin';
+
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated || !isAdmin) return;
+    if (pathname?.startsWith('/admin')) return;
+
+    router.replace(ROUTES.ADMIN_DASHBOARD);
+  }, [isInitialized, isAuthenticated, isAdmin, pathname, router]);
+
+  if (isInitialized && isAuthenticated && isAdmin && !pathname?.startsWith('/admin')) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -125,7 +149,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthHydrator />
       <AuthGate>
         <SocketProvider>
-          {children}
+          <AdminRouteGuard>{children}</AdminRouteGuard>
         </SocketProvider>
       </AuthGate>
     </QueryClientProvider>
