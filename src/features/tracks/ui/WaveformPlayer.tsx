@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { AppButton } from "@/shared/ui";
 import { Pause, Play } from "lucide-react";
@@ -43,6 +43,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
+  const isSeekingRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -121,10 +122,16 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
       const store = usePlayerStore.getState();
       const isThisTrack = trackMeta && store.currentTrack?.id === trackMeta.id;
-      if (isThisTrack && store.playbackSource === 'inline') {
+      if (isThisTrack) {
         const dur = ws.getDuration();
         if (dur > 0) store.setDuration(dur);
+        // Set seeking guard BEFORE dispatching to prevent snap-back from timeupdate
+        isSeekingRef.current = true;
         store.seek(seekTime);
+        // Tell GlobalAudioEngine to seek the actual <audio> element
+        window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: seekTime } }));
+        // Clear guard after audio element has time to process the seek
+        setTimeout(() => { isSeekingRef.current = false; }, 200);
       }
     };
 
@@ -207,7 +214,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
 
       // Sync Global Player scrubbing -> Waveform visual playhead
-      if (isThisTrack && typeof state.currentTime === 'number') {
+      if (isThisTrack && typeof state.currentTime === 'number' && !isSeekingRef.current) {
         const wsTime = ws.getCurrentTime();
         if (Math.abs(wsTime - state.currentTime) > 0.5) {
           const dur = ws.getDuration();
