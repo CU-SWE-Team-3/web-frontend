@@ -18,6 +18,7 @@ export interface Track {
   artworkUrl: string;
   waveform: number[];
   duration: string;
+  durationSeconds?: number;
   createdAt: string;
   updatedAt?: string;
   hlsUrl?: string;

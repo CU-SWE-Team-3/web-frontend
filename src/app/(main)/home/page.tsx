@@ -12,6 +12,7 @@ import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { SquareTrackCard } from '@/shared/ui';
+import { useEditorial, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -34,27 +35,20 @@ export default function HomePage() {
   // Liked tracks
   const { data: likedTracksList } = useLikedTracks();
 
-  // Deduplicate and get recently played tracks
-  const recentlyPlayed = listeningHistory.slice(0, 10).map((entry) => entry.track);
+  const { data: mixedData, isLoading: isMixedLoading } = useMixedForYou();
+  const { data: moreOfWhatYouLike, isLoading: isMoreLoading } = useMoreOfWhatYouLike();
+  const { data: curatedBuckets, isLoading: isCuratedLoading } = useEditorial();
+  const { data: userSuggestions, isLoading: isSuggestLoading } = useSuggestedArtists();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch Suggested Artists
-        const suggestRes = await apiClient.get(`/network/suggested`, { withCredentials: true });
-        if (suggestRes.data.success) {
-          const arr = suggestRes.data.data || [];
-          setSuggestedArtists(arr);
-          const folMap: Record<string, boolean> = {};
-          arr.forEach((a: any) => (folMap[a._id] = false));
-          setFollowingMap(folMap);
-        }
-      } catch (err) {
-        console.warn('Failed to fetch suggested artists:', err);
-      }
+    // Sync local state with suggest query if needed
+    if (userSuggestions) {
+      setSuggestedArtists(userSuggestions);
+      const folMap: Record<string, boolean> = {};
+      userSuggestions.forEach((a: any) => (folMap[a._id] = false));
+      setFollowingMap(folMap);
     }
-    fetchData();
-  }, []);
+  }, [userSuggestions]);
 
   const handleFollowToggle = async (artistId: string) => {
     if (!isAuthenticated) return;
@@ -69,6 +63,7 @@ export default function HomePage() {
       }
       queryClient.invalidateQueries({ queryKey: ['network'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['suggested-artists'] });
     } catch (err) {
       console.warn('Follow action failed:', err);
       setFollowingMap((prev) => ({ ...prev, [artistId]: currentlyFollowing }));
@@ -82,48 +77,59 @@ export default function HomePage() {
       artist: trackNode.artist?.displayName || trackNode.artist || 'Unknown',
       artworkUrl: trackNode.artworkUrl || null,
       hlsUrl: trackNode.hlsUrl || '',
+      waveform: trackNode.waveform || [],
       duration: trackNode.duration || 0,
     };
     play(track);
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#111', color: '#fff', fontFamily: 'var(--sc-font-family)' }}>
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main data-testid="home-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}>
+      <main data-testid="home-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 40 }}>
         {/* ─── Main Feed (Left Column) ─── */}
-        <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           
+          {/* Mixed for You */}
+          <HomeSection 
+            title={`Mixed for ${useAuthStore.getState().user?.displayName || 'you'}`} 
+            isLoading={isMixedLoading}
+          >
+            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              {mixedData?.length ? mixedData.map((mix: any, i: number) => (
+                <MixCard key={mix.id || i} index={i + 1} mix={mix} />
+              )) : (
+                [1,2,3,4,5].map(i => <MixCard key={i} index={i} mix={{}} />)
+              )}
+            </div>
+          </HomeSection>
+
           {/* More of what you like */}
-          <section className="mb-12">
-            <h2 className="text-[24px] font-bold text-white mb-6">More of what you like</h2>
-            {likedTracksList && likedTracksList.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-                {likedTracksList.map((track) => (
-                  <SquareTrackCard 
-                    key={track.id}
-                    id={track.id}
-                    title={track.title}
-                    artist={track.artist}
-                    artworkUrl={track.artworkUrl}
-                    onPlay={() => handlePlayTrack(track)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-[#888] text-[14px]">You haven't liked any tracks recently to show here.</p>
-            )}
-          </section>
+          <HomeSection title="More of what you like" isLoading={isMoreLoading}>
+            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              {moreOfWhatYouLike?.length ? moreOfWhatYouLike.map((track) => (
+                <SquareTrackCard 
+                  key={track._id}
+                  id={track._id}
+                  title={track.title}
+                  artist={track.artist.displayName}
+                  artworkUrl={track.artworkUrl}
+                  onPlay={() => handlePlayTrack(track)}
+                />
+              )) : (
+                <p className="text-[#666] text-[13px] py-4">Like more tracks to get personalized recommendations.</p>
+              )}
+            </div>
+          </HomeSection>
 
           {/* Recently Played */}
-          <section className="mb-12">
-            <h2 className="text-[24px] font-bold text-white mb-6">Recently Played</h2>
-            {recentlyPlayed && recentlyPlayed.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-                {recentlyPlayed.map((track) => (
+          <HomeSection title="Recently Played" hideIfEmpty={false}>
+            {recentlyPlayed.length > 0 ? (
+              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+                {recentlyPlayed.map((track, i) => (
                   <SquareTrackCard 
-                    key={track.id}
+                    key={`${track.id}-${i}`}
                     id={track.id}
                     title={track.title}
                     artist={track.artist}
@@ -133,9 +139,83 @@ export default function HomePage() {
                 ))}
               </div>
             ) : (
-              <p className="text-[#888] text-[14px]">Your recent listening history will appear here.</p>
+              <p className="text-[#666] text-[13px] py-4">Your recent listening history will appear here.</p>
             )}
-          </section>
+          </HomeSection>
+
+          {/* Made for You (Daily Drops / Weekly Wave) */}
+          <HomeSection title="Made for you" isLoading={isCuratedLoading}>
+            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <EditorialCard type="DAILY" title="Daily Drops" />
+              <EditorialCard type="WEEKLY" title="Weekly Wave" />
+              {curatedBuckets?.slice(0, 3).map((bucket) => (
+                <SquareTrackCard 
+                  key={bucket.id}
+                  id={bucket.id}
+                  title={bucket.title}
+                  artist="SoundCloud"
+                  artworkUrl={bucket.tracks?.[0]?.artworkUrl}
+                />
+              ))}
+            </div>
+          </HomeSection>
+
+          {/* Liked By */}
+          <HomeSection title="Liked By">
+            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              {likedTracksList?.length ? likedTracksList.slice(0, 8).map((track) => (
+                <div key={track.id} className="min-w-[160px] relative group cursor-pointer">
+                  <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
+                    <img src={track.artworkUrl || 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=200&h=200&fit=crop'} className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 to-transparent" />
+                    <div className="absolute bottom-2 left-2 text-[10px] font-bold text-white/50 tracking-widest uppercase">Liked By</div>
+                    <div className="absolute top-2 left-2 bg-[#ff5500] text-white text-[8px] font-bold px-1 py-0.5 rounded-sm flex items-center gap-1 shadow-lg">
+                       <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                       LIKED
+                    </div>
+                  </div>
+                  <p className="text-[13px] font-medium text-white truncate">{track.title}</p>
+                  <p className="text-[12px] text-[#999] truncate">{track.artist}'s Picks</p>
+                </div>
+              )) : (
+                <p className="text-[#666] text-[13px] py-4">Like more tracks to see them here.</p>
+              )}
+            </div>
+          </HomeSection>
+
+          {/* Albums for You */}
+          <HomeSection title="Albums for you">
+             <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              {moreOfWhatYouLike?.length ? moreOfWhatYouLike.slice(3, 10).map((track) => (
+                <SquareTrackCard 
+                  key={`album-${track._id}`}
+                  id={track._id}
+                  title={track.title}
+                  artist={track.artist.displayName}
+                  artworkUrl={track.artworkUrl}
+                />
+              )) : (
+                [1,2,3,4,5].map(i => <div key={i} className="min-w-[160px] h-[200px] bg-[#111] rounded-sm" />)
+              )}
+            </div>
+          </HomeSection>
+
+          {/* New crew, suggested for you */}
+          <HomeSection title="New crew, suggested for you" isLoading={isSuggestLoading}>
+            <div className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
+              {suggestedArtists.length ? suggestedArtists.map((artist) => (
+                <ArtistCard 
+                  key={artist._id} 
+                  artist={artist} 
+                  isFollowing={followingMap[artist._id]}
+                  onToggle={() => handleFollowToggle(artist._id)}
+                />
+              )) : (
+                <p className="text-[#666] text-[13px] py-4">No suggestions available right now.</p>
+              )}
+            </div>
+          </HomeSection>
+
         </div>
 
         {/* ─── Sidebar (Right Column) ─── */}
@@ -330,6 +410,126 @@ export default function HomePage() {
   );
 }
 
+// ─── Internal Components ──────────────────────────────────────────────────────
+
+function HomeSection({ title, children, isLoading, hideIfEmpty = true, viewAllHref }: { title: string, children: React.ReactNode, isLoading?: boolean, hideIfEmpty?: boolean, viewAllHref?: string }) {
+  if (isLoading) {
+    return (
+      <section className="mb-14">
+        <div className="h-7 w-48 bg-[#222] rounded mb-6 animate-pulse" />
+        <div className="flex gap-5 overflow-hidden">
+          {[1,2,3,4,5].map(i => <div key={i} className="min-w-[160px] h-[220px] bg-[#111] rounded-sm animate-pulse" />)}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mb-14">
+      <div className="flex items-baseline justify-between mb-6">
+        <h2 className="text-[24px] font-bold text-white tracking-tight">{title}</h2>
+        {viewAllHref && (
+          <Link href={viewAllHref} className="text-[12px] text-[#999] hover:text-[#ccc] transition-colors">
+            View all
+          </Link>
+        )}
+      </div>
+      {children}
+      <style jsx>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+    </section>
+  );
+}
+
+function MixCard({ index, mix }: { index: number, mix: any }) {
+  const colors = ['#5e42a6', '#4a90e2', '#7ed321', '#f5a623', '#d0021b'];
+  const color = colors[(index - 1) % colors.length];
+
+  return (
+    <div className="min-w-[160px] group cursor-pointer">
+      <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
+        <img 
+          src={mix.artworkUrl || 'https://images.unsplash.com/photo-1514525253344-f24672a06c20?w=200&h=200&fit=crop'} 
+          className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+        />
+        <div className="absolute inset-x-0 bottom-0 p-2" style={{ background: `linear-gradient(transparent, ${color})` }}>
+           <div className="bg-black/80 px-2 py-0.5 rounded-sm inline-block text-[10px] font-black italic tracking-tighter text-white">
+             MIX {index}
+           </div>
+        </div>
+      </div>
+      <p className="text-[13px] font-medium text-white truncate">{mix.title || `Personal Mix ${index}`}</p>
+      <p className="text-[12px] text-[#999] truncate">{mix.description || 'Based on your listening'}</p>
+    </div>
+  );
+}
+
+function EditorialCard({ type, title }: { type: 'DAILY' | 'WEEKLY', title: string }) {
+  const gradient = type === 'DAILY' 
+    ? 'from-[#1e3c72] to-[#2a5298]' 
+    : 'from-[#ff512f] to-[#dd2476]';
+  const label = type === 'DAILY' ? 'DAILY DROPS' : 'WEEKLY WAVE';
+
+  return (
+    <div className="min-w-[160px] group cursor-pointer">
+      <div className={`w-[160px] h-[160px] rounded-sm overflow-hidden mb-2 relative bg-gradient-to-br ${gradient}`}>
+        <div className="absolute inset-0 flex flex-col justify-end p-2 bg-black/20">
+          <div className="bg-[#ff5500] px-2 py-0.5 rounded-sm inline-block text-[10px] font-bold text-white w-fit mb-1 shadow-lg">
+             {label}
+          </div>
+          <p className="text-white text-[18px] font-black leading-none uppercase">{title}</p>
+        </div>
+        <div className="absolute top-2 right-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white/20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+      </div>
+      <p className="text-[13px] font-medium text-white truncate">{title}</p>
+      <p className="text-[12px] text-[#999] truncate">The best of BioBeats, daily</p>
+    </div>
+  );
+}
+
+function ArtistCard({ artist, isFollowing, onToggle }: { artist: any, isFollowing: boolean, onToggle: () => void }) {
+  return (
+    <div className="min-w-[140px] flex flex-col items-center group">
+      <Link href={ROUTES.PROFILE(artist.permalink || artist._id)} className="relative mb-3">
+        <div className="w-[130px] h-[130px] rounded-full overflow-hidden bg-[#222] ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
+          <img 
+            src={artist.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=140&h=140&fit=crop'} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+          />
+        </div>
+        {!isFollowing && (
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+             <div className="w-10 h-10 bg-[#ff5500] rounded-full flex items-center justify-center shadow-xl">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+             </div>
+          </div>
+        )}
+      </Link>
+      <Link href={ROUTES.PROFILE(artist.permalink || artist._id)} className="text-[14px] font-bold text-white mb-1 hover:underline truncate w-full text-center px-2">
+        {artist.displayName}
+      </Link>
+      <span className="text-[12px] text-[#999] mb-4 flex items-center gap-1">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        {fmt(artist.followerCount || 0)} followers
+      </span>
+      <button 
+        onClick={onToggle}
+        className={`px-6 py-1.5 rounded-sm text-[13px] font-bold transition-all ${
+          isFollowing 
+            ? 'border border-[#444] text-[#ccc] hover:border-[#666]' 
+            : 'bg-white text-black hover:bg-gray-200'
+        }`}
+      >
+        {isFollowing ? 'Following' : 'Follow'}
+      </button>
+    </div>
+  );
+}
+
 function SidebarTrackRow({ track, onPlay }: { track: any, onPlay: () => void }) {
   const [hovered, setHovered] = useState(false);
 
@@ -363,8 +563,6 @@ function SidebarTrackRow({ track, onPlay }: { track: any, onPlay: () => void }) 
         <div className="flex gap-2 text-[11px] text-[#777] mt-1 items-center">
           <span className="flex items-center gap-1">▶ {fmt(track.playCount || 0)}</span>
           <span className="flex items-center gap-1">♥ {fmt(track.likeCount || 0)}</span>
-          <span className="flex items-center gap-1">↺ {fmt(track.repostCount || 0)}</span>
-          <span className="flex items-center gap-1">💬 {fmt(track.commentCount || 0)}</span>
         </div>
       </div>
 

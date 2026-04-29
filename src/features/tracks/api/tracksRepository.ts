@@ -112,6 +112,7 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     artworkUrl: artwork,
     waveform: t.waveform || makeWaveform(),
     duration: durationValue,
+    durationSeconds: t.duration || 0,
     createdAt: t.createdAt || t.created_at || "",
     updatedAt: t.updatedAt || t.updated_at || "",
     streamUrl: stream,
