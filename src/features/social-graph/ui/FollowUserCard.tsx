@@ -5,6 +5,7 @@ import { UserAvatar, UserIcon, AppButton } from "@/shared/ui";
 import { FollowNode } from "../model/types";
 import { useFollowUser } from "../model/useFollowUser";
 import { useUnfollowUser } from "../model/useUnfollowUser";
+import { useFollowStore } from "../model/useFollowStore";
 
 interface FollowUserCardProps {
   user: FollowNode;
@@ -19,7 +20,17 @@ const formatFollowers = (count: number | undefined | null) => {
 
 export const FollowUserCard = ({ user }: FollowUserCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(user.isFollowing || false);
+  const targetId = user.id || (user as any)._id;
+
+  const followStore = useFollowStore();
+  const globalFollowing = followStore.followingMap[targetId];
+  const isFollowing = globalFollowing ?? (user.isFollowing || false);
+
+  React.useEffect(() => {
+    if (user.isFollowing !== undefined) {
+      followStore.initFollowing(targetId, user.isFollowing);
+    }
+  }, [targetId, user.isFollowing, followStore]);
 
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -27,12 +38,11 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
   const toggleFollow = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    setIsFollowing((prev) => !prev);
-    const targetId = user.id || (user as any)._id;
-
     if (isFollowing) {
+      followStore.setFollowing(targetId, false);
       unfollowMutation.mutate(targetId);
     } else {
+      followStore.setFollowing(targetId, true);
       followMutation.mutate({ targetId, targetUser: user });
     }
   };

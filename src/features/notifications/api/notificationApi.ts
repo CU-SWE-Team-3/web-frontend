@@ -60,6 +60,16 @@ export const deleteNotification = async (id: string): Promise<void> => {
 }
 
 /**
+ * GET /notifications/preferences — fetch push notification preferences
+ */
+export const fetchNotificationPreferences = async (): Promise<NotificationPreferences> => {
+  const { data } = await apiClient.get('/notifications/preferences', {
+    withCredentials: true,
+  })
+  return data.data
+}
+
+/**
  * PATCH /notifications/preferences — update push notification preferences
  * YAML: 200 → { success, data: NotificationPreferences }
  */

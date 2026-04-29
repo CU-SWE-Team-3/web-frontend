@@ -88,19 +88,19 @@ describe('Feed Page', () => {
 
   it('loads and displays feed tracks', async () => {
     renderFeed()
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('feed-track-list')).toBeInTheDocument()
       expect(screen.getAllByTestId('feed-track-item').length).toBeGreaterThan(0)
     })
-    
+
     const firstItem = screen.getAllByTestId('feed-track-item')[0]
     expect(within(firstItem).getByTestId('track-card-title')).toHaveTextContent('Cool Track')
   })
 
   it('loads and displays suggested artists', async () => {
     renderFeed()
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('feed-artist-suggestions')).toBeInTheDocument()
       expect(screen.getByText('Suggested Artist')).toBeInTheDocument()
@@ -110,16 +110,16 @@ describe('Feed Page', () => {
   it('artist follow button toggles state on click', async () => {
     const user = userEvent.setup()
     renderFeed()
-    
+
     await waitFor(() => {
       expect(screen.getAllByTestId('feed-artist-follow-button').length).toBeGreaterThan(0)
     })
-    
+
     const followBtn = screen.getAllByTestId('feed-artist-follow-button')[0]
     expect(followBtn).toHaveTextContent('Follow')
-    
+
     await user.click(followBtn)
-    
+
     await waitFor(() => {
       expect(followBtn).toHaveTextContent('Following')
     })
