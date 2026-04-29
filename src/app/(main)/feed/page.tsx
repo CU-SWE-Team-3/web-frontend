@@ -357,10 +357,10 @@ export default function FeedPage() {
 
       <main
         data-testid="feed-page"
-        style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}
+        style={{ maxWidth: 1240, margin: '0 auto', padding: 'clamp(16px, 4vw, 32px) clamp(12px, 3vw, 24px)', display: 'flex', gap: 32, flexWrap: 'wrap' }}
       >
         {/* ─── Main Feed Column ─── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 'min(100%, 300px)' }}>
 
           {/* Recently Played Section */}
           {recentlyPlayed.length > 0 && (
@@ -513,7 +513,7 @@ export default function FeedPage() {
         </div>
 
         {/* ─── Sidebar ─── */}
-        <aside style={{ width: 300, flexShrink: 0 }}>
+        <aside style={{ width: 'min(300px, 100%)', flexShrink: 0 }}>
           
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">

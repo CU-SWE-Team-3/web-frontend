@@ -34,6 +34,10 @@ export const NavBar: FC<NavBarProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [internalSearch, setInternalSearch] = useState(searchValue ?? '');
 
+  // ── Mobile hamburger menu state ──
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
   // ── Sync internal search with external search value (e.g. on navigation) ──
   useEffect(() => {
     if (searchValue !== undefined) {
@@ -76,9 +80,21 @@ export const NavBar: FC<NavBarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [moreOpen]);
 
+  // Close mobile menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    if (mobileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [mobileMenuOpen]);
+
   const handleLogout = async () => {
     setDropdownOpen(false);
     setMoreOpen(false);
+    setMobileMenuOpen(false);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       await fetch(`${apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' });
@@ -90,7 +106,6 @@ export const NavBar: FC<NavBarProps> = ({
   const handleBellClick = useCallback(() => {
     const opening = !isDropdownOpen;
     setNotifDropdownOpen(opening);
-    // Clear the red dot as soon as the user opens the notification panel
     if (opening && unreadCount > 0) {
       markAllRead();
     }
@@ -140,87 +155,24 @@ export const NavBar: FC<NavBarProps> = ({
 
             {dropdownOpen && (
               <div className={s.dropdown} data-testid="navbar-profile-dropdown-menu">
-                <Link
-                  href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-profile"
-                >
+                <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'} className={s.dropdownItem} onClick={() => setDropdownOpen(false)} data-testid="navbar-dropdown-profile">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   Profile
                 </Link>
-                <Link
-                  href={ROUTES.LIBRARY_LIKES}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-likes"
-                >
+                <Link href={ROUTES.LIBRARY_LIKES} className={s.dropdownItem} onClick={() => setDropdownOpen(false)} data-testid="navbar-dropdown-likes">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                   Likes
                 </Link>
-                <Link
-                  href={ROUTES.STATIONS}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-stations"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
-                  Stations
-                </Link>
-                <Link
-                  href={user ? ROUTES.FOLLOWING(((user as any).permalink || user.id)) : '/'}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-following"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                  Following
-                </Link>
-                <Link
-                  href="/feed"
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-who-to-follow"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="21 8 21 14"/><polyline points="18 11 24 11"/></svg>
-                  Who to follow
-                </Link>
-                <Link
-                  href={ROUTES.FOR_ARTISTS}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-try-pro"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="var(--sc-primary, #f50)"/><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.4l-6.8 4.8 2.4-7.2-6-4.8h7.6z" fill="#fff"/></svg>
-                  Try Artist Pro
-                </Link>
-                <Link
-                  href={ROUTES.MY_TRACKS}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-tracks"
-                >
+                <Link href={ROUTES.MY_TRACKS} className={s.dropdownItem} onClick={() => setDropdownOpen(false)} data-testid="navbar-dropdown-tracks">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="2" height="20"/><rect x="9" y="6" width="2" height="16"/><rect x="14" y="4" width="2" height="18"/><rect x="19" y="8" width="2" height="14"/></svg>
                   Tracks
                 </Link>
-                <Link
-                  href={ROUTES.SETTINGS}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-insights"
-                >
+                <Link href={ROUTES.SETTINGS} className={s.dropdownItem} onClick={() => setDropdownOpen(false)} data-testid="navbar-dropdown-insights">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                  Insights
+                  Settings
                 </Link>
-                <Link
-                  href={ROUTES.SETTINGS}
-                  className={s.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                  data-testid="navbar-dropdown-distribute"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                  Distribute
-                </Link>
+                <div className={s.dropdownDivider} />
+                <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-more-signout">Sign out</button>
               </div>
             )}
           </div>
@@ -251,7 +203,7 @@ export const NavBar: FC<NavBarProps> = ({
           {/* ── More (3-dots) Dropdown ── */}
           <div ref={moreRef} className={s.dropdownWrapper}>
             <button
-              className={s.iconBtn}
+              className={`${s.iconBtn} ${s.desktopOnlyIcon}`}
               onClick={() => setMoreOpen(!moreOpen)}
               data-testid="navbar-more-button"
             >
@@ -266,17 +218,39 @@ export const NavBar: FC<NavBarProps> = ({
                 <div className={s.dropdownDivider} />
                 <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-mobile-apps">Mobile apps</Link>
                 <Link href={ROUTES.FOR_ARTISTS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-artist-membership">Artist Membership</Link>
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-newsroom">Newsroom</Link>
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-jobs">Jobs</Link>
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-developers">Developers</Link>
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-store">SoundCloud Store</Link>
                 <div className={s.dropdownDivider} />
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-support">Support</Link>
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-keyboard">Keyboard shortcuts</Link>
-                <div className={s.dropdownDivider} />
-                <Link href="#" className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-subscription">Subscription</Link>
                 <Link href={ROUTES.SETTINGS} className={s.dropdownItem} onClick={() => setMoreOpen(false)} data-testid="navbar-more-settings">Settings</Link>
                 <button className={s.dropdownItem} onClick={handleLogout} data-testid="navbar-more-signout">Sign out</button>
+              </div>
+            )}
+          </div>
+
+          {/* ── Mobile Hamburger ── */}
+          <div ref={mobileMenuRef} className={s.mobileMenuWrapper}>
+            <button
+              className={s.hamburgerBtn}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Menu"
+              data-testid="navbar-hamburger"
+            >
+              <span className={`${s.hamburgerLine} ${mobileMenuOpen ? s.hamburgerLineOpen1 : ''}`} />
+              <span className={`${s.hamburgerLine} ${mobileMenuOpen ? s.hamburgerLineOpen2 : ''}`} />
+              <span className={`${s.hamburgerLine} ${mobileMenuOpen ? s.hamburgerLineOpen3 : ''}`} />
+            </button>
+
+            {mobileMenuOpen && (
+              <div className={s.mobileMenu} data-testid="navbar-mobile-menu">
+                <Link href={ROUTES.DASHBOARD} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                <Link href={ROUTES.FEED} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Feed</Link>
+                <Link href={ROUTES.LIBRARY} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Library</Link>
+                <div className={s.mobileDivider} />
+                <Link href={ROUTES.FOR_ARTISTS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>For Artists</Link>
+                <button className={s.mobileMenuItem} onClick={() => { setMobileMenuOpen(false); onUpload?.(); }}>Upload</button>
+                <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Profile</Link>
+                <Link href={ROUTES.MY_TRACKS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>My Tracks</Link>
+                <Link href={ROUTES.SETTINGS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Settings</Link>
+                <div className={s.mobileDivider} />
+                <button className={`${s.mobileMenuItem} ${s.mobileMenuItemDanger}`} onClick={handleLogout}>Sign out</button>
               </div>
             )}
           </div>
