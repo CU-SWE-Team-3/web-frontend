@@ -71,10 +71,7 @@ describe('LoginForm', () => {
     await user.click(screen.getByTestId('login-submit-button'))
     
     await waitFor(() => {
-
-  expect(mockReplace).toHaveBeenCalledWith(ROUTES.DASHBOARD)
-})
-
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.DASHBOARD)
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(useAuthStore.getState().user?.email).toBe('test@example.com')

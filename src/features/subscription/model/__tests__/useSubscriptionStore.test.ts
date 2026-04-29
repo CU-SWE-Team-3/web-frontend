@@ -38,6 +38,7 @@ describe('useSubscriptionStore', () => {
 
     it('syncs Pro plan from user object', () => {
       const mockUser = {
+        id: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'Artist' as const,
@@ -59,6 +60,7 @@ describe('useSubscriptionStore', () => {
 
     it('syncs cancelAtPeriodEnd flag from user', () => {
       const mockUser = {
+        id: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'Artist' as const,
@@ -75,6 +77,7 @@ describe('useSubscriptionStore', () => {
 
     it('defaults to Free plan when subscriptionPlan is undefined', () => {
       const mockUser = {
+        id: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'Listener' as const,
@@ -170,6 +173,7 @@ describe('useSubscriptionStore', () => {
 
       // Now try to sync from a Free user — should be skipped
       const freeUser = {
+        id: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'Listener' as const,
@@ -217,6 +221,7 @@ describe('useSubscriptionStore', () => {
 
       // Now syncFromUser should work normally
       const premiumUser = {
+        id: 'user-1',
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'Artist' as const,
