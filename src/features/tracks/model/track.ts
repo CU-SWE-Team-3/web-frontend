@@ -33,6 +33,9 @@ export interface Track {
   likeCount?: number;
   repostCount?: number;
   commentCount?: number;
+  downloadCount?: number;
+  enableDirectDownloads?: boolean;
+  displayStatsPublicly?: boolean;
 }
 
 export interface UploadTrackInput {

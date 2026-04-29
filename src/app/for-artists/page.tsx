@@ -34,7 +34,7 @@ export default function ForArtistsPage() {
     e.preventDefault()
     if (!email) return
     // Redirect to login page with email pre-filled
-    router.push(`${ROUTES.LOGIN}?email=${encodeURIComponent(email)}&redirect=/artists`)
+    router.push(`${ROUTES.LOGIN}?email=${encodeURIComponent(email)}&redirect=${ROUTES.ARTIST_STUDIO}`)
   }
 
   return (
