@@ -10,8 +10,27 @@ import type { ReportData, DashboardStats } from '@/shared/types'
 /** GET /admin/reports — fetches all pending/resolved reports (admin only) */
 export async function getReports(params?: { page?: number; limit?: number }) {
   const res = await apiClient.get('/admin/reports', { params })
-  // Response shape: { success, results, data: ReportData[] }
-  return res.data as { success: boolean; results: number; data: ReportData[] }
+  const payload = res.data
+  const reports = extractReports(payload)
+  return {
+    ...payload,
+    results: payload?.results ?? payload?.total ?? reports.length,
+    data: reports,
+  } as { success: boolean; results: number; data: ReportData[] }
+}
+
+function extractReports(payload: any): ReportData[] {
+  const candidates = [
+    payload?.data,
+    payload?.data?.reports,
+    payload?.data?.docs,
+    payload?.data?.items,
+    payload?.reports,
+    payload?.docs,
+    payload?.items,
+  ]
+
+  return candidates.find(Array.isArray) ?? []
 }
 
 /** POST /admin/reports — submit a new content report (any logged-in user) */
