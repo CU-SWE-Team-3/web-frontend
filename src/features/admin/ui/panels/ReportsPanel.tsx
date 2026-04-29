@@ -67,6 +67,17 @@ export default function ReportsPanel() {
   const reporterName = (r: ReportData) =>
     typeof r.reporter === 'object' ? r.reporter.displayName : r.reporter ?? 'Unknown'
 
+  const targetPreview = (r: ReportData) => {
+    const target = r.targetId as unknown
+    if (typeof target === 'string') return target.slice(0, 12)
+    if (target && typeof target === 'object') {
+      const value = target as Record<string, unknown>
+      const label = value.title ?? value.displayName ?? value.username ?? value._id ?? value.id
+      return typeof label === 'string' ? label.slice(0, 12) : 'Unknown'
+    }
+    return 'Unknown'
+  }
+
   return (
     <div>
       {/* Top 3 Donut Charts */}
@@ -139,7 +150,7 @@ export default function ReportsPanel() {
           >
             <td style={td}>{reporterName(report)}</td>
             <td style={{ ...td, color: '#ccc' }}>{report.reason}</td>
-            <td style={{ ...td, color: '#aaa' }}>{report.targetType}: "{report.targetId?.slice(0, 12)}…"</td>
+            <td style={{ ...td, color: '#aaa' }}>{report.targetType}: "{targetPreview(report)}…"</td>
             <td style={{ ...td, color: '#999', fontSize: '0.8rem' }}>
               {new Date(report.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </td>
@@ -191,7 +202,7 @@ export default function ReportsPanel() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <Field label="Reporter" value={reporterName(viewReport)} />
             <Field label="Target Type" value={viewReport.targetType} />
-            <Field label="Target ID" value={viewReport.targetId} mono />
+            <Field label="Target ID" value={targetPreview(viewReport)} mono />
             <Field label="Reason" value={viewReport.reason} />
             <Field label="Status" value={viewReport.status} />
             <Field label="Submitted" value={new Date(viewReport.createdAt).toLocaleString()} />
