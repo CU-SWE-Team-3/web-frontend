@@ -125,13 +125,11 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       if (isThisTrack) {
         const dur = ws.getDuration();
         if (dur > 0) store.setDuration(dur);
-        // Set seeking guard BEFORE dispatching to prevent snap-back from timeupdate
+        // Set seeking guard — cleared by 'playerbar-seeked' event from GlobalAudioEngine
         isSeekingRef.current = true;
         store.seek(seekTime);
         // Tell GlobalAudioEngine to seek the actual <audio> element
         window.dispatchEvent(new CustomEvent('playerbar-seek', { detail: { time: seekTime } }));
-        // Clear guard after audio element has time to process the seek
-        setTimeout(() => { isSeekingRef.current = false; }, 200);
       }
     };
 
@@ -225,6 +223,14 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       }
     });
   }, [trackMeta]);
+
+  // 1b. Listen for confirmed seek completion from the <audio> element
+  // This clears the isSeekingRef reliably after HLS finishes buffering
+  useEffect(() => {
+    const onSeeked = () => { isSeekingRef.current = false; };
+    window.addEventListener('playerbar-seeked', onSeeked);
+    return () => window.removeEventListener('playerbar-seeked', onSeeked);
+  }, []);
 
   // 2. Sync Global Volume (Universal)
   useEffect(() => {
