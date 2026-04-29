@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useAdminReports, useUpdateReportStatus } from '../../hooks/useAdminReports'
+import { useHideTrack } from '../../hooks/useAdminModeration'
 import { AdminTable } from '../components/AdminTable'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { AdminModal } from '../components/AdminModal'
@@ -27,9 +28,11 @@ const STATUS_COLOR: Record<string, string> = {
 export default function ReportsPanel() {
   const { data, isLoading } = useAdminReports()
   const updateStatus = useUpdateReportStatus()
+  const hideTrack = useHideTrack()
 
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [search, setSearch] = useState('')
   const [confirmAction, setConfirmAction] = useState<{
     report: ReportData; action: 'Resolved' | 'Pending'
   } | null>(null)
@@ -37,15 +40,38 @@ export default function ReportsPanel() {
 
   const reports: ReportData[] = data?.data ?? []
 
+  const reporterName = (r: ReportData) =>
+    typeof r.reporter === 'object' ? r.reporter.displayName : r.reporter ?? 'Unknown'
+
+  const targetPreview = (r: ReportData) => {
+    const target = r.targetId as unknown
+    if (typeof target === 'string') return target.slice(0, 12)
+    if (target && typeof target === 'object') {
+      const value = target as Record<string, unknown>
+      const label = value.title ?? value.displayName ?? value.username ?? value._id ?? value.id
+      return typeof label === 'string' ? label.slice(0, 12) : 'Unknown'
+    }
+    return 'Unknown'
+  }
+
   const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase()
     return reports.filter((r) => {
       const matchType = typeFilter === 'all' || r.targetType === typeFilter
       const matchStatus = statusFilter === 'all' || r.status === statusFilter
-      return matchType && matchStatus
+      const matchSearch = !query
+        || reporterName(r).toLowerCase().includes(query)
+        || r.reason?.toLowerCase().includes(query)
+        || r.targetType?.toLowerCase().includes(query)
+        || targetPreview(r).toLowerCase().includes(query)
+      return matchType && matchStatus && matchSearch
     })
-  }, [reports, typeFilter, statusFilter])
+  }, [reports, typeFilter, statusFilter, search])
 
   const pendingCount = reports.filter((r) => r.status === 'Pending').length
+  const copyrightCount = reports.filter((r) => r.reason === 'Copyright').length
+  const inappropriateCount = reports.filter((r) => r.reason === 'Inappropriate Content').length
+  const spamCount = reports.filter((r) => r.reason === 'Spam').length
 
   const handleAction = async () => {
     if (!confirmAction) return
@@ -64,18 +90,31 @@ export default function ReportsPanel() {
     }
   }
 
-  const reporterName = (r: ReportData) =>
-    typeof r.reporter === 'object' ? r.reporter.displayName : r.reporter ?? 'Unknown'
-
-  const targetPreview = (r: ReportData) => {
-    const target = r.targetId as unknown
-    if (typeof target === 'string') return target.slice(0, 12)
-    if (target && typeof target === 'object') {
-      const value = target as Record<string, unknown>
-      const label = value.title ?? value.displayName ?? value.username ?? value._id ?? value.id
-      return typeof label === 'string' ? label.slice(0, 12) : 'Unknown'
+  const removeReportedContent = async (report: ReportData) => {
+    if (report.targetType !== 'Track') {
+      showAdminToast('Only track reports can remove content from this panel', 'info')
+      return
     }
-    return 'Unknown'
+
+    const target = report.targetId as unknown
+    const targetId = typeof target === 'string'
+      ? target
+      : target && typeof target === 'object'
+        ? String((target as Record<string, unknown>)._id ?? (target as Record<string, unknown>).id ?? '')
+        : ''
+
+    if (!targetId) {
+      showAdminToast('Could not find the reported track id', 'error')
+      return
+    }
+
+    try {
+      await hideTrack.mutateAsync(targetId)
+      await updateStatus.mutateAsync({ id: report._id, status: 'Resolved' })
+      showAdminToast('Reported track hidden and report resolved', 'success')
+    } catch {
+      showAdminToast('Could not remove reported content', 'error')
+    }
   }
 
   return (
@@ -86,9 +125,9 @@ export default function ReportsPanel() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-        <DonutCard title="Copyright Reports" count={16} color="#ff5500" />
-        <DonutCard title="Harassment Reports" count={10} color="#eab308" />
-        <DonutCard title="Spam Reports" count={3} color="#a855f7" />
+        <DonutCard title="Copyright Reports" count={copyrightCount} color="#ff5500" />
+        <DonutCard title="Inappropriate Reports" count={inappropriateCount} color="#eab308" />
+        <DonutCard title="Spam Reports" count={spamCount} color="#a855f7" />
       </div>
 
       {/* Filters */}
@@ -123,7 +162,12 @@ export default function ReportsPanel() {
             width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
           </svg>
-          <input type="search" placeholder="Search reports..." style={{
+          <input
+            type="search"
+            placeholder="Search reports..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
             background: '#1a1a1a', border: '1px solid #333', borderRadius: 6,
             color: '#ccc', padding: '0.55rem 1rem 0.55rem 2.25rem',
             fontSize: '0.8rem', outline: 'none', width: 200,
@@ -166,9 +210,9 @@ export default function ReportsPanel() {
             </td>
             <td style={td}>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <ActionBtn label="Dismiss" onClick={() => {}} color="#666" id={`dismiss-${report._id}`} />
-                <ActionBtn label="Warn User" onClick={() => {}} color="#888" id={`warn-${report._id}`} />
-                <ActionBtn label="Remove Content" onClick={() => {}} color="#888" id={`remove-${report._id}`} />
+                <ActionBtn label="View" onClick={() => setViewReport(report)} color="#666" id={`view-${report._id}`} />
+                <ActionBtn label="Dismiss" onClick={() => setConfirmAction({ report, action: 'Resolved' })} color="#666" id={`dismiss-${report._id}`} />
+                <ActionBtn label="Remove Content" onClick={() => removeReportedContent(report)} color="#888" id={`remove-${report._id}`} />
               </div>
             </td>
           </tr>

@@ -2,8 +2,9 @@
 
 import { type FC, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAdminStore } from '../model/useAdminStore'
+import { useAuthStore } from '@/features/auth/model/useAuthStore'
 import { ROUTES } from '@/shared/constants/routes'
 
 const NAV_ITEMS = [
@@ -41,7 +42,14 @@ const NAV_ITEMS = [
 
 export const AdminSidebar: FC = () => {
   const pathname = usePathname()
+  const router = useRouter()
   const { pendingReportCount, sidebarCollapsed, setSidebarCollapsed } = useAdminStore()
+  const logout = useAuthStore((s) => s.logout)
+
+  const handleSignOut = async () => {
+    await logout()
+    router.replace(ROUTES.LOGIN)
+  }
 
   return (
     <aside style={{
@@ -145,24 +153,29 @@ export const AdminSidebar: FC = () => {
 
       {/* Footer — back to main app */}
       <div style={{ padding: '0.75rem 0.5rem', borderTop: '1px solid #1e1e1e' }}>
-        <Link
-          href={ROUTES.DASHBOARD}
-          title={sidebarCollapsed ? 'Back to App' : undefined}
+        <button
+          type="button"
+          onClick={handleSignOut}
+          title={sidebarCollapsed ? 'Sign out' : undefined}
           style={{
+            width: '100%',
             display: 'flex', alignItems: 'center',
             gap: sidebarCollapsed ? 0 : '0.75rem',
             padding: sidebarCollapsed ? '0.75rem' : '0.75rem 1rem',
             borderRadius: 8, color: '#444',
+            background: 'transparent',
+            border: 'none',
             textDecoration: 'none', fontSize: '0.8rem',
             justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
             transition: 'color 150ms',
+            cursor: 'pointer',
           }}
         >
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
           </svg>
-          {!sidebarCollapsed && <span>Back to App</span>}
-        </Link>
+          {!sidebarCollapsed && <span>Sign out</span>}
+        </button>
       </div>
     </aside>
   )

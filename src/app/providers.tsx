@@ -116,15 +116,23 @@ function AdminRouteGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const isAdmin = user?.role?.toLowerCase?.() === 'admin';
+  const isAdminPath = pathname?.startsWith('/admin') ?? false;
+  const isAuthPath = [
+    ROUTES.LOGIN,
+    ROUTES.REGISTER,
+    ROUTES.FORGOT_PASSWORD,
+    ROUTES.RESET_PASSWORD,
+    ROUTES.VERIFY_EMAIL,
+  ].some((route) => pathname?.startsWith(route));
 
   useEffect(() => {
     if (!isInitialized || !isAuthenticated || !isAdmin) return;
-    if (pathname?.startsWith('/admin')) return;
+    if (isAdminPath || isAuthPath) return;
 
     router.replace(ROUTES.ADMIN_DASHBOARD);
-  }, [isInitialized, isAuthenticated, isAdmin, pathname, router]);
+  }, [isInitialized, isAuthenticated, isAdmin, isAdminPath, isAuthPath, router]);
 
-  if (isInitialized && isAuthenticated && isAdmin && !pathname?.startsWith('/admin')) {
+  if (isInitialized && isAuthenticated && isAdmin && !isAdminPath && !isAuthPath) {
     return null;
   }
 

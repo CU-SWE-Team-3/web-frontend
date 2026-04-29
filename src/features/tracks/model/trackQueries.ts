@@ -11,6 +11,7 @@ import type { Track, UpdateTrackInput, UploadTrackInput } from "./track";
 import { usePendingTracksStore } from "./pendingTracksStore";
 
 export const TRACKS_QUERY_KEY = ["tracks"] as const;
+const ARTIST_STUDIO_QUERY_KEY = ["artist-studio"] as const;
 
 function mergeTracksWithPending(tracks: Track[], pendingTracks: Track[]) {
   const merged = new Map<string, Track>();
@@ -128,6 +129,7 @@ export function useUploadTrack(
       );
       queryClient.setQueryData<Track>([...TRACKS_QUERY_KEY, data.id], data);
       queryClient.invalidateQueries({ queryKey: TRACKS_QUERY_KEY, refetchType: "active" });
+      queryClient.invalidateQueries({ queryKey: ARTIST_STUDIO_QUERY_KEY, refetchType: "active" });
 
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
@@ -147,6 +149,7 @@ export function useUpdateTrack(
       upsertPendingTrack(data);
       queryClient.invalidateQueries({ queryKey: TRACKS_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: [...TRACKS_QUERY_KEY, variables.id] });
+      queryClient.invalidateQueries({ queryKey: ARTIST_STUDIO_QUERY_KEY });
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
   });
@@ -164,6 +167,7 @@ export function useDeleteTrack(
     onSuccess: (data, variables, onMutateResult, context) => {
       removePendingTrack(variables);
       queryClient.invalidateQueries({ queryKey: TRACKS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ARTIST_STUDIO_QUERY_KEY });
       options?.onSuccess?.(data, variables, onMutateResult, context);
     },
   });
