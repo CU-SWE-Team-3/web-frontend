@@ -15,6 +15,7 @@ export interface TrackResult {
   repostCount?: number
   commentCount?: number
   waveform?: number[]
+  durationSeconds?: number
   artist: {
     _id: string
     displayName: string

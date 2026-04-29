@@ -26,12 +26,6 @@ export const FollowUserCard = ({ user }: FollowUserCardProps) => {
   const globalFollowing = followStore.followingMap[targetId];
   const isFollowing = globalFollowing ?? (user.isFollowing || false);
 
-  React.useEffect(() => {
-    if (user.isFollowing !== undefined) {
-      followStore.initFollowing(targetId, user.isFollowing);
-    }
-  }, [targetId, user.isFollowing, followStore]);
-
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
 

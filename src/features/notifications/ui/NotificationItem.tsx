@@ -70,14 +70,6 @@ const FollowBtn: FC<FollowBtnProps> = ({ userId, initialFollowing = false }) => 
   
   const isFollowing = globalFollowing ?? isActuallyFollowing ?? initialFollowing
 
-  useEffect(() => {
-    if (isActuallyFollowing !== undefined) {
-      followStore.initFollowing(userId, isActuallyFollowing)
-    } else {
-      followStore.initFollowing(userId, initialFollowing)
-    }
-  }, [userId, initialFollowing, isActuallyFollowing, followStore])
-
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
 

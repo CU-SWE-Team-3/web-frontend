@@ -415,16 +415,7 @@ export default function FeedPage() {
         {/* ─── Main Feed Column ─── */}
         <div style={{ flex: 1, minWidth: 'min(100%, 300px)' }}>
 
-          {/* Recently Played Section */}
-          {recentlyPlayed.length > 0 && (
-            <div style={{ marginBottom: 32 }} data-testid="feed-recently-played">
-              <RecentlyPlayed
-                tracks={recentlyPlayed}
-                onPlay={(track) => play(track)}
-                onClear={clearRecent}
-              />
-            </div>
-          )}
+          {/* Recently Played Section Moved to Sidebar */}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700 }}>
@@ -480,6 +471,8 @@ export default function FeedPage() {
                       waveformSlot={
                         <WaveformPlayer 
                           waveform={track.waveform} 
+                          audioUrl={track.hlsUrl}
+                          durationSeconds={track.duration}
                           hidePlayButton 
                           trackMeta={{
                             id: track._id,
@@ -569,8 +562,19 @@ export default function FeedPage() {
         </div>
 
         {/* ─── Sidebar ─── */}
-        <aside style={{ width: 'min(300px, 100%)', flexShrink: 0 }}>
+        <aside style={{ width: 'min(300px, 100%)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 32 }}>
           
+          {/* ── Listening History ── */}
+          {recentlyPlayed.length > 0 && (
+            <div data-testid="feed-recently-played">
+              <RecentlyPlayed
+                tracks={recentlyPlayed}
+                onPlay={(track) => play(track)}
+                onClear={clearRecent}
+              />
+            </div>
+          )}
+
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
               <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">Artist Tools</h3>
