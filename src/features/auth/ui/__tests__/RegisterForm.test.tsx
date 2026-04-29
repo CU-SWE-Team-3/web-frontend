@@ -5,6 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import RegisterForm from '../RegisterForm'
 import { useAuthStore } from '../../model/useAuthStore'
+import { ROUTES } from '@/shared/constants/routes'
 
 // Mock ReCAPTCHA
 vi.mock('react-google-recaptcha', () => {
@@ -92,7 +93,7 @@ describe('RegisterForm', () => {
     await user.click(screen.getByTestId('register-submit-button'))
     
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/home')
+      expect(mockPush).toHaveBeenCalledWith(ROUTES.DASHBOARD)
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(localStorage.getItem('accessToken')).toBe('new-jwt-token')

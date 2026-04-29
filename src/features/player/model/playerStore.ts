@@ -10,6 +10,8 @@ export interface Track {
   duration?: number;
   hlsUrl?: string;
   streamUrl?: string;
+  permalink?: string;
+  waveform?: number[];
   restrictedRegions?: string[];
   tier?: 'free' | 'pro';
   genre?: string;

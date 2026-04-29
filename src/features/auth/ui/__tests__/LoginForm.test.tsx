@@ -5,6 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import LoginForm from '../LoginForm'
 import { useAuthStore } from '../../model/useAuthStore'
+import { ROUTES } from '@/shared/constants/routes'
 
 // Mock useRouter
 const mockPush = vi.fn()
@@ -70,7 +71,10 @@ describe('LoginForm', () => {
     await user.click(screen.getByTestId('login-submit-button'))
     
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/discover')
+
+  expect(mockReplace).toHaveBeenCalledWith(ROUTES.DASHBOARD)
+})
+
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(useAuthStore.getState().user?.email).toBe('test@example.com')
