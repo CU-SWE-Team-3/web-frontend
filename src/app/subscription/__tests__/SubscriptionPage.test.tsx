@@ -45,11 +45,21 @@ vi.mock('@/features/auth/model/useAuthStore', () => ({
 const mockSyncFromUser = vi.fn();
 const mockMockCancel = vi.fn();
 
-const mockSubscriptionStore = {
+const mockSubscriptionStore: {
+  currentPlan: 'Free' | 'Artist' | 'Pro' | 'Go+';
+  isPremium: boolean;
+  expiresAt: string | null;
+  cancelAtPeriodEnd: boolean;
+  isLoading: boolean;
+  error: string | null;
+  syncFromUser: typeof mockSyncFromUser;
+  mockCancel: typeof mockMockCancel;
+} = {
   currentPlan: 'Free' as const,
   isPremium: false,
   expiresAt: null,
   cancelAtPeriodEnd: false,
+  isLoading: false,
   error: null,
   syncFromUser: mockSyncFromUser,
   mockCancel: mockMockCancel,

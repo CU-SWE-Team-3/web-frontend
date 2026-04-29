@@ -46,7 +46,7 @@ export interface FeatureRow {
   name: string;
   description: string;
   basic: string | null;
-  artist: string;
+  artist: string | null;
   pro: string;
   proHighlight?: boolean;
 }
