@@ -51,8 +51,14 @@ export const NavBar: FC<NavBarProps> = ({
   };
 
   // ── Notification state ──
-  const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen, markAllRead } = useNotificationStore();
+  const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen, markAllRead, fetchUnreadCount } = useNotificationStore();
   const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount();
+    }
+  }, [isAuthenticated, fetchUnreadCount]);
 
   // ── More dropdown state ──
   const [moreOpen, setMoreOpen] = useState(false);

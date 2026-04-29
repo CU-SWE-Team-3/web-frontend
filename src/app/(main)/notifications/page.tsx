@@ -74,14 +74,6 @@ function FollowButton({ userId, initialFollowing = false }: { userId: string; in
   const globalFollowing = followStore.followingMap[userId]
   const isFollowing = globalFollowing ?? isActuallyFollowing ?? initialFollowing
 
-  useEffect(() => {
-    if (isActuallyFollowing !== undefined) {
-      followStore.initFollowing(userId, isActuallyFollowing)
-    } else {
-      followStore.initFollowing(userId, initialFollowing)
-    }
-  }, [userId, initialFollowing, isActuallyFollowing, followStore])
-
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
 
