@@ -79,6 +79,18 @@ function getNumber(value: any): number {
   return 0;
 }
 
+function extractCount(t: any, ...keys: string[]): number {
+  for (const key of keys) {
+    if (t[key] !== undefined && t[key] !== null) return getNumber(t[key]);
+  }
+  if (t.stats) {
+    for (const key of keys) {
+      if (t.stats[key] !== undefined && t.stats[key] !== null) return getNumber(t.stats[key]);
+    }
+  }
+  return 0;
+}
+
 function mapApiTrack(t: any, fallbackArtist?: string): Track {
   const durationValue = typeof t.duration === "number"
     ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
@@ -117,11 +129,11 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     updatedAt: t.updatedAt || t.updated_at || "",
     streamUrl: stream,
     hlsUrl: hls,
-    playCount: getNumber(t.playCount ?? t.play_count),
-    likeCount: getNumber(t.likeCount ?? t.like_count),
-    repostCount: getNumber(t.repostCount ?? t.repost_count),
-    commentCount: getNumber(t.commentCount ?? t.comment_count),
-    downloadCount: getNumber(t.downloadCount ?? t.download_count ?? t.downloads),
+    playCount: extractCount(t, 'playCount', 'play_count', 'plays', 'playbackCount'),
+    likeCount: extractCount(t, 'likeCount', 'like_count', 'likes', 'favoriteCount'),
+    repostCount: extractCount(t, 'repostCount', 'repost_count', 'reposts', 'repostTotal'),
+    commentCount: extractCount(t, 'commentCount', 'comment_count', 'comments'),
+    downloadCount: extractCount(t, 'downloadCount', 'download_count', 'downloads'),
     enableDirectDownloads: Boolean(t.enableDirectDownloads ?? t.enable_direct_downloads),
     displayStatsPublicly: t.displayStatsPublicly ?? t.display_stats_publicly,
   };
