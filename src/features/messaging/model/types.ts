@@ -6,6 +6,7 @@ export interface MessageUser {
   permalink: string;
   avatarUrl: string | null;
   role?: string;
+  isPremium?: boolean;
 }
 
 export interface Attachment {
@@ -47,10 +48,10 @@ export interface Conversation {
   participant: MessageUser;   // derived: the OTHER user (not current user)
   lastMessage: Message | null;
   unreadCount: number;
-  isBlocked: boolean;         // current user blocked this participant
-  isBlockedBy: boolean;       // this participant blocked current user
-  isFirstMessage: boolean;    // show first-message safety banner
-  createdAt: string;
+  isBlocked?: boolean;         // Optional in v1.10
+  isBlockedBy?: boolean;       // Optional in v1.10
+  isFirstMessage?: boolean;    // Optional in v1.10
+  createdAt?: string;          // Optional in v1.10
   updatedAt: string;
 }
 

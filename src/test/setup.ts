@@ -1,5 +1,24 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import React from 'react';
+
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+}));
+
+// Provide jest compatibility for libraries/tests still using jest syntax
+if (typeof global !== 'undefined') {
+  (global as any).jest = vi;
+}
 
 // Mock URL.createObjectURL/revokeObjectURL
 if (typeof window !== 'undefined') {

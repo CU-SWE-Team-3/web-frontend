@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSocket } from '../useSocket';
+import { io } from 'socket.io-client';
 
 // ─── Mock socket.io-client ──────────────────────────────────────────────────
 const mockOn = vi.fn();
@@ -38,8 +39,6 @@ describe('useSocket', () => {
   });
 
   it('should connect to the socket server with JWT auth', () => {
-    const { io } = require('socket.io-client');
-
     renderHook(() => useSocket(), { wrapper: createWrapper() });
 
     expect(io).toHaveBeenCalledWith(
@@ -158,8 +157,6 @@ describe('useSocket', () => {
 
   it('should not connect if no token is available', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
-    const { io } = require('socket.io-client');
-    io.mockClear();
 
     renderHook(() => useSocket(), { wrapper: createWrapper() });
 

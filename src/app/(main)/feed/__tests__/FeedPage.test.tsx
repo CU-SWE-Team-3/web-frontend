@@ -15,6 +15,8 @@ vi.mock('@/shared/ui', () => ({
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+  usePathname: () => '/feed',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const queryClient = new QueryClient({

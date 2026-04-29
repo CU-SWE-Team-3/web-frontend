@@ -8,6 +8,7 @@ import { ROUTES } from "@/shared/constants/routes";
 import { CheckCircle2, LinkIcon } from "lucide-react";
 import WaveformPlayer from "@/features/tracks/ui/WaveformPlayer";
 import EditTrackModal from "@/features/tracks/ui/EditTrackModal";
+import { AddToPlaylistModal } from "@/features/playlists/ui/AddToPlaylistModal";
 import { usePlayerStore } from "@/features/player/model/playerStore";
 import { useTrack, useUpdateTrack } from "@/features/tracks/model/trackQueries";
 import type {
@@ -30,6 +31,7 @@ const TrackDetailPage: React.FC = () => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
   
   const trackQuery = useTrack(trackId);
   const updateTrackMutation = useUpdateTrack();
@@ -125,6 +127,7 @@ const TrackDetailPage: React.FC = () => {
   const statusClassMap: Record<Track["status"], string> = {
     Processing: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     Finished: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    Failed: "bg-red-500/10 text-red-500 border-red-500/20",
   };
 
   const visibilityClassMap: Record<Track["visibility"], string> = {
@@ -347,6 +350,13 @@ const TrackDetailPage: React.FC = () => {
             <button data-testid="track-share-button" className="px-3 py-1.5 ml-2 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center gap-2" aria-label="Share">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> Share
             </button>
+            <button 
+              onClick={() => setAddToPlaylistOpen(true)}
+              className="px-3 py-1.5 ml-2 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center gap-2" 
+              aria-label="Add to Playlist"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg> Add to Playlist
+            </button>
             <button className="px-4 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[12px] text-[#ccc] flex items-center gap-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Copy Link</button>
             <button data-testid="track-more-button" className="px-3 py-1.5 bg-[#151515] border border-[#333] hover:border-[#555] rounded text-[#ccc] flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -552,6 +562,12 @@ const TrackDetailPage: React.FC = () => {
           onClose={() => setEngagementModal({ ...engagementModal, isOpen: false })}
           trackId={track.id}
           type={engagementModal.type}
+        />
+        <AddToPlaylistModal
+          open={addToPlaylistOpen}
+          onClose={() => setAddToPlaylistOpen(false)}
+          trackId={track.id}
+          trackTitle={track.title}
         />
       </div>
     </div>

@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = localStorage.getItem('accessToken');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '/api'
       const axios = (await import('axios')).default
       const response = await axios.get(`${apiUrl}/auth/me`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -79,9 +79,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           id: "dev-mock-user", 
           _id: "dev-mock-user",
           username: "Local Dev", 
+          displayName: "Local Developer",
+          permalink: "local-dev",
           email: "dev@biobeats.local", 
-          avatarUrl: null 
-        } as any, 
+          avatarUrl: undefined,
+          role: "Artist",
+          isPremium: true,
+          followerCount: 0,
+          followingCount: 0,
+          createdAt: new Date().toISOString()
+        } as User, 
         isAuthenticated: true, 
         isInitialized: true 
       })

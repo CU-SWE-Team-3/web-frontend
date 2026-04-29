@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, afterEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { useAuthStore } from '../useAuthStore'
@@ -17,10 +17,14 @@ const server = setupServer(
   })
 )
 
-beforeAll(() => server.listen())
+beforeAll(() => {
+  server.listen()
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api'
+})
 afterEach(() => {
   server.resetHandlers()
   localStorage.clear()
+  vi.clearAllMocks()
   useAuthStore.setState({ user: null, isAuthenticated: false, isInitialized: false })
 })
 afterAll(() => server.close())

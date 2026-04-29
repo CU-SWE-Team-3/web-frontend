@@ -7,6 +7,7 @@ import { UNREAD_COUNT_QUERY_KEY } from './useUnreadCount';
 
 interface SendMessageVars {
   conversationId: string;
+  receiverId: string;
   content: string;
   sharedTrack?: SharedTrackPreview | null;
 }
@@ -15,8 +16,8 @@ export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
   return useMutation<Message, Error, SendMessageVars>({
-    mutationFn: ({ conversationId, content, sharedTrack }) =>
-      sendMessage(conversationId, content, sharedTrack),
+    mutationFn: ({ receiverId, content, sharedTrack }) =>
+      sendMessage(receiverId, content, sharedTrack),
     onSuccess: (_data, variables) => {
       // Refetch the messages for this conversation
       queryClient.invalidateQueries({

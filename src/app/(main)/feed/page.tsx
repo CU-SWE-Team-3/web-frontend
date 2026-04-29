@@ -1,382 +1,195 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import apiClient from '@/shared/api/client';
-import { NavBar } from '../../../shared/ui/NavBar/NavBar';
-import { ROUTES } from '@/shared/constants/routes';
-import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/features/auth/model/useAuthStore';
-import { useQueryClient } from '@tanstack/react-query';
-import { RecentlyPlayed } from '@/features/player/ui/history/RecentlyPlayed';
-import { useHistoryStore } from '@/features/player/model/historyStore';
-import { usePlayerStore } from '@/features/player/model/playerStore';
+
+// ─── Feature Hooks ────────────────────────────────────────────────────────────
+import { useFeed, useSuggestedArtists } from '@/features/feed';
+import { useFollowUser } from '@/features/social-graph/model/useFollowUser';
+import { useUnfollowUser } from '@/features/social-graph/model/useUnfollowUser';
+import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
+import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { useRepostTrack } from '@/features/track-engagement/model/useRepostTrack';
+import { useUnrepostTrack } from '@/features/track-engagement/model/useUnrepostTrack';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { usePlayerStore } from '@/features/player/model/playerStore';
+import { useHistoryStore } from '@/features/player/model/historyStore';
+import { WaveformPlayer } from '@/features/tracks/ui/WaveformPlayer';
 
+// ─── Shared UI ────────────────────────────────────────────────────────────────
+import { NavBar } from '@/shared/ui/NavBar/NavBar';
+import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
+import { RecentlyPlayed } from '@/features/player/ui/history/RecentlyPlayed';
+import { ROUTES } from '@/shared/constants/routes';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+import type { SuggestedArtist, FeedActivity, FeedTrack } from '@/features/feed';
 
-function fmt(n: number): string {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmt(n?: number): string {
+  if (!n) return '0';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return String(n);
 }
 
-export default function FeedPage() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const [feedTracks, setFeedTracks] = useState<any[]>([]);
-  const [suggestedArtists, setSuggestedArtists] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const queryClient = useQueryClient();
+function timeAgo(iso?: string): string {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
-  // History & Player for Recently Played
-  const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
-  const listeningHistory = useHistoryStore((st) => st.listeningHistory);
-  const clearRecent = useHistoryStore((st) => st.clearRecent);
-  const play = usePlayerStore((st) => st.play);
-
-  // Liked tracks for sidebar
-  const { data: likedTracksList } = useLikedTracks();
-
-  // Local liked tracks state for feed track cards
-  const [feedLikedSet, setFeedLikedSet] = useState<Set<string>>(new Set());
-
-  // Local follow state array
-  const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-        // 1. Fetch Feed
-        try {
-          const feedRes = await apiClient.get(`/network/feed`, { withCredentials: true });
-          if (feedRes.data.success) {
-            setFeedTracks(feedRes.data.data || []);
-          }
-        } catch (err) {
-          console.warn('Failed to fetch feed:', err);
-        }
-
-        // 2. Fetch Suggested Artists
-        try {
-          const suggestRes = await apiClient.get(`/network/suggested`, { withCredentials: true });
-          if (suggestRes.data.success) {
-            const arr = suggestRes.data.data || [];
-            setSuggestedArtists(arr);
-            const folMap: Record<string, boolean> = {};
-            arr.forEach((a: any) => folMap[a._id] = false); // Start all as false for mock
-            setFollowingMap(folMap);
-          }
-        } catch (err) {
-          console.warn('Failed to fetch suggested artists:', err);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  const handlePlayTrack = (trackNode: any) => {
-    const track = {
-      id: trackNode.id || trackNode._id,
-      title: trackNode.title,
-      artist: trackNode.artist?.displayName || trackNode.artist || 'Unknown',
-      artworkUrl: trackNode.artworkUrl || null,
-      hlsUrl: trackNode.hlsUrl || trackNode.streamUrl || '',
-      duration: trackNode.duration || 0,
-    };
-    play(track);
-  };
-
-  const handleFollowToggle = async (artistId: string) => {
-    if (!isAuthenticated) return;
-    const currentlyFollowing = followingMap[artistId];
-
-    // Optimistic UI update
-    setFollowingMap(prev => ({ ...prev, [artistId]: !currentlyFollowing }));
-
-    try {
-      if (currentlyFollowing) {
-        await apiClient.delete(`/network/${artistId}/follow`, { withCredentials: true });
-      } else {
-        await apiClient.post(`/network/${artistId}/follow`, {}, { withCredentials: true });
-
-        // Optimistic injection into my following list
-        const authState = useAuthStore.getState();
-        const myId = (authState.user as any)?._id || authState.user?.id;
-        if (myId) {
-          const targetArtist = suggestedArtists.find(a => a._id === artistId);
-          if (targetArtist) {
-            const key = ["network", "following", myId];
-            const prev = queryClient.getQueryData<any[]>(key);
-            const newEntry = {
-              id: artistId,
-              username: targetArtist.permalink || targetArtist._id,
-              displayName: targetArtist.displayName || 'Newly Followed User',
-              avatarUrl: targetArtist.avatarUrl || null,
-              followerCount: (targetArtist.followerCount || 0) + 1,
-              isFollowing: true
-            };
-            if (prev) {
-              if (!prev.some(u => u.id === artistId)) {
-                queryClient.setQueryData(key, [...prev, newEntry]);
-              }
-            } else {
-              queryClient.setQueryData(key, [newEntry]);
-            }
-          }
-        }
-      }
-      // Invalidate caches in background
-      queryClient.invalidateQueries({ queryKey: ['network'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-    } catch (err) {
-      console.warn('Follow action failed:', err);
-      // Revert if failed
-      setFollowingMap(prev => ({ ...prev, [artistId]: currentlyFollowing }));
-    }
-  };
-
+// ─── Skeleton Card ────────────────────────────────────────────────────────────
+function FeedTrackSkeleton() {
   return (
-    <div style={{ minHeight: '100vh', background: '#111', color: '#fff', fontFamily: 'var(--sc-font-family)' }}>
-      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
-
-      <main data-testid="feed-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}>
-        {/* ─── Main Feed ─── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Recently Played Section */}
-          {recentlyPlayed.length > 0 && (
-            <div style={{ marginBottom: 32 }} data-testid="feed-recently-played">
-              <RecentlyPlayed
-                tracks={recentlyPlayed}
-                onPlay={(track) => play(track)}
-                onClear={clearRecent}
-              />
-            </div>
-          )}
-
-          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>
-            Hear the latest posts from the people you&apos;re following:
-          </h1>
-
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Loading feed...</div>
-          ) : feedTracks.length === 0 ? (
-            <div style={{
-              background: '#1a1a1a', padding: 40, borderRadius: 12, textAlign: 'center',
-              border: '1px solid rgba(255,255,255,0.06)'
-            }}>
-              <p style={{ color: '#aaa', fontSize: 16 }}>Your feed is empty.</p>
-              <p style={{ color: '#777', fontSize: 13, marginTop: 8 }}>Follow artists or upload tracks to populate your feed.</p>
-            </div>
-          ) : (
-            <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {feedTracks.map((item: any) => {
-                const track = item.track;
-                if (!track) return null;
-                const liked = feedLikedSet.has(track._id);
-                return (
-                  <div key={track._id} data-testid="feed-track-item">
-                    <FeedTrackCard
-                      title={track.title}
-                      artist={track.artist?.displayName || 'Unknown Artist'}
-                      coverUrl={track.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'}
-                      timeAgo={new Date(item.createdAt).toLocaleDateString()}
-                      plays={track.playCount || 0}
-                      likes={liked ? (track.likeCount || 0) + 1 : (track.likeCount || 0)}
-                      reposts={track.repostCount || 0}
-                      comments={track.commentCount || 0}
-                      liked={liked}
-                      audioUrl={track.hlsUrl || track.streamUrl}
-                      onPlay={() => handlePlayTrack(track)}
-                      actionsSlot={
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                          <button
-                            data-testid="track-card-like-button"
-                            onClick={() => {
-                              setFeedLikedSet((prev: Set<string>) => {
-                                const next = new Set(prev);
-                                if (next.has(track._id)) next.delete(track._id);
-                                else next.add(track._id);
-                                return next;
-                              });
-                            }}
-                            style={{
-                              background: liked ? 'var(--sc-primary, #ff5500)' : 'transparent',
-                              border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                              color: liked ? '#fff' : '#999',
-                              borderRadius: 4, padding: '4px 10px',
-                              fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                            }}
-                          >
-                            {liked ? '♥ Liked' : '♡ Like'}
-                          </button>
-                        </div>
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ─── Sidebar ─── */}
-        <aside style={{ width: 300, flexShrink: 0 }}>
-          {/* Artists You Should Follow */}
-          <div data-testid="feed-artist-suggestions" style={{
-            background: '#1a1a1a',
-            borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.06)',
-            padding: 20,
-          }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#ccc', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Artists you should follow
-            </h3>
-
-            {loading ? (
-              <div style={{ color: '#666', fontSize: 13 }}>Loading suggestions...</div>
-            ) : suggestedArtists.length === 0 ? (
-              <div style={{ color: '#666', fontSize: 13 }}>No suggestions right now.</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {suggestedArtists.slice(0, 3).map((artist: any) => {
-                  const isFol = followingMap[artist._id];
-                  return (
-                    <div key={artist._id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <Link href={ROUTES.PROFILE(artist.permalink || artist._id)}>
-                        <img
-                          src={artist.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop'}
-                          alt={artist.displayName}
-                          style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', background: '#333' }}
-                        />
-                      </Link>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <Link href={ROUTES.PROFILE(artist.permalink || artist._id)} style={{ color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'block' }}>
-                          {artist.displayName}
-                        </Link>
-                        <div style={{ fontSize: 11, color: '#777' }}>
-                          {fmt(artist.followerCount || 0)} followers
-                        </div>
-                      </div>
-                      <button
-                        data-testid="feed-artist-follow-button"
-                        onClick={() => handleFollowToggle(artist._id)}
-                        style={{
-                          padding: '6px 14px',
-                          borderRadius: 4,
-                          border: isFol ? 'none' : '1px solid rgba(255,255,255,0.15)',
-                          background: isFol ? 'var(--sc-primary, #ff5500)' : 'transparent',
-                          color: isFol ? '#fff' : '#ff5500',
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}>
-                        {isFol ? 'Following' : 'Follow'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* ─── Sidebar Likes Section ─── */}
-          <div data-testid="feed-sidebar-likes" style={{
-            marginTop: 32,
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            paddingBottom: 24,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#ccc', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>
-                {likedTracksList?.length ? `${likedTracksList.length} ` : ''}LIKES
-              </h3>
-              {likedTracksList && likedTracksList.length > 0 && (
-                <Link href={ROUTES.LIBRARY_LIKES} style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>
-                  View all
-                </Link>
-              )}
-            </div>
-
-            {likedTracksList && likedTracksList.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {likedTracksList.slice(0, 3).map((track: any) => (
-                  <SidebarTrackRow
-                    key={track.id}
-                    artwork={track.artworkUrl}
-                    title={track.title}
-                    artist={track.artist}
-                    plays={track.playCount}
-                    likes={track.likeCount}
-                    reposts={track.repostCount}
-                    comments={track.commentCount}
-                    isLiked={track.isLiked ?? true}
-                    onPlay={() => { }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div style={{ fontSize: 13, color: '#666' }}>No liked tracks yet.</div>
-            )}
-          </div>
-
-          {/* ─── Sidebar History Section ─── */}
-          <div data-testid="feed-sidebar-history" style={{
-            marginTop: 24,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#ccc', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0 }}>
-                LISTENING HISTORY
-              </h3>
-              {listeningHistory && listeningHistory.length > 0 && (
-                <Link href={ROUTES.HISTORY} style={{ fontSize: 12, color: '#888', textDecoration: 'none' }}>
-                  View all
-                </Link>
-              )}
-            </div>
-
-            {listeningHistory && listeningHistory.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {listeningHistory.slice(0, 3).map((entry: any) => {
-                  const track = entry.track;
-                  return (
-                    <SidebarTrackRow
-                      key={entry.id}
-                      artwork={track.artworkUrl}
-                      title={track.title}
-                      artist={track.artist}
-                      plays={track.playCount}
-                      likes={track.likeCount}
-                      reposts={track.repostCount}
-                      comments={track.commentCount}
-                      isLiked={feedLikedSet.has(track.id)}
-                      onPlay={() => play(track)}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ fontSize: 13, color: '#666' }}>No recently played tracks.</div>
-            )}
-          </div>
-        </aside>
-      </main>
+    <div style={{
+      display: 'flex', gap: 16, padding: '16px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite',
+    }}>
+      <div style={{ width: 120, height: 120, borderRadius: 6, background: '#252525', flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ width: '40%', height: 12, borderRadius: 4, background: '#252525', marginBottom: 10 }} />
+        <div style={{ width: '60%', height: 16, borderRadius: 4, background: '#2a2a2a', marginBottom: 16 }} />
+        <div style={{ width: '100%', height: 40, borderRadius: 4, background: '#222' }} />
+      </div>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────
-   Sidebar track row — used by both Likes & History
-   ───────────────────────────────────────────── */
+function SuggestedArtistSkeleton() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', animation: 'pulse 1.5s ease-in-out infinite' }}>
+      <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#252525', flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ width: '60%', height: 12, borderRadius: 4, background: '#252525', marginBottom: 6 }} />
+        <div style={{ width: '40%', height: 10, borderRadius: 4, background: '#222' }} />
+      </div>
+      <div style={{ width: 64, height: 28, borderRadius: 4, background: '#252525' }} />
+    </div>
+  );
+}
+
+// ─── Waveform is now handled by the real WaveformPlayer component ────────────
+
+// ─── Empty Feed State ─────────────────────────────────────────────────────────
+function EmptyFeed() {
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #1a1a1a 0%, #131313 100%)',
+      padding: '48px 32px',
+      borderRadius: 16,
+      textAlign: 'center',
+      border: '1px solid rgba(255,255,255,0.06)',
+    }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🎵</div>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+        Your feed is empty
+      </h2>
+      <p style={{ color: '#888', fontSize: 14, lineHeight: 1.6, marginBottom: 24, maxWidth: 320, margin: '0 auto 24px' }}>
+        Follow artists to hear what they&apos;re uploading. Check out who&apos;s trending right now.
+      </p>
+      <Link href={ROUTES.TRENDING ?? '/trending'}
+        style={{
+          display: 'inline-block',
+          background: 'var(--sc-primary, #ff5500)',
+          color: '#fff',
+          padding: '12px 28px',
+          borderRadius: 24,
+          fontWeight: 700,
+          fontSize: 14,
+          textDecoration: 'none',
+          transition: 'opacity 0.2s',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+      >
+        Discover Trending Tracks →
+      </Link>
+    </div>
+  );
+}
+
+// ─── Sidebar Suggested Artist Card ───────────────────────────────────────────
+function SuggestedArtistCard({
+  artist,
+  isFollowing,
+  onToggle,
+  disabled,
+}: {
+  artist: SuggestedArtist;
+  isFollowing: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      data-testid="feed-suggested-artist-card"
+      style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+    >
+      <Link href={ROUTES.PROFILE(artist.permalink || artist._id)} style={{ flexShrink: 0 }}>
+        <img
+          src={
+            artist.avatarUrl ||
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop'
+          }
+          alt={artist.displayName}
+          style={{
+            width: 44, height: 44, borderRadius: '50%',
+            objectFit: 'cover', background: '#333', cursor: 'pointer',
+          }}
+        />
+      </Link>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Link
+          href={ROUTES.PROFILE(artist.permalink || artist._id)}
+          style={{
+            color: '#fff', textDecoration: 'none', fontSize: 14,
+            fontWeight: 600, display: 'block',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}
+        >
+          {artist.displayName}
+        </Link>
+        <div style={{ fontSize: 11, color: '#777', marginTop: 2 }}>
+          {fmt(artist.followerCount)} followers
+        </div>
+      </div>
+      <button
+        data-testid="feed-artist-follow-button"
+        onClick={onToggle}
+        disabled={disabled}
+        style={{
+          padding: '6px 14px',
+          borderRadius: 4,
+          border: isFollowing ? 'none' : '1px solid rgba(255,255,255,0.15)',
+          background: isFollowing ? 'var(--sc-primary, #ff5500)' : 'transparent',
+          color: isFollowing ? '#fff' : '#ff5500',
+          fontSize: 12,
+          fontWeight: 600,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          whiteSpace: 'nowrap',
+          opacity: disabled ? 0.6 : 1,
+          transition: 'all 0.2s',
+        }}
+      >
+        {isFollowing ? 'Following' : 'Follow'}
+      </button>
+    </div>
+  );
+}
+
+// ─── Sidebar Track Row ────────────────────────────────────────────────────────
 function SidebarTrackRow({
-  artwork, title, artist, plays, likes, reposts, comments, isLiked: initLiked, onPlay
+  artwork, title, artist, plays, likes, reposts, comments, isLiked: initLiked, onPlay,
 }: {
   artwork?: string | null;
   title: string;
@@ -390,30 +203,6 @@ function SidebarTrackRow({
 }) {
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(initLiked ?? false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const addToQueue = usePlayerStore(state => state.addToQueue);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    if (menuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [menuOpen]);
-
-  function fmt(n?: number) {
-    if (!n) return '0';
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-    return String(n);
-  }
-
-  const showActions = hovered || menuOpen;
 
   return (
     <div
@@ -421,12 +210,11 @@ function SidebarTrackRow({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Artwork */}
       <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0, borderRadius: 4, overflow: 'hidden', background: '#333' }}>
         {artwork && <img src={artwork} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
         {hovered && (
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4 }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={onPlay}
           >
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -435,94 +223,372 @@ function SidebarTrackRow({
           </div>
         )}
       </div>
-
-      {/* Title + artist + meta */}
-      <div style={{ flex: 1, minWidth: 0, paddingRight: showActions ? 80 : 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#aaa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{artist}</span>
-        </div>
+      <div style={{ flex: 1, minWidth: 0, paddingRight: hovered ? 40 : 0 }}>
+        <div style={{ fontSize: 12, color: '#aaa', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{artist}</div>
         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 2, fontSize: 11, color: '#666', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 2, fontSize: 11, color: '#666' }}>
           {plays !== undefined && <span>▶ {fmt(plays)}</span>}
           {likes !== undefined && <span>♥ {fmt(likes)}</span>}
-          {reposts !== undefined && <span>↺ {fmt(reposts)}</span>}
-          {comments !== undefined && <span>💬 {fmt(comments)}</span>}
         </div>
       </div>
-
-      {/* Hover action buttons */}
-      {showActions && (
-        <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setLiked(l => !l); }}
-            style={{ background: liked ? '#ff5500' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'white' : 'none'} stroke="white" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-          <div style={{ position: 'relative' }} ref={menuRef}>
-            <button
-              onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-              style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-            >
-              <svg width="14" height="4" viewBox="0 0 16 4" fill="white">
-                <circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" /><circle cx="14" cy="2" r="1.5" />
-              </svg>
-            </button>
-
-            {menuOpen && (
-              <div style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 6, background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6, padding: '4px 0', zIndex: 100, minWidth: 160, boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                display: 'flex', flexDirection: 'column'
-              }}>
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" /></svg>} label="Repost" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" /></svg>} label="Share" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>} label="Copy Link" />
-                <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
-                <DropdownItem
-                  icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 10l4 4-4 4M19 14H5M5 6h14" /></svg>}
-                  label="Add to Next up"
-                  onClick={() => {
-                    addToQueue({
-                      id: title + artist, // Fallback if no id, though title+artist is better than nothing
-                      title,
-                      artist,
-                      artworkUrl: artwork || '',
-                    });
-                    setMenuOpen(false);
-                  }}
-                />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>} label="Add to Playlist" />
-                <DropdownItem icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>} label="Station" />
-              </div>
-            )}
-          </div>
-        </div>
+      {hovered && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setLiked(l => !l); }}
+          style={{ position: 'absolute', right: 0, background: liked ? '#ff5500' : 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'white' : 'none'} stroke="white" strokeWidth="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
       )}
     </div>
   );
 }
 
-function DropdownItem({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick?: () => void }) {
-  const [bg, setBg] = useState('transparent');
+// ─── Main Page ────────────────────────────────────────────────────────────────
+export default function FeedPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
+  // ── Data Hooks ───────────────────────────────────────────────────────────────
+  const { data: feedActivities = [], isLoading: feedLoading } = useFeed();
+  const { data: suggestedArtists = [], isLoading: suggestLoading } = useSuggestedArtists(5);
+  const { data: likedTracksList } = useLikedTracks();
+  const likedTrackIds = (likedTracksList ?? []).map(t => t.id);
+
+  // ── Player / History ─────────────────────────────────────────────────────────
+  const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
+  const listeningHistory = useHistoryStore((st) => st.listeningHistory);
+  const clearRecent = useHistoryStore((st) => st.clearRecent);
+  const play = usePlayerStore((st) => st.play);
+
+  // ── Like / Unlike Mutations ──────────────────────────────────────────────────
+  const { mutate: likeTrack } = useLikeTrack();
+  const { mutate: unlikeTrack } = useUnlikeTrack();
+
+  // ── Follow / Unfollow ────────────────────────────────────────────────────────
+  const { mutate: followUser, isPending: followPending } = useFollowUser();
+  const { mutate: unfollowUser, isPending: unfollowPending } = useUnfollowUser();
+
+  // ── Local optimistic follow state ────────────────────────────────────────────
+  const [followMap, setFollowMap] = useState<Record<string, boolean>>({});
+
+  const isFollowing = useCallback(
+    (id: string) => followMap[id] ?? false,
+    [followMap],
+  );
+
+  const handleFollowToggle = useCallback(
+    (artist: SuggestedArtist) => {
+      if (!isAuthenticated) return;
+      const currentlyFollowing = isFollowing(artist._id);
+
+      // Optimistic update
+      setFollowMap((prev) => ({ ...prev, [artist._id]: !currentlyFollowing }));
+
+      if (currentlyFollowing) {
+        unfollowUser(artist._id, {
+          onError: () => setFollowMap((prev) => ({ ...prev, [artist._id]: true })),
+        });
+      } else {
+        followUser(
+          { targetId: artist._id, targetUser: { displayName: artist.displayName, avatarUrl: artist.avatarUrl, followerCount: artist.followerCount } },
+          { onError: () => setFollowMap((prev) => ({ ...prev, [artist._id]: false })) },
+        );
+      }
+    },
+    [isAuthenticated, isFollowing, followUser, unfollowUser],
+  );
+
+  // ── Repost / Share / Copy Link ────────────────────────────────────────────────
+  const repostTrack = useRepostTrack();
+  const unrepostTrack = useUnrepostTrack();
+
+  const handleRepost = (trackId: string) => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    repostTrack.mutate({ trackId });
+  };
+
+  const handleCopyLink = (track: FeedTrack) => {
+    const url = `${window.location.origin}/tracks/${track.permalink || track._id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link copied to clipboard!');
+    });
+  };
+
+  const handleShare = (track: FeedTrack) => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      navigator.share({
+        title: track.title,
+        text: `Check out ${track.title} by ${track.artist.displayName} on BioBeats`,
+        url: `${window.location.origin}/tracks/${track.permalink || track._id}`,
+      }).catch(() => {});
+    } else {
+      handleCopyLink(track);
+    }
+  };
+
+  // ── Like toggle (per-track) ──────────────────────────────────────────────────
+  const [localLikedMap, setLocalLikedMap] = useState<Record<string, boolean>>({});
+
+  const isLiked = (id: string) => localLikedMap[id] ?? likedTrackIds.includes(id);
+
+  const handleLikeToggle = (track: FeedTrack) => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    const currently = isLiked(track._id);
+    setLocalLikedMap((prev) => ({ ...prev, [track._id]: !currently }));
+    if (currently) {
+      unlikeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: true })),
+      });
+    } else {
+      likeTrack(track._id, {
+        onError: () => setLocalLikedMap((prev) => ({ ...prev, [track._id]: false })),
+      });
+    }
+  };
+
+  const isActionPending = followPending || unfollowPending;
+
   return (
-    <button
-      style={{
-        display: 'flex', alignItems: 'center', gap: 12, width: '100%', background: bg, border: 'none',
-        color: '#eee', padding: '10px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.2s'
-      }}
-      onMouseEnter={() => setBg('rgba(255,255,255,0.06)')}
-      onMouseLeave={() => setBg('transparent')}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.();
-      }}
-    >
-      <span style={{ color: '#aaa', display: 'flex' }}>{icon}</span>
-      {label}
-    </button>
+    <div style={{ minHeight: '100vh', background: '#111', color: '#fff', fontFamily: 'var(--sc-font-family)' }}>
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
+
+      <main
+        data-testid="feed-page"
+        style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 32 }}
+      >
+        {/* ─── Main Feed Column ─── */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+
+          {/* Recently Played Section */}
+          {recentlyPlayed.length > 0 && (
+            <div style={{ marginBottom: 32 }} data-testid="feed-recently-played">
+              <RecentlyPlayed
+                tracks={recentlyPlayed}
+                onPlay={(track) => play(track)}
+                onClear={clearRecent}
+              />
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700 }}>
+              Hear the latest posts from the people you&apos;re following:
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#999' }}>Reposts</span>
+              <div style={{ width: 36, height: 20, background: '#ff5500', borderRadius: 10, position: 'relative', cursor: 'pointer' }}>
+                <div style={{ width: 16, height: 16, background: '#fff', borderRadius: '50%', position: 'absolute', right: 2, top: 2 }} />
+              </div>
+            </div>
+          </div>
+
+          {feedLoading ? (
+            <div data-testid="feed-skeleton">
+              {[1, 2, 3].map((i) => <FeedTrackSkeleton key={i} />)}
+            </div>
+          ) : feedActivities.length === 0 ? (
+            <EmptyFeed />
+          ) : (
+            <div data-testid="feed-track-list" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {feedActivities.map((activity, idx) => {
+                const track = activity.target;
+                const actor = activity.actors[0] || track.artist;
+                const liked = isLiked(track._id);
+                const actionText = activity.activityType === 'TRACK_UPLOAD' ? 'posted a track' : 
+                                  activity.activityType === 'REPOST' ? 'reposted a track' : 
+                                  activity.activityType === 'LIKE' ? 'liked a track' : 'posted a track';
+                return (
+                  <div key={`${track._id}-${idx}`} data-testid="feed-track-item">
+                    <FeedTrackCard
+                      title={track.title}
+                      artist={track.artist?.displayName ?? 'Unknown Artist'}
+                      artistPermalink={track.artist?.permalink || track.artist?._id}
+                      trackPermalink={track.permalink || track._id}
+                      coverUrl={
+                        track.artworkUrl ||
+                        'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&h=200&fit=crop'
+                      }
+                      reposterName={actor.displayName}
+                      reposterAvatarUrl={actor.avatarUrl}
+                      reposterPermalink={actor.permalink}
+                      actionType={actionText as any}
+                      repostTime={timeAgo(activity.activityDate || track.createdAt)}
+                      plays={track.playCount}
+                      likes={liked ? (track.likeCount + 1) : track.likeCount}
+                      reposts={track.repostCount}
+                      comments={track.commentCount}
+                      liked={liked}
+                      waveformSlot={
+                        <WaveformPlayer 
+                          waveform={track.waveform} 
+                          hidePlayButton 
+                          trackMeta={{
+                            id: track._id,
+                            title: track.title,
+                            artist: track.artist?.displayName || 'Artist',
+                            artworkUrl: track.artworkUrl,
+                            hlsUrl: track.hlsUrl
+                          }}
+                        />
+                      }
+                      onPlay={async () => {
+                        let streamUrl = track.hlsUrl ?? '';
+                        if (!streamUrl) {
+                          try {
+                            const { data } = await apiClient.get(`/tracks/${track._id}`);
+                            const detail = data?.data ?? data;
+                            streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                          } catch { /* empty */ }
+                        }
+                        play({
+                          id: track._id,
+                          title: track.title,
+                          artist: track.artist?.displayName ?? 'Unknown Artist',
+                          artworkUrl: track.artworkUrl ?? '',
+                          streamUrl,
+                          hlsUrl: streamUrl,
+                          duration: track.duration,
+                          waveform: track.waveform ?? [],
+                        } as any);
+                      }}
+                      actionsSlot={
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            data-testid="track-card-like-button"
+                            onClick={() => handleLikeToggle(track)}
+                            style={{
+                              background: liked ? 'var(--sc-primary, #ff5500)' : 'transparent',
+                              border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)',
+                              color: liked ? '#fff' : '#ccc',
+                              borderRadius: 4,
+                              padding: '4px 8px',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'white' : 'none'} stroke="currentColor" strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            {liked ? 'Liked' : 'Like'}
+                          </button>
+
+                          <button 
+                            onClick={() => handleRepost(track._id)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                            Repost
+                          </button>
+
+                          <button 
+                            onClick={() => handleShare(track)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                            Share
+                          </button>
+
+                          <button 
+                            onClick={() => handleCopyLink(track)}
+                            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#ccc', borderRadius: 4, padding: '4px 8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            Copy Link
+                          </button>
+                        </div>
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ─── Sidebar ─── */}
+        <aside style={{ width: 300, flexShrink: 0 }}>
+          
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+              <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">Artist Tools</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {['Amplify', 'Replace', 'Distribute', 'Master'].map(tool => (
+                <div key={tool} className="flex flex-col items-center gap-1.5 p-2 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                  <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-xs">✨</div>
+                  <span className="text-[10px] text-[#999]">{tool}</span>
+                </div>
+              ))}
+            </div>
+            <button className="w-full mt-4 py-2 text-[12px] font-semibold text-white bg-[#ff5500]/10 border border-[#ff5500]/20 rounded-md hover:bg-[#ff5500]/20">
+              Unlock Artist tools from EGP 29.99/month
+            </button>
+          </div>
+
+          {/* ── Suggested Artists ── */}
+          <div className="mb-8 border-b border-white/5 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[12px] font-bold text-[#555] uppercase tracking-widest">
+                Artists you should follow
+              </h3>
+              <span className="text-[11px] text-[#777] hover:text-white cursor-pointer">Refresh list</span>
+            </div>
+
+            {suggestLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[1, 2, 3].map((i) => <SuggestedArtistSkeleton key={i} />)}
+              </div>
+            ) : suggestedArtists.length === 0 ? (
+              <div style={{ color: '#666', fontSize: 13 }}>No suggestions right now.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {suggestedArtists.slice(0, 5).map((artist) => (
+                  <SuggestedArtistCard
+                    key={artist._id}
+                    artist={artist}
+                    isFollowing={isFollowing(artist._id)}
+                    onToggle={() => handleFollowToggle(artist)}
+                    disabled={isActionPending}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Sidebar Likes Section ── */}
+          <div data-testid="feed-sidebar-likes">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
+                {likedTracksList?.length ? `${likedTracksList.length} ` : ''}LIKES
+              </h3>
+              {likedTracksList && likedTracksList.length > 0 && (
+                <Link href={ROUTES.LIBRARY_LIKES} style={{ fontSize: 11, color: '#777', textDecoration: 'none' }}>
+                  View all
+                </Link>
+              )}
+            </div>
+
+            {likedTracksList && likedTracksList.length > 0 ? (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {likedTracksList.slice(0, 8).map((track) => (
+                  <div key={track.id} onClick={() => play(track as any)} style={{ width: 48, height: 48, background: '#222', borderRadius: 4, cursor: 'pointer', overflow: 'hidden' }}>
+                     {track.artworkUrl && <img src={track.artworkUrl} style={{width:'100%', height:'100%', objectFit: 'cover'}}/>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: '#666' }}>No liked tracks yet.</div>
+            )}
+          </div>
+        </aside>
+      </main>
+    </div>
   );
 }
+

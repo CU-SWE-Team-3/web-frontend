@@ -69,7 +69,7 @@ describe('LoginForm', () => {
     await user.click(screen.getByTestId('login-submit-button'))
     
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/feed')
+      expect(mockPush).toHaveBeenCalledWith('/home')
     })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(useAuthStore.getState().user?.email).toBe('test@example.com')

@@ -155,7 +155,13 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       ws.load(dummyUrl, [peaks], fakeDuration);
     }
 
-    return () => { ws.destroy(); };
+    return () => {
+      try {
+        ws.destroy();
+      } catch (err) {
+        // Ignore abort errors on cleanup
+      }
+    };
   }, [audioUrl, waveform]);
 
   // 1. Sync Play/Pause and scrubbing (Track-specific)

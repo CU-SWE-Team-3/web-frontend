@@ -9,12 +9,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 vi.mock('@/shared/ui', () => ({
   NavBar: () => <div data-testid="mock-navbar" />,
   SearchBar: () => <div data-testid="mock-search-bar" />,
+  SkeletonLoader: () => <div data-testid="mock-skeleton" />,
+  EmptyState: ({ title, icon }: any) => <div data-testid="mock-empty-state">{title}</div>,
 }))
 
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/settings',
 }))
 
 const queryClient = new QueryClient({

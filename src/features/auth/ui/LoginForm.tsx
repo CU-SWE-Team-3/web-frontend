@@ -60,7 +60,13 @@ const LoginForm = () => {
       const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user) {
         login(user, token)
-        router.push(ROUTES.DASHBOARD)
+        // Role-based redirect: Admin → /admin dashboard, everyone else → /home
+        const role = user?.role?.toLowerCase?.() ?? ''
+        if (role === 'admin') {
+          router.push(ROUTES.ADMIN_DASHBOARD)
+        } else {
+          router.push(ROUTES.DASHBOARD)
+        }
       }
     } catch (err: any) {
       const message = err?.response?.data?.message || 'Invalid email or password.'

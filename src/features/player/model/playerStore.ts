@@ -30,10 +30,14 @@ interface PlayerState {
   isQueueOpen: boolean;
   playbackSource: 'global' | 'inline';
   previousVolume: number;
+  contextType: 'playlist' | 'album' | null;
+  contextId: string | null;
+  contextTitle: string | null;
 }
 
 interface PlayerActions {
   play: (track?: Track, source?: 'global' | 'inline') => void;
+  playContext: (tracks: Track[], startIndex: number, context: { type: 'playlist' | 'album'; id: string; title: string }) => void;
   pause: () => void;
   seek: (time: number) => void;
   setVolume: (level: number) => void;
@@ -69,16 +73,47 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   repeatMode: 'none',
   isQueueOpen: false,
   playbackSource: 'global',
+  contextType: null,
+  contextId: null,
+  contextTitle: null,
 
   play: (track?: Track, source: 'global' | 'inline' = 'global') => {
     if (track) {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('playerbar-stop-all', { detail: { activeTrackId: track.id } }));
       }
-      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: source });
+      set({ currentTrack: track, isPlaying: true, currentTime: 0, duration: track.duration ?? 0, playbackSource: source, contextType: null, contextId: null, contextTitle: null });
     } else {
       set({ isPlaying: true });
     }
+  },
+
+  playContext: (tracks, startIndex, context) => {
+    const track = tracks[startIndex];
+    if (track && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('playerbar-stop-all', { detail: { activeTrackId: track.id } }));
+    }
+    set(s => {
+      // Setup queue with optional shuffle
+      let shuffledQueueIds = s.shuffledQueueIds;
+      if (s.isShuffle) {
+        const ids = tracks.map((t) => t.id).filter((id) => track && id !== track.id);
+        ids.sort(() => Math.random() - 0.5);
+        shuffledQueueIds = track ? [track.id, ...ids] : ids;
+      }
+      return {
+        queue: tracks,
+        shuffledQueueIds,
+        currentTrack: track || null,
+        isPlaying: !!track,
+        currentTime: 0,
+        duration: track?.duration ?? 0,
+        contextType: context.type,
+        contextId: context.id,
+        contextTitle: context.title,
+        playbackSource: 'global',
+      };
+    });
   },
 
   pause: () => set({ isPlaying: false }),

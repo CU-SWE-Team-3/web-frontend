@@ -10,6 +10,8 @@ import { ROUTES } from '@/shared/constants/routes'
 // POST /auth/forgot-password  body: { email }
 // Always returns 200 (to prevent email enumeration) — no change needed here.
 
+const DEV_MOCK_MODE = false // TODO: Set to false when testing with real backend
+
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
@@ -28,7 +30,14 @@ const ForgotPasswordForm = () => {
     setIsLoading(true)
     setError('')
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      if (DEV_MOCK_MODE) {
+        // Simulate a 1-second network delay then succeed
+        await new Promise((res) => setTimeout(res, 1000))
+        setSuccess(true)
+        return
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
       await axios.post(`${apiUrl}/auth/forgot-password`, { email }, { withCredentials: true })
       setSuccess(true)
     } catch {

@@ -1,0 +1,4355 @@
+openapi: 3.0.3
+
+info:
+  title: BioBeats API
+  version: '1.07'
+  description: REST API for BioBeats — music streaming platform
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/soundcloud-f93/Phase1/1.0.3
+  - url: http://localhost:5000/api
+    description: Local development
+
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Network
+  - name: Tracks
+  - name: Playback & Streaming Engine
+  - name: Engagement & Social Interactions
+  - name: Playlists
+  - name: Messaging
+  - name: Admin
+  - name: Subscriptions
+
+# ==========================================
+# REUSABLE COMPONENTS
+# ==========================================
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    MongoIdParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      description: Valid 24-character MongoDB ID
+
+  schemas:
+    ArtistSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        displayName:
+          type: string
+          example: "Aml Muhammad"
+        permalink:
+          type: string
+          example: "aml-muhammad"
+        avatarUrl:
+          type: string
+          example: "https://blob/avatar.jpg"
+        isPremium:
+          type: boolean
+          example: false
+
+    TrackSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439022"
+        title:
+          type: string
+          example: "Amr Diab sad."
+        permalink:
+          type: string
+          example: "amr-diab-sad"
+        artworkUrl:
+          type: string
+          example: "https://blob/artwork.jpg"
+        duration:
+          type: number
+          example: 3600
+        playCount:
+          type: number
+          example: 335000
+        likeCount:
+          type: number
+          example: 9357
+        repostCount:
+          type: number
+          example: 17
+        commentCount:
+          type: number
+          example: 14
+        isPublic:
+          type: boolean
+          example: true
+        artist:
+          $ref: '#/components/schemas/ArtistSummary'
+
+    PlaylistSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439033"
+        title:
+          type: string
+          example: "Buzzing Mexico"
+        permalink:
+          type: string
+          example: "buzzing-mexico"
+        artworkUrl:
+          type: string
+          example: "https://blob/playlist.jpg"
+        trackCount:
+          type: number
+          example: 12
+        releaseType:
+          type: string
+          enum: [playlist, album, ep, single]
+          example: "playlist"
+        creator:
+          type: object
+          properties:
+            displayName:
+              type: string
+              example: "New!"
+            permalink:
+              type: string
+              example: "new"
+            avatarUrl:
+              type: string
+              example: "https://blob/avatar.jpg"
+
+    # ── Track history record ──────────────────────────────────────────────────
+
+    TrackHistoryRecord:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439044"
+        type:
+          type: string
+          enum: [track]
+          example: "track"
+        track:
+          $ref: '#/components/schemas/TrackSummary'
+        playlist:
+          nullable: true
+          description: The playlist this track was played from. Null if played standalone.
+          allOf:
+            - $ref: '#/components/schemas/PlaylistSummary'
+          example: null
+        progress:
+          type: number
+          description: Playback progress in seconds at last update.
+          example: 165
+        isPlayCounted:
+          type: boolean
+          description: Whether this listen has already been counted as a full play.
+          example: true
+        playedAt:
+          type: string
+          format: date-time
+          example: "2026-04-20T20:00:00.000Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-04-20T19:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-04-20T20:00:00.000Z"
+
+    # ── Playlist history record ───────────────────────────────────────────────
+
+    PlaylistHistoryRecord:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439055"
+        type:
+          type: string
+          enum: [playlist]
+          example: "playlist"
+        playlist:
+          $ref: '#/components/schemas/PlaylistSummary'
+        playedAt:
+          type: string
+          format: date-time
+          example: "2026-04-20T20:00:00.000Z"
+
+    # ── Mixed history item ────────────────────────────────────────────────────
+
+    MixedHistoryItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [track, playlist]
+          example: "track"
+        playedAt:
+          type: string
+          format: date-time
+          example: "2026-04-20T20:00:00.000Z"
+        item:
+          description: Either a TrackSummary or PlaylistSummary depending on type.
+          oneOf:
+            - $ref: '#/components/schemas/TrackSummary'
+            - $ref: '#/components/schemas/PlaylistSummary'
+    ConversationResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              displayName:
+                type: string
+              permalink:
+                type: string
+              avatarUrl:
+                type: string
+              role:
+                type: string
+        lastMessage:
+          $ref: '#/components/schemas/Message'
+        unreadCount:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+          
+    Message:
+      type: object
+      properties:
+        _id:
+          type: string
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        content:
+          type: string
+        attachment:
+          type: object
+          nullable: true
+          properties:
+            type:
+              type: string
+              enum: [track, playlist]
+            referenceId:
+              type: string
+        status:
+          type: string
+          enum: [sent, delivered, read]
+        isEdited:
+          type: boolean
+        isDeleted:
+          type: boolean
+        deletedFor:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PlaylistListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        results:
+          type: integer
+          description: The number of playlists returned in the array
+          example: 12
+        data:
+          type: object
+          properties:
+            playlists:
+              type: array
+              items:
+                $ref: '#/components/schemas/Playlist'
+    PlaylistResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            playlist:
+              $ref: '#/components/schemas/Playlist'
+              
+    EmbedResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            iframeCode:
+              type: string
+              example: '<iframe width="100%" height="450" src="..."></iframe>'
+            playlistId:
+              type: string
+
+    # 2. Request Body Inputs
+    PlaylistInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        releaseType:
+          type: string
+          enum: [playlist, album, ep, single]
+        tags:
+          type: array
+          items:
+            type: string
+        genre:
+          type: string
+        releaseDate:
+          type: string
+          format: date-time
+        labelName:
+          type: string
+        buyLink:
+          type: string
+        buyTitle:
+          type: string
+        upc:
+          type: string
+        isPrivate:
+          type: boolean
+
+    PlaylistUpdateInput:
+      type: object
+      description: All fields are optional for a PATCH request.
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        releaseType:
+          type: string
+          enum: [playlist, album, ep, single]
+        tags:
+          type: array
+          items:
+            type: string
+        genre:
+          type: string
+        releaseDate:
+          type: string
+          format: date-time
+        labelName:
+          type: string
+        buyLink:
+          type: string
+        buyTitle:
+          type: string
+        upc:
+          type: string
+        isPrivate:
+          type: boolean
+
+    UpdateTracksInput:
+      type: object
+      required:
+        - tracks
+      properties:
+        tracks:
+          type: array
+          description: Array of Track ObjectIds (Max 500)
+          items:
+            type: string
+          example: ["64f1a2b3c4d5e6f7a8b9c0d1", "64f1a2b3c4d5e6f7a8b9c0d2"]
+
+    ArtworkUploadInput:
+      type: object
+      required:
+        - artwork
+      properties:
+        artwork:
+          type: string
+          format: binary
+          description: The image file (JPG, PNG) to upload
+
+    # 3. The Core Database Model Payload
+    Playlist:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        permalink:
+          type: string
+        creator:
+          type: string
+        description:
+          type: string
+        releaseType:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        genre:
+          type: string
+        releaseDate:
+          type: string
+          format: date-time
+        labelName:
+          type: string
+        buyLink:
+          type: string
+        buyTitle:
+          type: string
+        upc:
+          type: string
+        tracks:
+          type: array
+          items:
+            type: string
+            description: Array of Track ObjectIDs (or populated Track objects on GET)
+        artworkUrl:
+          type: string
+        isPrivate:
+          type: boolean
+        secretToken:
+          type: string
+        trackCount:
+          type: integer
+        totalDuration:
+          type: number
+        playCount:
+          type: integer
+        likeCount:
+          type: integer
+        repostCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        # ─── BASE SCHEMAS ──────────────────────────────────────────────────
+    BaseSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+    # ─── REPORT SCHEMAS ────────────────────────────────────────────────
+    ReportInput:
+      type: object
+      required:
+        - targetType
+        - targetId
+        - reason
+      properties:
+        targetType:
+          type: string
+          enum: [Track, Comment, User]
+        targetId:
+          type: string
+          example: "60d5ec49f1b2c8b1f8e4e1a1"
+        reason:
+          type: string
+          enum: [Copyright, Inappropriate Content, Spam, Other]
+
+    ReportData:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60d5ec49f1b2c8b1f8e4e1a1"
+        reporter:
+          type: string
+          description: Can be an ID or a populated user object
+          example: "65b2a1f8e4b3c9d7a1234567"
+        targetType:
+          type: string
+          example: "Track"
+        targetId:
+          type: string
+          example: "61c3b2d9e4a3c9d7a1239999"
+        reason:
+          type: string
+          example: "Copyright"
+        status:
+          type: string
+          example: "Pending"
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── ANALYTICS SCHEMAS ─────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+          example: 1520
+        roleBreakdown:
+          type: object
+          properties:
+            artists:
+              type: integer
+              example: 120
+            listeners:
+              type: integer
+              example: 1400
+        artistToListenerRatio:
+          type: string
+          example: "0.09"
+        totalTracks:
+          type: integer
+          example: 8400
+        totalPlays:
+          type: integer
+          example: 450000
+        completedPlays:
+          type: integer
+          example: 390000
+        playThroughRate:
+          type: string
+          example: "86.66%"
+        totalStorageUsed:
+          type: string
+          example: "2048.50 MB"
+
+    # ─── MODERATION SCHEMAS ────────────────────────────────────────────
+    UserModerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User suspended successfully"
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              example: "60d5ec49f1b2c8b1f8e4e1a1"
+            status:
+              type: string
+              example: "Suspended"
+
+    TrackModerationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Track hidden from public feed"
+        data:
+          type: object
+          properties:
+            trackId:
+              type: string
+              example: "60d5ec49f1b2c8b1f8e4e1a1"
+            isPublic:
+              type: boolean
+              example: true
+            moderationStatus:
+              type: string
+              example: "Hidden_By_Admin"
+    LimitErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Upload limit exceeded. You have reached your 3-hour limit on the Free plan. Please upgrade to Pro or Go+ to upload more tracks."
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        displayName:
+          type: string
+          example: "Ahmed Karim"
+        permalink:
+          type: string
+          example: "ahmed-karim"
+        avatarUrl:
+          type: string
+          example: "https://biobeats.blob.core.windows.net/avatars/avatar-1234.jpg"
+        role:
+          type: string
+          enum: [Artist, Listener, Admin]
+        isEmailVerified:
+          type: boolean
+        isPremium:
+          type: boolean
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+
+    PublicProfile:
+      type: object
+      properties:
+        displayName:
+          type: string
+        permalink:
+          type: string
+        avatarUrl:
+          type: string
+        coverUrl:
+          type: string
+        bio:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        genres:
+          type: array
+          items:
+            type: string
+        role:
+          type: string
+        isPremium:
+          type: boolean
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        socialLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialLink'
+        isPrivate:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PrivateProfile:
+      type: object
+      description: Returned when a profile is set to private — limited fields only
+      properties:
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        permalink:
+          type: string
+        role:
+          type: string
+        isPrivate:
+          type: boolean
+          example: true
+
+    SocialLink:
+      type: object
+      properties:
+        _id:
+          type: string
+        platform:
+          type: string
+          example: "twitter"
+        url:
+          type: string
+          example: "https://twitter.com/ahmedkarim"
+
+    Track:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        permalink:
+          type: string
+        description:
+          type: string
+        genre:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        releaseDate:
+          type: string
+          format: date-time
+        artworkUrl:
+          type: string
+        hlsUrl:
+          type: string
+          description: HLS playlist URL for streaming. Use this — never audioUrl.
+          example: "https://biobeats.blob.core.windows.net/hls/trackid/playlist.m3u8"
+        waveform:
+          type: array
+          items:
+            type: integer
+          description: Array of 150 normalised peak values (0-100)
+        duration:
+          type: integer
+          description: Duration in seconds
+        format:
+          type: string
+          example: "audio/mpeg"
+        isPublic:
+          type: boolean
+        processingState:
+          type: string
+          enum: [Processing, Finished, Failed]
+        playCount:
+          type: integer
+        likeCount:
+          type: integer
+        repostCount:
+          type: integer
+        commentCount:
+          type: integer
+        artist:
+          type: object
+          properties:
+            _id:
+              type: string
+            displayName:
+              type: string
+            permalink:
+              type: string
+            avatarUrl:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    FeedTrack:
+      type: object
+      description: Condensed track shape returned in the feed
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        permalink:
+          type: string
+        artworkUrl:
+          type: string
+        hlsUrl:
+          type: string
+        waveform:
+          type: array
+          items:
+            type: integer
+        duration:
+          type: integer
+        genre:
+          type: string
+        playCount:
+          type: integer
+        likeCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        artist:
+          type: object
+          properties:
+            _id:
+              type: string
+            displayName:
+              type: string
+            permalink:
+              type: string
+            avatarUrl:
+              type: string
+
+    FollowCounts:
+      type: object
+      properties:
+        myFollowingCount:
+          type: integer
+          description: Updated followingCount for the logged-in user
+        theirFollowerCount:
+          type: integer
+          description: Updated followerCount for the target user
+        
+    PlayerState:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        currentTrack:
+          $ref: '#/components/schemas/Track'
+        currentTime:
+          type: number
+          example: 45.5
+        isPlaying:
+          type: boolean
+          example: true
+        queueContext:
+          type: string
+          enum: ['none', 'feed', 'playlist', 'track', 'station', 'search']
+          example: 'playlist'
+        contextId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StreamData:
+      type: object
+      properties:
+        streamUrl:
+          type: string
+          format: uri
+          example: "https://biobeats.blob.core.windows.net/hls/trackid/playlist.m3u8"
+        duration:
+          type: integer
+          example: 210
+        format:
+          type: string
+          example: "hls"
+
+    HistoryRecord:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        track:
+          $ref: '#/components/schemas/Track'
+        progress:
+          type: number
+          description: Playback progress in seconds
+          example: 115
+        playedAt:
+          type: string
+          format: date-time
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        content:
+          type: string
+          example: "The bass drop right here is insane!"
+        timestamp:
+          type: integer
+          description: The specific second in the audio track where the comment was placed.
+          example: 45
+        user:
+          $ref: '#/components/schemas/User'
+        parentComment:
+          type: string
+          description: If this is a reply, the ID of the parent comment.
+        replies:
+          type: array
+          description: An array of nested replies (restricted to 1 level deep).
+          items:
+            # Recursive reference to itself, omitting replies to enforce 1-level deep
+            type: object
+            properties:
+              _id:
+                type: string
+              content:
+                type: string
+              timestamp:
+                type: integer
+              user:
+                $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        status:
+          type: string
+          enum: [fail, error]
+        message:
+          type: string
+
+# ==========================================
+# PATHS
+# ==========================================
+paths:
+
+  # ==========================================
+  # AUTH
+  # ==========================================
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, displayName, captchaToken]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                displayName:
+                  type: string
+                age:
+                  type: integer
+                gender:
+                  type: string
+                  enum: [Female, Male, Custom, "Prefer not to say"]
+                captchaToken:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email and password
+      description: Sets accessToken and refreshToken as HttpOnly cookies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful. Cookies are set automatically.
+          headers:
+            Set-Cookie:
+              description: accessToken (15m) and refreshToken (7d) HttpOnly cookies
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current user
+      description: Clears cookies and revokes refresh token in the database
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Reads refreshToken from cookie or request body. Returns new cookies and current user.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Only needed for mobile clients not using cookies
+      responses:
+        '200':
+          description: Tokens refreshed. New cookies are set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Refresh token missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email verified. Returns updated user with isEmailVerified true.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Resend email verification link
+      description: Always returns 200 to prevent email enumeration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Response is always 200 regardless of whether the account exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset email
+      description: Always returns 200 to prevent email enumeration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Reset link sent if account exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /auth/reset-password:
+    patch:
+      tags: [Auth]
+      summary: Reset password using token from email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/update-email:
+    patch:
+      tags: [Auth]
+      summary: Request an email address change
+      description: Sends a verification link to the new email address
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newEmail]
+              properties:
+                newEmail:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Verification email sent to new address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/confirm-email-update:
+    post:
+      tags: [Auth]
+      summary: Confirm and apply the email address change
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google:
+    get:
+      tags: [Auth]
+      summary: Get Google OAuth redirect URL
+      responses:
+        '200':
+          description: Google OAuth URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+
+  /auth/google/callback:
+    get:
+      tags: [Auth]
+      summary: Handle Google OAuth callback (web)
+      description: Sets HttpOnly cookies. Returns user only — no tokens in body.
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Google login successful. Cookies set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Missing authorization code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google/mobile:
+    post:
+      tags: [Auth]
+      summary: Google login for mobile clients
+      description: Mobile only — returns token and refreshToken in body since mobile apps manage their own token storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+      responses:
+        '200':
+          description: Google mobile login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                      refreshToken:
+                        type: string
+        '400':
+          description: Missing idToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==========================================
+  # PROFILE
+  # ==========================================
+
+  /profile/{permalink}:
+    get:
+      tags: [Profile]
+      summary: Get a public profile by permalink
+      description: |
+        Returns the full profile if public.
+        If the profile is private, returns a limited shape with isPrivate:true
+        and only displayName, avatarUrl, permalink, role.
+      parameters:
+        - in: path
+          name: permalink
+          required: true
+          schema:
+            type: string
+          example: ahmed-karim
+      responses:
+        '200':
+          description: Profile found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        oneOf:
+                          - $ref: '#/components/schemas/PublicProfile'
+                          - $ref: '#/components/schemas/PrivateProfile'
+        '404':
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profile/update:
+    patch:
+      tags: [Profile]
+      summary: Update profile fields
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                permalink:
+                  type: string
+                bio:
+                  type: string
+                  maxLength: 500
+                country:
+                  type: string
+                city:
+                  type: string
+                genres:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          displayName:
+                            type: string
+                          permalink:
+                            type: string
+                          bio:
+                            type: string
+                          country:
+                            type: string
+                          city:
+                            type: string
+                          genres:
+                            type: array
+                            items:
+                              type: string
+
+  /profile/upload-images:
+    patch:
+      tags: [Profile]
+      summary: Upload avatar and/or cover photo
+      description: Accepts multipart form with optional avatar and/or cover fields. Returns only the updated URLs.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Max 5MB image
+                cover:
+                  type: string
+                  format: binary
+                  description: Max 5MB image
+      responses:
+        '200':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      avatarUrl:
+                        type: string
+                        example: "https://biobeats.blob.core.windows.net/avatars/avatar-1234.jpg"
+                      coverUrl:
+                        type: string
+                        example: "https://biobeats.blob.core.windows.net/covers/cover-5678.jpg"
+        '400':
+          description: No files provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profile/privacy:
+    patch:
+      tags: [Profile]
+      summary: Toggle profile privacy
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isPrivate]
+              properties:
+                isPrivate:
+                  type: boolean
+      responses:
+        '200':
+          description: Privacy updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      isPrivate:
+                        type: boolean
+
+  /profile/social-links:
+    patch:
+      tags: [Profile]
+      summary: Replace all social links
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [socialLinks]
+              properties:
+                socialLinks:
+                  type: array
+                  maxItems: 10
+                  items:
+                    $ref: '#/components/schemas/SocialLink'
+      responses:
+        '200':
+          description: Social links updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      socialLinks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SocialLink'
+
+  /profile/social-links/{linkId}:
+    delete:
+      tags: [Profile]
+      summary: Remove a single social link by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Social link removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      socialLinks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SocialLink'
+
+  /profile/tier:
+    patch:
+      tags: [Profile]
+      summary: Update account tier (role)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [Artist, Listener, Admin]
+      responses:
+        '200':
+          description: Tier updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+
+  # ==========================================
+  # TRACKS
+  # ==========================================
+
+  /tracks/upload:
+    post:
+      tags: [Tracks]
+      summary: Initiate a track upload
+      description: |
+        Returns a signed Azure SAS URL valid for 15 minutes.
+        Client uploads the audio file directly to Azure using this URL (PUT request),
+        then calls PATCH /tracks/{id}/confirm to trigger processing.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, format, size, duration]
+              properties:
+                title:
+                  type: string
+                format:
+                  type: string
+                  enum: [audio/mpeg, audio/mp3, audio/wav, audio/x-wav, audio/wave]
+                size:
+                  type: integer
+                  description: File size in bytes
+                duration:
+                  type: number
+                  description: Duration in seconds (client-side estimate, overwritten after processing)
+      responses:
+        '201':
+          description: Upload URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trackId:
+                        type: string
+                      uploadUrl:
+                        type: string
+                        format: uri
+                        description: Signed Azure SAS URL. PUT the audio file directly to this.
+        '400':
+          description: Unsupported format or upload limit reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/confirm:
+    patch:
+      tags: [Tracks]
+      summary: Confirm upload and trigger processing
+      description: |
+        Call this after successfully uploading to Azure.
+        Queues the track for FFmpeg transcoding (HLS + waveform extraction).
+        processingState will be Processing. Poll GET /{permalink} until Finished.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Processing queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trackId:
+                        type: string
+                      permalink:
+                        type: string
+                      title:
+                        type: string
+                      processingState:
+                        type: string
+                        enum: [Processing]
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tracks/my-tracks:
+      get:
+        tags: [Tracks]
+        security:
+          - bearerAuth: []
+        summary: Get my tracks
+        description: >
+          Returns all finished tracks belonging to the currently authenticated user.
+          Includes both public and private tracks. audioUrl is excluded from all responses.
+          Sorted by createdAt descending.
+        responses:
+          '200':
+            description: Tracks returned successfully
+            content:
+              application/json:
+                example:
+                  success: true
+                  count: 2
+                  data:
+                    - _id: "69b68eda568a1e919baf0142"
+                      title: "Midnight Groove"
+                      permalink: "midnight-groove"
+                      description: "Deep house track recorded live."
+                      genre: "Deep House"
+                      tags: ["#deephouse", "#live"]
+                      releaseDate: "2026-01-15T00:00:00.000Z"
+                      artworkUrl: "https://biobeats-assets.blob.core.windows.net/artworks/artwork-123.jpg"
+                      hlsUrl: "https://biobeats-audio.blob.core.windows.net/hls/69b68eda/playlist.m3u8"
+                      waveform: [12, 45, 88, 34, 100]
+                      duration: 247
+                      format: "audio/mpeg"
+                      isPublic: true
+                      processingState: "Finished"
+                      playCount: 89043
+                      likeCount: 4032
+                      repostCount: 210
+                      commentCount: 85
+                      createdAt: "2026-01-15T10:00:00.000Z"
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+  /tracks/{permalink}:
+    get:
+      tags: [Tracks]
+      summary: Get a track by permalink
+      description: |
+        Returns the full track for playback. Only available when processingState is Finished.
+        audioUrl is never returned — stream via hlsUrl only.
+      parameters:
+        - in: path
+          name: permalink
+          required: true
+          schema:
+            type: string
+          example: my-track-title
+      responses:
+        '200':
+          description: Track found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Track not found or still processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/metadata:
+    patch:
+      tags: [Tracks]
+      summary: Update track metadata
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                genre:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                releaseDate:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Metadata updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Track not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/visibility:
+    patch:
+      tags: [Tracks]
+      summary: Toggle track public/private visibility
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isPublic]
+              properties:
+                isPublic:
+                  type: boolean
+      responses:
+        '200':
+          description: Visibility updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      track:
+                        $ref: '#/components/schemas/Track'
+        '400':
+          description: Invalid input or permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/artwork:
+    patch:
+      tags: [Tracks]
+      summary: Upload track artwork
+      description: Returns only the updated artworkUrl
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [artwork]
+              properties:
+                artwork:
+                  type: string
+                  format: binary
+                  description: Image file, max 5MB
+      responses:
+        '200':
+          description: Artwork uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      artworkUrl:
+                        type: string
+        '400':
+          description: No file provided or permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/download:
+    get:
+      tags: [Tracks]
+      summary: Download track audio (Premium only)
+      description: Streams the original audio file as a binary download. Requires isPremium = true and Allows users to download the original high-quality audio file.
+        * *Free:* No downloads allowed.
+        * *Pro:* Limited downloads per month.
+        * *Go+:* Unlimited downloads.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Binary audio stream
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="my_track.mp3"'
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Download Limit Exceeded or Premium Tier required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitErrorResponse'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}:
+    delete:
+      tags: [Tracks]
+      summary: Delete a track
+      description: Deletes the track document and the audio file from Azure Blob Storage
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Track deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '403':
+          description: Not the track owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==========================================
+  # NETWORK
+  # ==========================================
+
+  /network/feed:
+    get:
+      tags: [Network]
+      summary: Get feed of recent tracks from followed artists
+      description: Returns up to 20 public finished tracks from users the logged-in user follows, sorted newest first
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Feed retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeedTrack'
+
+  /network/suggested:
+    get:
+      tags: [Network]
+      summary: Get suggested users to follow
+      description: Returns mutual-follow suggestions first, falls back to popular users
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Suggested users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/blocked-users:
+    get:
+      tags: [Network]
+      summary: Get list of blocked users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Blocked users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        displayName:
+                          type: string
+                        permalink:
+                          type: string
+                        avatarUrl:
+                          type: string
+
+  /network/{userId}/followers:
+    get:
+      tags: [Network]
+      summary: Get followers of a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Followers list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/{userId}/following:
+    get:
+      tags: [Network]
+      summary: Get users that a user is following
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Following list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /network/{id}/follow:
+    post:
+      tags: [Network]
+      summary: Follow a user
+      description: Returns updated follower/following counts so the frontend can update counters without a second request
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to follow
+      responses:
+        '200':
+          description: Followed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/FollowCounts'
+        '400':
+          description: Already following or cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Network]
+      summary: Unfollow a user
+      description: Returns updated follower/following counts
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to unfollow
+      responses:
+        '200':
+          description: Unfollowed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/FollowCounts'
+        '400':
+          description: Not following this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /network/{userId}/block:
+    post:
+      tags: [Network]
+      summary: Block a user
+      description: Also removes any existing follow relationship in both directions
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: blocked
+        '400':
+          description: Already blocked or cannot block yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Network]
+      summary: Unblock a user
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User unblocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: unblocked
+        '400':
+          description: User was not blocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+# ==========================================
+  # PLAYBACK & STREAMING ENGINE (MODULE 5)
+  # ==========================================
+
+  /player/state:
+    get:
+      tags: ["Playback & Streaming Engine"]
+      summary: Get current player state
+      description: Retrieves the user's last saved playback position and track for cross-device sync.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Player state retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PlayerState'
+        '401':
+          description: Unauthorized - User not logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: ["Playback & Streaming Engine"]
+      summary: Update player state (Heartbeat)
+      description: Continuously syncs the user's current playback time to the database.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentTrack, currentTime, isPlaying]
+              properties:
+                currentTrack:
+                  type: string
+                  description: Valid Track ID
+                currentTime:
+                  type: number
+                  example: 45.5
+                isPlaying:
+                  type: boolean
+                queueContext:
+                  type: string
+                  enum: ['none', 'feed', 'playlist', 'track', 'station', 'search']
+                contextId:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Player state updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PlayerState'
+        '400':
+          description: Bad Request - Invalid track ID or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - User not logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /player/{id}/stream:
+    get:
+      tags: ["Playback & Streaming Engine"]
+      summary: Get high-fidelity stream URL
+      description: Evaluates tier permissions and track visibility before returning the HLS playlist URL.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Valid Track ID
+      responses:
+        '200':
+          description: Stream access granted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/StreamData'
+        '400':
+          description: Track audio still processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - User not logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Private track or insufficient tier access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /history/progress:
+    post:
+      tags: ["Playback & Streaming Engine"]
+      summary: Record playback progress
+      description: |
+        Called periodically while a track is playing (e.g. every 5 seconds).
+        Saves the user's current position in the track.
+        - If progress exceeds 90% of track duration, the play is counted once.
+        - If progress drops below 10% (restart), the play count lock resets.
+        - If playlistId is provided, the playlist is also recorded as recently played.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - trackId
+                - progress
+              properties:
+                trackId:
+                  type: string
+                  description: MongoDB ObjectId of the track being played.
+                  example: "507f1f77bcf86cd799439022"
+                progress:
+                  type: number
+                  minimum: 0
+                  description: Current playback position in seconds.
+                  example: 165
+                playlistId:
+                  type: string
+                  nullable: true
+                  description: MongoDB ObjectId of the playlist the track is being played from. Omit if playing standalone.
+                  example: "507f1f77bcf86cd799439033"
+            examples:
+              standalone:
+                summary: Track played standalone (no playlist)
+                value:
+                  trackId: "507f1f77bcf86cd799439022"
+                  progress: 50
+              fromPlaylist:
+                summary: Track played from inside a playlist
+                value:
+                  trackId: "507f1f77bcf86cd799439022"
+                  progress: 50
+                  playlistId: "507f1f77bcf86cd799439033"
+              triggerPlayCount:
+                summary: Progress at 90%+ triggers play count
+                value:
+                  trackId: "507f1f77bcf86cd799439022"
+                  progress: 165
+              restart:
+                summary: Progress under 10% resets play count lock
+                value:
+                  trackId: "507f1f77bcf86cd799439022"
+                  progress: 5
+      responses:
+        '200':
+          description: Progress recorded successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      history:
+                        $ref: '#/components/schemas/TrackHistoryRecord'
+              example:
+                status: "success"
+                data:
+                  history:
+                    _id: "507f1f77bcf86cd799439044"
+                    type: "track"
+                    track: "507f1f77bcf86cd799439022"
+                    playlist: null
+                    progress: 165
+                    isPlayCounted: true
+                    playedAt: "2026-04-20T20:00:00.000Z"
+        '400':
+          description: Missing trackId or progress / invalid playlistId format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingFields:
+                  summary: Missing required fields
+                  value:
+                    success: false
+                    status: "fail"
+                    message: "Please provide both trackId and progress."
+                badPlaylistId:
+                  summary: Invalid playlistId format
+                  value:
+                    success: false
+                    status: "fail"
+                    message: "playlistId must be a valid Playlist ID"
+        '401':
+          description: Unauthorized — missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /history/recently-played:
+    get:
+      tags: ["Playback & Streaming Engine"]
+      summary: Get recently played tracks
+      description: |
+        Returns a paginated list of individual tracks the user has listened to,
+        sorted by most recently played. Each record also includes which playlist
+        the track was played from (null if played standalone).
+
+        Used for the *History page — "Hear the tracks you've played"* section.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: List of recently played tracks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  results:
+                    type: integer
+                    example: 2
+                  data:
+                    type: object
+                    properties:
+                      recentlyPlayed:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TrackHistoryRecord'
+              example:
+                status: "success"
+                results: 2
+                data:
+                  recentlyPlayed:
+                    - _id: "507f1f77bcf86cd799439044"
+                      type: "track"
+                      track:
+                        _id: "507f1f77bcf86cd799439022"
+                        title: "Amr Diab sad."
+                        permalink: "amr-diab-sad"
+                        artworkUrl: "https://blob/artwork.jpg"
+                        duration: 3600
+                        playCount: 335000
+                        likeCount: 9357
+                        artist:
+                          displayName: "Aml Muhammad"
+                          permalink: "aml-muhammad"
+                      playlist:
+                        _id: "507f1f77bcf86cd799439033"
+                        title: "Buzzing Mexico"
+                        permalink: "buzzing-mexico"
+                      progress: 165
+                      isPlayCounted: true
+                      playedAt: "2026-04-20T20:00:00.000Z"
+                    - _id: "507f1f77bcf86cd799439045"
+                      type: "track"
+                      track:
+                        _id: "507f1f77bcf86cd799439023"
+                        title: "Alleinheit"
+                        permalink: "alleinheit"
+                        artworkUrl: "https://blob/artwork2.jpg"
+                        duration: 203
+                        playCount: 14300
+                        likeCount: 279
+                        artist:
+                          displayName: "11431152"
+                          permalink: "11431152"
+                      playlist: null
+                      progress: 50
+                      isPlayCounted: false
+                      playedAt: "2026-04-20T19:50:00.000Z"
+        '400':
+          description: Invalid pagination parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /history/recently-played-playlists:
+    get:
+      tags: ["Playback & Streaming Engine"]
+      summary: Get recently played playlists
+      description: |
+        Returns a paginated list of playlists the user has recently opened and played from,
+        sorted by most recently played. No individual tracks are returned here.
+
+        Used for the *History page — "Recently played" horizontal card row*.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: List of recently played playlists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  results:
+                    type: integer
+                    example: 3
+                  data:
+                    type: object
+                    properties:
+                      recentlyPlayed:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PlaylistHistoryRecord'
+              example:
+                status: "success"
+                results: 3
+                data:
+                  recentlyPlayed:
+                    - _id: "507f1f77bcf86cd799439055"
+                      type: "playlist"
+                      playlist:
+                        _id: "507f1f77bcf86cd799439033"
+                        title: "Buzzing Mexico"
+                        permalink: "buzzing-mexico"
+                        artworkUrl: "https://blob/playlist1.jpg"
+                        trackCount: 12
+                        releaseType: "playlist"
+                        creator:
+                          displayName: "New!"
+                          permalink: "new"
+                      playedAt: "2026-04-20T20:00:00.000Z"
+                    - _id: "507f1f77bcf86cd799439056"
+                      type: "playlist"
+                      playlist:
+                        _id: "507f1f77bcf86cd799439034"
+                        title: "babaouti"
+                        permalink: "babaouti"
+                        artworkUrl: "https://blob/playlist2.jpg"
+                        trackCount: 8
+                        releaseType: "album"
+                        creator:
+                          displayName: "Ahmed Bob"
+                          permalink: "ahmed-bob"
+                      playedAt: "2026-04-20T19:45:00.000Z"
+        '400':
+          description: Invalid pagination parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /history/recently-played-mixed:
+    get:
+      tags: ["Playback & Streaming Engine"]
+      summary: Get mixed recently played (home page widget)
+      description: |
+        Returns a merged list of both tracks and playlists the user has recently played,
+        sorted by most recently played across both types.
+
+        Used for the *Home page "Recently Played" section* — the cards shown
+        before pressing "See All".
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Maximum number of mixed items to return.
+          example: 10
+      responses:
+        '200':
+          description: Mixed list of recently played tracks and playlists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  results:
+                    type: integer
+                    example: 3
+                  data:
+                    type: object
+                    properties:
+                      recentlyPlayed:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MixedHistoryItem'
+              example:
+                status: "success"
+                results: 3
+                data:
+                  recentlyPlayed:
+                    - type: "playlist"
+                      playedAt: "2026-04-20T20:00:00.000Z"
+                      item:
+                        _id: "507f1f77bcf86cd799439033"
+                        title: "Buzzing Mexico"
+                        permalink: "buzzing-mexico"
+                        artworkUrl: "https://blob/playlist1.jpg"
+                        trackCount: 12
+                        releaseType: "playlist"
+                        creator:
+                          displayName: "New!"
+                          permalink: "new"
+                    - type: "track"
+                      playedAt: "2026-04-20T19:55:00.000Z"
+                      item:
+                        _id: "507f1f77bcf86cd799439022"
+                        title: "Amr Diab sad."
+                        permalink: "amr-diab-sad"
+                        artworkUrl: "https://blob/artwork.jpg"
+                        duration: 3600
+                        artist:
+                          displayName: "Aml Muhammad"
+                          permalink: "aml-muhammad"
+                    - type: "track"
+                      playedAt: "2026-04-20T19:50:00.000Z"
+                      item:
+                        _id: "507f1f77bcf86cd799439023"
+                        title: "Alleinheit"
+                        permalink: "alleinheit"
+                        artworkUrl: "https://blob/artwork2.jpg"
+                        duration: 203
+                        artist:
+                          displayName: "11431152"
+                          permalink: "11431152"
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /history:
+    delete:
+      tags: ["Playback & Streaming Engine"]
+      summary: Clear all listening history
+      description: |
+        Permanently deletes all listening history for the authenticated user,
+        including both track history and playlist history records.
+
+        Used for the *History page "Clear all history"* button.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: History cleared successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Listening history cleared successfully."
+              example:
+                status: "success"
+                message: "Listening history cleared successfully."
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/repost:
+      post:
+        tags: [Engagement & Social Interactions]
+        summary: Repost a track to your profile feed
+        security:
+          - cookieAuth: []
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: id
+            required: true
+            description: The ID of the track to repost
+            schema:
+              type: string
+        responses:
+          '201':
+            description: Successfully reposted the track
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: "Track reposted successfully"
+                    data:
+                      type: object
+                      properties:
+                        reposted:
+                          type: boolean
+                          example: true
+          '400':
+            description: You have already reposted this track
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          '404':
+            description: Track not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+      delete:
+        tags: [Engagement & Social Interactions]
+        summary: Remove a repost from your profile feed
+        security:
+          - cookieAuth: []
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: id
+            required: true
+            description: The ID of the track to un-repost
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Successfully removed repost
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: "Repost removed successfully"
+                    data:
+                      type: object
+                      properties:
+                        reposted:
+                          type: boolean
+                          example: false
+          '400':
+            description: You have not reposted this track
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          '404':
+            description: Track not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/reposters:
+    get:
+      tags: [Engagement & Social Interactions]
+      summary: Get a paginated list of users who reposted a specific track
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Track reposters fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 1
+                          page:
+                            type: integer
+                            example: 1
+                          totalPages:
+                            type: integer
+                            example: 1
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/likers:
+    get:
+      tags: [Engagement & Social Interactions]
+      summary: Get a paginated list of users who liked a specific track
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Track likers fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 1
+                          page:
+                            type: integer
+                            example: 1
+                          totalPages:
+                            type: integer
+                            example: 1
+        '404':
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /profile/{userId}/reposts:
+    get:
+      tags: [Engagement & Social Interactions]
+      summary: Get the activity feed of reposted tracks for a specific user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: The ID of the user whose profile is being viewed
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reposted tracks with original artist details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User reposts feed fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      repostedTracks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            repostDate:
+                              type: string
+                              format: date-time
+                              example: "2026-03-28T03:51:03.560Z"
+                            track:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                  example: "69bb57adba53ba785c1c183e"
+                                title:
+                                  type: string
+                                  example: "My track9"
+                                artist:
+                                  $ref: '#/components/schemas/User'
+                                audioUrl:
+                                  type: string
+                                  example: "https://biobeatsstorage2026.blob.core.windows.net/biobeats-audio/track.mp3"
+                                duration:
+                                  type: integer
+                                  example: 38
+                                playCount:
+                                  type: integer
+                                  example: 3
+                                likeCount:
+                                  type: integer
+                                  example: 0
+                                repostCount:
+                                  type: integer
+                                  example: 1
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                  example: "2026-03-19T01:55:57.237Z"
+                                id:
+                                  type: string
+                                  example: "69bb57adba53ba785c1c183e"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 1
+                          page:
+                            type: integer
+                            example: 1
+                          totalPages:
+                            type: integer
+                            example: 1
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tracks/{id}/like:
+    post:
+      tags: [Engagement & Social Interactions]
+      summary: Like a track
+      description: Adds a like interaction. Updates the track's likeCount.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Track liked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Track already liked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Engagement & Social Interactions]
+      summary: Unlike a track
+      description: Removes a like interaction and decrements the likeCount.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Like removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+  /profile/{userId}/likes:
+    get:
+      tags: [Engagement & Social Interactions]
+      summary: Get the list of liked tracks for a specific user
+      description: Returns a paginated activity feed of tracks the user has liked, sorted by most recently liked.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          description: The ID of the user whose liked tracks are being viewed
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of liked tracks with original artist details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User liked tracks fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      likedTracks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            likeDate:
+                              type: string
+                              format: date-time
+                              example: "2026-03-28T03:51:03.560Z"
+                            track:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                  example: "69bb57adba53ba785c1c183e"
+                                title:
+                                  type: string
+                                  example: "My track9"
+                                artist:
+                                  $ref: '#/components/schemas/User'
+                                hlsUrl:
+                                  type: string
+                                  example: "https://biobeats.blob.core.windows.net/hls/trackid/playlist.m3u8"
+                                artworkUrl:
+                                  type: string
+                                  example: "https://biobeats.blob.core.windows.net/artworks/artwork-123.jpg"
+                                duration:
+                                  type: integer
+                                  example: 38
+                                playCount:
+                                  type: integer
+                                  example: 3
+                                likeCount:
+                                  type: integer
+                                  example: 10
+                                repostCount:
+                                  type: integer
+                                  example: 2
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                  example: "2026-03-19T01:55:57.237Z"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 5
+                          page:
+                            type: integer
+                            example: 1
+                          totalPages:
+                            type: integer
+                            example: 1
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tracks/{trackId}/comments:
+    post:
+      tags: [Engagement & Social Interactions]
+      summary: Add a timestamped comment
+      description: Leave a comment at a specific second in the audio playback. Replies are restricted to one level deep.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trackId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content, timestamp]
+              properties:
+                content:
+                  type: string
+                  maxLength: 1000
+                timestamp:
+                  type: integer
+                  minimum: 0
+                parentCommentId:
+                  type: string
+                  description: Optional. Include this to reply to an existing comment.
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      comment:
+                        $ref: '#/components/schemas/Comment'
+        '400':
+          description: Validation error or tried to reply to a reply
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Engagement & Social Interactions]
+      summary: Get all comments for a track
+      description: Returns top-level comments and their nested replies, sorted by audio timestamp.
+      parameters:
+        - in: path
+          name: trackId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Comments fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  total:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      comments:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Comment'
+
+  /comments/{commentId}:
+    delete:
+      tags: [Engagement & Social Interactions]
+      summary: Delete a comment
+      description: Deletes a comment. If it is a parent comment, it cascades and deletes all replies. Only the author can delete it.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '403':
+          description: Not authorized to delete this comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  # ==========================================
+  # PLAYLISTS
+  # ==========================================
+  /playlists:
+    get:
+      summary: Get all playlists (Library & Discovery)
+      description: Fetches a list of playlists. Supports filtering by creator or releaseType. Handles privacy automatically (guests see only public, creators see their own private).
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+        - {} # The empty object makes the token optional!
+      parameters:
+        - in: query
+          name: creator
+          schema:
+            type: string
+          description: Filter by the User ObjectId (e.g., for viewing a profile library)
+        - in: query
+          name: releaseType
+          schema:
+            type: string
+            enum: [playlist, album, ep, single]
+          description: Filter by the type of collection
+      responses:
+        '200':
+          description: Successfully retrieved a list of playlists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistListResponse'
+    post:
+      summary: Create a new playlist
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaylistInput'
+      responses:
+        '201':
+          description: Playlist successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistResponse'
+
+  /playlists/{id}:
+    get:
+      summary: Get a playlist by ID
+      description: Fetches a playlist and populates tracks. If private, requires valid JWT or secretToken.
+      tags:
+        - Playlists
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Playlist ObjectId
+        - in: query
+          name: secretToken
+          schema:
+            type: string
+          description: Token for accessing private playlists
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistResponse'
+
+    patch:
+      summary: Update playlist metadata
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaylistUpdateInput'
+      responses:
+        '200':
+          description: Metadata successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistResponse'
+
+    delete:
+      summary: Delete a playlist
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content - Playlist successfully deleted
+
+  /playlists/{id}/tracks:
+    put:
+      summary: Update track sequence (Sequencing)
+      description: Completely replaces the tracks array with a new sequence and recalculates trackCount and totalDuration.
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTracksInput'
+      responses:
+        '200':
+          description: Tracks sequence updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistResponse'
+
+  /playlists/{id}/artwork:
+    patch:
+      summary: Upload playlist artwork to Azure
+      tags:
+        - Playlists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtworkUploadInput'
+      responses:
+        '200':
+          description: Artwork successfully uploaded and URL saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaylistResponse'
+
+  /playlists/{id}/embed:
+    get:
+      summary: Get HTML embed code
+      tags:
+        - Playlists
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: secretToken
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Returns an iframe snippet for embedding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedResponse'
+  # ==========================================
+  # MESSAGING
+  # ==========================================
+  /messages/conversations:
+    get:
+      summary: Get all active conversations (Inbox view)
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+          description: Number of conversations per page
+      responses:
+        '200':
+          description: A paginated list of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      conversations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ConversationResponse'
+                      page:
+                        type: integer
+                        example: 1
+                      hasMore:
+                        type: boolean
+                        example: true
+
+  /messages:
+    post:
+      summary: Send a new message or share a track
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - receiverId
+              properties:
+                receiverId:
+                  type: string
+                  description: The ID of the user receiving the message
+                content:
+                  type: string
+                  description: Text content of the message
+                  maxLength: 2000
+                attachmentType:
+                  type: string
+                  enum: [track, playlist]
+                  description: The type of attachment being shared
+                attachmentId:
+                  type: string
+                  description: The reference ID of the track or playlist
+      responses:
+        '201':
+          description: Message successfully sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        $ref: '#/components/schemas/Message'
+
+  /messages/{conversationId}/messages:
+    get:
+      summary: Get message history for a specific conversation
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of messages in chronological order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Message'
+                      page:
+                        type: integer
+                        example: 1
+                      hasMore:
+                        type: boolean
+                        example: true
+
+  /messages/conversations/{conversationId}:
+    delete:
+      summary: Hide a conversation from the inbox
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conversation removed from inbox and history cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Conversation removed from inbox and history cleared successfully.
+
+  /messages/{messageId}:
+    patch:
+      summary: Edit a specific message
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Message edited successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        $ref: '#/components/schemas/Message'
+
+  /messages/{messageId}/everyone:
+    delete:
+      summary: Delete a message for everyone (Unsend)
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message deleted for everyone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Message deleted for everyone.
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        $ref: '#/components/schemas/Message'
+
+  /messages/{messageId}/me:
+    delete:
+      summary: Delete a message for me (Hide specific message)
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message deleted for the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Message deleted for you.
+
+  /messages/conversations/{conversationId}/read:
+    patch:
+      summary: Mark a conversation as read (REST Fallback)
+      tags:
+        - Messaging
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Messages marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Messages marked as read.
+  # ==========================================
+  # MODERATION AND ADMIN DASHBOARD
+  # ==========================================
+  /admin/reports:
+    post:
+      summary: Submit a new report (User-Facing)
+      description: Allows any logged-in user to report a track, comment, or another user.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportInput'
+      responses:
+        '201':
+          description: Report submitted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseSuccessResponse'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Report submitted successfully"
+                      data:
+                        $ref: '#/components/schemas/ReportData'
+          
+    get:
+      summary: Get all pending reports (Admin Only)
+      description: Fetches a paginated list of all unresolved reports.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A list of pending reports
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseSuccessResponse'
+                  - type: object
+                    properties:
+                      results:
+                        type: integer
+                        example: 1
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReportData'
+  /admin/reports/{id}/status:
+    patch:
+      summary: Update a report's status (Admin Only)
+      description: Mark a report as Reviewed or Resolved.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MongoIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [Pending, Reviewed, Resolved]
+      responses:
+        '200':
+          description: Report status updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseSuccessResponse'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Report marked as Resolved"
+                      data:
+                        $ref: '#/components/schemas/ReportData'
+          
+  /admin/stats:
+    get:
+      summary: Get platform analytics (Admin Only)
+      description: Returns platform health metrics including user counts, track storage, and play-through rates.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BaseSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardStats'
+  /admin/users/{id}/suspend:
+    patch:
+      summary: Suspend a user account (Admin Only)
+      description: Immediately changes a user's accountStatus to 'Suspended'.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MongoIdParam'
+      responses:
+        '200':
+          description: User suspended successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserModerationResponse'
+        '400':
+          description: Bad Request (Already suspended or Invalid ID)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (Cannot suspend another Admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+
+  /admin/users/{id}/restore:
+    patch:
+      summary: Restore a suspended user account (Admin Only)
+      description: Lifts a suspension and returns the user's accountStatus to 'Active'.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MongoIdParam'
+      responses:
+        '200':
+          description: User restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserModerationResponse'
+        '400':
+          description: Bad Request (This user is already active or Invalid ID format)
+        '404':
+          description: User not found
+
+  /admin/tracks/{id}/hide:
+    patch:
+      summary: Hide a track (Admin Only)
+      description: Changes a track's moderationStatus to 'Hidden_By_Admin'.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MongoIdParam'
+      responses:
+        '200':
+          description: Track hidden successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackModerationResponse'
+        '400':
+          description: Bad Request (Already hidden or Invalid ID)
+        '404':
+          description: Track not found
+
+  /admin/tracks/{id}/restore:
+    patch:
+      summary: Restore a hidden track (Admin Only)
+      description: Lifts a ban on a track, changing its moderationStatus back to 'Approved'.
+      tags: 
+        - Admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MongoIdParam'
+      responses:
+        '200':
+          description: Track restored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackModerationResponse'
+        '400':
+          description: Bad Request (Already public or Invalid ID)
+        '404':
+          description: Track not found
+  # ==========================================
+  # SUBSCRIPTION & BILLING ROUTES
+  # ==========================================
+  /subscriptions/checkout:
+    post:
+      summary: Create a Stripe Checkout Session
+      description: Generates a secure Stripe URL for upgrading to Pro or Go+.
+      tags:
+        - Subscriptions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - planType
+              properties:
+                planType:
+                  type: string
+                  enum: [Pro, Go+]
+                  example: Pro
+      responses:
+        '200':
+          description: Checkout session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  checkoutUrl:
+                    type: string
+        '400':
+          description: Invalid plan type or user already premium.
+        '401':
+          description: Unauthorized - User not logged in.
+
+  /subscriptions/cancel:
+    post:
+      summary: Cancel an active subscription
+      description: Sets cancelAtPeriodEnd to true. User retains premium features until their billing cycle ends.
+      tags:
+        - Subscriptions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Subscription marked for cancellation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      expiresAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: User has no active subscription.

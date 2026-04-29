@@ -56,6 +56,19 @@ export function AuthHydrator() {
       }
       
       // Mark as initialized if hydration finishes without logging in (or fails)
+      // DEV BYPASS: Auto-login to bypass sign-in flow completely in local development
+      if (process.env.NODE_ENV === 'development') {
+        const mockUser = {
+          id: 'dev-mock-user',
+          _id: 'dev-mock-user',
+          username: 'Local Dev',
+          email: 'dev@biobeats.local',
+          displayName: 'Local Dev',
+          avatarUrl: null,
+        } as any;
+        login(mockUser, 'dummy-dev-token');
+      }
+      
       useAuthStore.setState({ isInitialized: true });
     };
 

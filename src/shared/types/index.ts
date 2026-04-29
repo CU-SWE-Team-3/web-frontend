@@ -1,55 +1,104 @@
-// ─── User ────────────────────────────────────────────────────────────────────
+// User
 export interface User {
-  id: string
-  email: string
-  username: string
-  displayName: string
-  permalink?: string
-  avatarUrl?: string
-  coverUrl?: string
-  role: 'artist' | 'listener'
-  isVerified: boolean
-  createdAt: string
+  id: string;
+  _id?: string; // Alias for API consistency
+  email: string;
+  username?: string;
+  displayName: string;
+  permalink?: string;
+  bio?: string;
+  country?: string;
+  city?: string;
+  genres?: string[];
+  avatarUrl?: string;
+  coverUrl?: string;
+  role: 'Artist' | 'Listener' | 'Admin' | 'artist' | 'listener' | 'admin';
+  isPremium?: boolean;
+  subscriptionPlan?: 'Free' | 'Pro' | 'Go+';
+  subscriptionExpiresAt?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  isEmailVerified?: boolean;
+  isVerified?: boolean;
+  accountStatus?: 'Active' | 'Suspended' | 'Deleted';
+  followerCount?: number;
+  followingCount?: number;
+  socialLinks?: Array<{ _id: string; platform: string; url: string }>;
+  notificationPreferences?: Record<string, boolean>;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-// ─── API Wrapper ──────────────────────────────────────────────────────────────
+// API Wrapper
 export interface ApiResponse<T> {
-  data: T
-  message: string
-  success: boolean
+  success: boolean;
+  status: 'success' | 'fail' | 'error';
+  message?: string;
+  results?: number;
+  data: T;
 }
 
-// ─── Auth Payloads ───────────────────────────────────────────────────────────
+// Auth Payloads
 export interface LoginPayload {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export interface RegisterPayload {
-  email: string
-  password: string
-  confirmPassword: string
-  captchaToken: string
+  email: string;
+  password: string;
+  displayName: string;
+  captchaToken: string;
 }
 
 export interface ForgotPasswordPayload {
-  email: string
+  email: string;
 }
 
 export interface ResetPasswordPayload {
-  token: string
-  newPassword: string
-  confirmPassword: string
+  token: string;
+  newPassword: string;
 }
 
-// ─── Auth Response ───────────────────────────────────────────────────────────
+// Auth Response
 export interface AuthResponse {
-  user: User
-  accessToken: string
-  refreshToken: string
+  user: User;
 }
 
-// ─── Notifications ──────────────────────────────────────────────────────────
+// Admin
+export interface ReportData {
+  _id: string
+  reporter: string | { _id: string; displayName: string; permalink: string; avatarUrl?: string }
+  targetType: 'Track' | 'Comment' | 'User'
+  targetId: string
+  reason: 'Copyright' | 'Inappropriate Content' | 'Spam' | 'Other'
+  status: 'Pending' | 'Reviewed' | 'Resolved'
+  createdAt: string
+}
+
+export interface DashboardStats {
+  totalUsers: number
+  roleBreakdown: { artists: number; listeners: number }
+  artistToListenerRatio: string
+  totalTracks: number
+  totalPlays: number
+  completedPlays: number
+  playThroughRate: string
+  totalStorageUsed: string
+}
+
+export interface UserModerationResponse {
+  success: boolean
+  message: string
+  data: { userId: string; status: string }
+}
+
+export interface TrackModerationResponse {
+  success: boolean
+  message: string
+  data: { trackId: string; isPublic: boolean; moderationStatus: string }
+}
+
+// Notifications
 export type NotificationType =
   | 'LIKE'
   | 'REPOST'

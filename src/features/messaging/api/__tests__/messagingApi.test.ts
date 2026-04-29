@@ -276,7 +276,7 @@ describe('messagingApi', () => {
 
       await api.blockUser('u2');
 
-      expect(mockedClient.post).toHaveBeenCalledWith('/users/u2/block');
+      expect(mockedClient.post).toHaveBeenCalledWith('/network/u2/block');
     });
   });
 
@@ -286,7 +286,7 @@ describe('messagingApi', () => {
 
       await api.unblockUser('u2');
 
-      expect(mockedClient.delete).toHaveBeenCalledWith('/users/u2/block');
+      expect(mockedClient.delete).toHaveBeenCalledWith('/network/u2/block');
     });
   });
 
@@ -304,8 +304,8 @@ describe('messagingApi', () => {
 
       const result = await api.searchUsers('User');
 
-      expect(mockedClient.get).toHaveBeenCalledWith('/users/search', {
-        params: { q: 'User' },
+      expect(mockedClient.get).toHaveBeenCalledWith('/tracks/search', {
+        params: { q: 'User', type: 'users' },
       });
       expect(result).toEqual(mockUsers);
     });

@@ -32,6 +32,19 @@ export const NavBar: FC<NavBarProps> = ({
   // ── Profile dropdown state ──
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [internalSearch, setInternalSearch] = useState(searchValue ?? '');
+
+  // ── Sync internal search with external search value (e.g. on navigation) ──
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setInternalSearch(searchValue);
+    }
+  }, [searchValue]);
+
+  const handleSearchSubmit = (query: string) => {
+    if (!query.trim()) return;
+    router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(query.trim())}`);
+  };
 
   // ── Notification state ──
   const { unreadCount, isDropdownOpen, setDropdownOpen: setNotifDropdownOpen, markAllRead } = useNotificationStore();
@@ -99,7 +112,11 @@ export const NavBar: FC<NavBarProps> = ({
 
     {/* Center: Search */}
     <div className={s.centerSection}>
-      <SearchBar value={searchValue} onChange={onSearchChange} />
+      <SearchBar
+        value={internalSearch}
+        onChange={setInternalSearch}
+        onSubmit={handleSearchSubmit}
+      />
     </div>
 
     {/* Right: Actions */}
