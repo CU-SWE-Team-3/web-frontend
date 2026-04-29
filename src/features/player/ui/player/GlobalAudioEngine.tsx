@@ -291,7 +291,10 @@ export const GlobalAudioEngine = () => {
   useEffect(() => {
     const onGlobalSeek = (e: any) => {
       if (e.detail?.time !== undefined && audioRef.current) {
+        isSeekingRef.current = true;
         audioRef.current.currentTime = e.detail.time;
+        // Fallback clear in case onSeeked doesn't fire
+        setTimeout(() => { isSeekingRef.current = false; }, 300);
       }
     };
     window.addEventListener('playerbar-seek', onGlobalSeek);
@@ -319,6 +322,8 @@ export const GlobalAudioEngine = () => {
         onLoadedMetadata={handleLoadedMetadata}
         onProgress={handleProgress}
         onEnded={handleEnded}
+        onSeeking={() => { isSeekingRef.current = true; }}
+        onSeeked={() => { isSeekingRef.current = false; }}
         crossOrigin="anonymous"
         className="hidden"
       />
