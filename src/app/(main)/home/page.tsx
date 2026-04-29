@@ -32,6 +32,9 @@ export default function HomePage() {
   const listeningHistory = useHistoryStore((st) => st.listeningHistory);
   const play = usePlayerStore((st) => st.play);
 
+  // Deduplicate and get recently played tracks
+  const recentlyPlayed = listeningHistory.slice(0, 10).map((entry) => entry.track);
+
   // Liked tracks
   const { data: likedTracksList } = useLikedTracks();
 

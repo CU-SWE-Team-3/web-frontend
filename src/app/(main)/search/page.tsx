@@ -256,7 +256,7 @@ export default function SearchPage() {
                       <WaveformPlayer 
                         waveform={t.waveform} 
                         audioUrl={t.hlsUrl}
-                        durationSeconds={t.durationSeconds}
+                        durationSeconds={t.duration}
                         hidePlayButton 
                         trackMeta={{
                           id: t._id,
