@@ -8,7 +8,7 @@ export type ResolutionResult =
 // Known reserved path prefixes — these are never treated as usernames
 const RESERVED_PREFIXES = new Set([
   'tracks', 'profile', 'search', 'trending', 'feed', 'upload',
-  'library', 'settings', 'login', 'register', 'home', 'for-artists',
+  'library', 'settings', 'login', 'register', 'home', 'for-artists', 'artists',
   'my-tracks', 'history', 'likes', 'stations', 'google', 'verify-email',
 ]);
 

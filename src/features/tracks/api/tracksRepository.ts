@@ -70,6 +70,15 @@ function getImageUrl(value: any): string {
   );
 }
 
+function getNumber(value: any): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
 function mapApiTrack(t: any, fallbackArtist?: string): Track {
   const durationValue = typeof t.duration === "number"
     ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
@@ -107,10 +116,13 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     updatedAt: t.updatedAt || t.updated_at || "",
     streamUrl: stream,
     hlsUrl: hls,
-    playCount: t.playCount || t.play_count || 0,
-    likeCount: t.likeCount || t.like_count || 0,
-    repostCount: t.repostCount || t.repost_count || 0,
-    commentCount: t.commentCount || t.comment_count || 0,
+    playCount: getNumber(t.playCount ?? t.play_count),
+    likeCount: getNumber(t.likeCount ?? t.like_count),
+    repostCount: getNumber(t.repostCount ?? t.repost_count),
+    commentCount: getNumber(t.commentCount ?? t.comment_count),
+    downloadCount: getNumber(t.downloadCount ?? t.download_count ?? t.downloads),
+    enableDirectDownloads: Boolean(t.enableDirectDownloads ?? t.enable_direct_downloads),
+    displayStatsPublicly: t.displayStatsPublicly ?? t.display_stats_publicly,
   };
 }
 
@@ -515,6 +527,23 @@ export const tracksRepository = {
     );
 
     return response.data?.data ?? { artworkUrl: '' };
+  },
+
+  async downloadTrack(id: string): Promise<{ blob: Blob; filename: string }> {
+    const response = await apiClient.get(`/tracks/${id}/download`, {
+      responseType: "blob",
+      withCredentials: true,
+    });
+
+    const disposition = response.headers["content-disposition"] || "";
+    const filenameMatch =
+      disposition.match(/filename\*=UTF-8''([^;]+)/i) ||
+      disposition.match(/filename="?([^"]+)"?/i);
+
+    return {
+      blob: response.data,
+      filename: filenameMatch?.[1] ? decodeURIComponent(filenameMatch[1]) : "track-download.mp3",
+    };
   },
   
   async searchTracks(query: string): Promise<Track[]> {
