@@ -124,7 +124,7 @@ export const NavBar: FC<NavBarProps> = ({
   <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Left: Logo + Nav Links */}
     <div className={s.leftSection}>
-      <Link href={ROUTES.FEED} className={s.logoLink} data-testid="navbar-logo">
+      <Link href="/home" className={s.logoLink} data-testid="navbar-logo">
         <BioBeatsLogo iconSize={28} textSize={18} />
       </Link>
       <Link href={ROUTES.DASHBOARD} className={`${s.navLink} ${pathname === ROUTES.DASHBOARD ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
@@ -230,8 +230,8 @@ export const NavBar: FC<NavBarProps> = ({
             )}
           </div>
 
-          {/* ── Notification Bell with Dropdown ── */}
-          <div ref={notifRef} className={s.dropdownWrapper}>
+          {/* ── Notification Bell with Dropdown (M10) ── */}
+          <div ref={notifRef} style={{ position: 'relative' }}>
             <button
               className={s.iconBtn}
               onClick={handleBellClick}
