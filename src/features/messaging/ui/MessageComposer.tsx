@@ -22,12 +22,16 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed && !attachment) return;
-    
-    onSend(
-      trimmed, 
-      attachment ? { type: attachment.type, id: attachment.item.id || attachment.item._id } : undefined
-    );
-    
+
+    const attachmentPayload = attachment
+      ? { type: attachment.type, id: attachment.item.id || attachment.item._id }
+      : undefined;
+
+    // Backend requires non-empty content; fall back to a space when only an attachment is sent
+    const contentToSend = trimmed || ' ';
+
+    onSend(contentToSend, attachmentPayload);
+
     setText('');
     setAttachment(null);
   };
@@ -51,11 +55,11 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
       </label>
       <div style={{ position: 'relative' }}>
         <textarea
-          className={s.textarea}
+          className={s.composerTextarea}
           value={text}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Write a message..."
+          placeholder=""
           disabled={disabled}
           data-testid="message-textarea"
         />
@@ -88,12 +92,10 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
         )}
       </div>
 
-      <div className={s.composerActions} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+      <div className={s.composerActions}>
         <button
+          className={s.addTrackBtn}
           onClick={() => setShowAddModal(true)}
-          style={{ background: '#333', color: '#ccc', border: 'none', borderRadius: 4, padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#444')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#333')}
         >
           Add track or playlist
         </button>
@@ -102,7 +104,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           className={s.sendBtn}
           onClick={handleSend}
           disabled={disabled || (!text.trim() && !attachment)}
-          data-testid="message-send-button"
+          data-testid="send-message-button"
         >
           Send
         </button>

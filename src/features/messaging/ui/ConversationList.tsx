@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Conversation } from '../model/types';
-import { formatRelativeTime } from './utils';
+import { formatRelativeTime, decodeEmojis } from './utils';
 import s from './MessagesPage.module.scss';
 
 interface ConversationListProps {
@@ -73,7 +73,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               </span>
             </div>
             <div className={s.convPreview}>
-              {conv.lastMessage?.content || ''}
+              {conv.lastMessage?.content ? decodeEmojis(conv.lastMessage.content) : ''}
             </div>
           </div>
         </button>

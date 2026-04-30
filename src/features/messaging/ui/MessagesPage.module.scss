@@ -286,8 +286,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--sc-border, #333);
+  font-family: var(--sc-font-family);
+  background: #111;
 }
 
 .chatActionLeft {
@@ -297,28 +299,33 @@
 }
 
 .chatUserName {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--sc-text-primary, #fff);
 }
 
 .chatActionLink {
-  font-size: 13px;
-  color: var(--sc-text-secondary, #999);
   background: none;
   border: none;
+  color: var(--sc-text-primary, #fff);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-family: var(--sc-font-family);
   padding: 0;
-  transition: color var(--sc-transition-fast, 120ms ease);
 
   &:hover {
-    color: var(--sc-text-primary, #fff);
+    text-decoration: underline;
   }
 }
 
 .blockedTextOrange {
   color: var(--sc-primary, #ff5500) !important;
+  font-weight: 700 !important;
+
+  &:hover {
+    text-decoration: underline;
+    color: #ff7733 !important;
+  }
 }
 
 .chatActionRight {
@@ -328,34 +335,39 @@
 }
 
 .markUnreadBtn {
-  padding: 6px 14px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 500;
-  font-family: var(--sc-font-family);
-  color: var(--sc-text-primary, #fff);
-  background: none;
-  border: 1px solid var(--sc-border, #333);
-  border-radius: var(--sc-radius-md, 4px);
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--sc-transition-fast, 120ms ease);
+  transition: background 0.2s;
 
   &:hover {
-    border-color: var(--sc-text-secondary, #999);
+    border-color: #666;
   }
 }
 
+.deleteBtnWrapper {
+  position: relative;
+}
+
 .deleteBtn {
-  background: none;
-  border: none;
-  color: var(--sc-text-secondary, #999);
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 6px;
   cursor: pointer;
-  padding: 4px;
   display: flex;
   align-items: center;
-  transition: color var(--sc-transition-fast, 120ms ease);
+  justify-content: center;
+  transition: background 0.2s;
 
   &:hover {
-    color: var(--sc-text-primary, #fff);
+    border-color: #666;
   }
 }
 
@@ -539,8 +551,25 @@
 
 .composerActions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 12px;
+}
+
+.addTrackBtn {
+  background: #333;
+  color: #ccc;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #444;
+  }
 }
 
 .sendBtn {

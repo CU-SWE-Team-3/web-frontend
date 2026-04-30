@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CloseIcon, SearchIcon, CheckIcon } from '@/shared/ui/icons';
 import apiClient from '@/shared/api/client';
+import { sendMessageToUser } from '@/features/messaging/api/messagingApi';
+import { encodeEmojis } from '@/shared/utils/emojiUtils';
 
 export interface TrackShareModalProps {
   open: boolean;
@@ -11,6 +13,8 @@ export interface TrackShareModalProps {
   trackArtist: string;
   trackArtworkUrl?: string | null;
   trackUrl: string;
+  /** Optional: pass the resolved track ID directly to avoid URL parsing */
+  trackId?: string;
   trackAge?: string;
   trackGenre?: string;
 }
@@ -35,6 +39,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
   trackArtist,
   trackArtworkUrl,
   trackUrl,
+  trackId: trackIdProp,
   trackAge,
   trackGenre,
 }) => {
@@ -84,16 +89,19 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
     setIsSending(true);
     setSendError(null);
     try {
-      const trackId = trackUrl.split('/').pop();
-      const payload: any = {
-        receiverId: selectedUser._id,
-        content: messageBody || fullUrl,
-      };
-      if (trackId) {
-        payload.attachmentType = 'track';
-        payload.attachmentId = trackId;
+      // Use the directly-passed trackId first; fall back to parsing the URL path
+      const resolvedTrackId = trackIdProp || trackUrl.split('/').filter(Boolean).pop() || '';
+      if (!resolvedTrackId) {
+        setSendError('Could not resolve track ID. Please try again.');
+        return;
       }
-      await apiClient.post('/messages', payload);
+      
+      let content = messageBody.trim() || `Check out "${trackTitle}" by ${trackArtist}`;
+      if (content === fullUrl || content === trackUrl) {
+        content = `Check out this track: ${fullUrl}`;
+      }
+      
+      await sendMessageToUser(selectedUser._id, encodeEmojis(content), 'track', resolvedTrackId);
       setSendSuccess(true);
       setTimeout(() => {
         setSendSuccess(false);

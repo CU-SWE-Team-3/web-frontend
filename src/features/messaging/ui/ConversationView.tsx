@@ -17,6 +17,7 @@ import { MessageComposer } from './MessageComposer';
 import { BlockUserModal } from './BlockUserModal';
 import { ReportUserModal } from './ReportUserModal';
 import { DeleteConversationPopover } from './DeleteConversationPopover';
+import { encodeEmojis } from './utils';
 import s from './MessagesPage.module.scss';
 
 interface ConversationViewProps {
@@ -43,6 +44,13 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Local optimistic blocked state — mirrors conversation.isBlocked but updates instantly
+  const [isBlockedOptimistic, setIsBlockedOptimistic] = useState(conversation.isBlocked ?? false);
+
+  // Sync optimistic state when the conversation object changes (e.g. after refetch)
+  useEffect(() => {
+    setIsBlockedOptimistic(conversation.isBlocked ?? false);
+  }, [conversation.isBlocked]);
 
   // ── Mark as unread/read toggle ──
   const [isMarkedUnread, setIsMarkedUnread] = useState(false);
@@ -89,7 +97,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     sendMessageMutation.mutate({
       conversationId: conversation._id,
       receiverId: conversation.participant._id,
-      content,
+      content: encodeEmojis(content),
       attachment: attachment || undefined,
     });
   };
@@ -99,16 +107,20 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   }, [emitTyping, conversation.participant._id]);
 
   const handleBlockConfirm = (options: { removeContent: boolean; reportSpam: boolean }) => {
-    if (conversation.isBlocked) {
+    if (isBlockedOptimistic) {
+      setIsBlockedOptimistic(false);
       unblockMutation.mutate(conversation.participant._id);
     } else {
+      setIsBlockedOptimistic(true);
       blockMutation.mutate(conversation.participant._id);
     }
     setShowBlockModal(false);
   };
 
   const handleBlock = () => {
-    if (conversation.isBlocked) {
+    if (isBlockedOptimistic) {
+      // Unblock immediately without confirmation
+      setIsBlockedOptimistic(false);
       unblockMutation.mutate(conversation.participant._id);
     } else {
       setShowBlockModal(true);
@@ -117,9 +129,11 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
   const handleReport = (reason: string) => {
     if (reason === 'spam') {
+      // Block + report — optimistic update
+      setIsBlockedOptimistic(true);
       blockMutation.mutate(conversation.participant._id);
       setToastMessage(`You've blocked and reported ${conversation.participant.displayName} as spam.`);
-      setTimeout(() => setToastMessage(null), 3000);
+      setTimeout(() => setToastMessage(null), 4000);
     }
     setShowReportModal(false);
   };
@@ -174,7 +188,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
   const isOtherTyping = typingUsers.has(conversation.participant._id);
 
-  const filteredMessages = conversation.isBlocked
+  const filteredMessages = isBlockedOptimistic
     ? messages.filter((m) => m.senderId !== conversation.participant._id)
     : messages;
 
@@ -197,15 +211,24 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
       {/* Action bar */}
       <div className={s.chatActionBar} data-testid="chat-action-bar">
         <div className={s.chatActionLeft}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#444', overflow: 'hidden' }}>
+            {conversation.participant.avatarUrl ? (
+              <img src={conversation.participant.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#fff', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                {conversation.participant.displayName.charAt(0)}
+              </span>
+            )}
+          </div>
           <span className={s.chatUserName}>
             {conversation.participant.displayName}
           </span>
           <button
-            className={`${s.chatActionLink} ${conversation.isBlocked ? s.blockedTextOrange : ''}`}
+            className={`${s.chatActionLink} ${isBlockedOptimistic ? s.blockedTextOrange : ''}`}
             onClick={handleBlock}
             data-testid="block-button"
           >
-            {conversation.isBlocked ? 'Blocked' : 'Block'}
+            {isBlockedOptimistic ? 'Blocked' : 'Block'}
           </button>
           <button
             className={s.chatActionLink}
@@ -246,7 +269,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
       </div>
 
       {/* Blocked banner */}
-      {conversation.isBlocked && (
+      {isBlockedOptimistic && (
         <div className={s.blockedBanner} data-testid="blocked-banner">
           You have blocked {conversation.participant.displayName}. Their messages are hidden.
         </div>
@@ -287,7 +310,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
       </div>
 
       {/* Composer */}
-      {!(conversation.isBlocked || conversation.isBlockedBy) ? (
+      {!(isBlockedOptimistic || conversation.isBlockedBy) ? (
         <MessageComposer
           onSend={handleSend}
           onTyping={handleTyping}
@@ -295,7 +318,9 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         />
       ) : (
         <div className={s.blockedBanner}>
-          You cannot send messages to this user.
+          {isBlockedOptimistic
+            ? `You have blocked ${conversation.participant.displayName}. You cannot send messages.`
+            : 'You cannot send messages to this user.'}
         </div>
       )}
 

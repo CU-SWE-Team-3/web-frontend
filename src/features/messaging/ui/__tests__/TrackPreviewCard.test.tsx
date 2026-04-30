@@ -6,6 +6,8 @@ import * as trackQueries from '@/features/tracks/model/trackQueries';
 import * as playerStore from '@/features/player/model/playerStore';
 import * as likeHooks from '@/features/track-engagement/model/useLikeTrack';
 import * as unlikeHooks from '@/features/track-engagement/model/useUnlikeTrack';
+import * as repostHooks from '@/features/track-engagement/model/useRepostTrack';
+import * as unrepostHooks from '@/features/track-engagement/model/useUnrepostTrack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/features/tracks/model/trackQueries', () => ({
@@ -23,6 +25,18 @@ vi.mock('@/features/track-engagement/model/useLikeTrack', () => ({
 
 vi.mock('@/features/track-engagement/model/useUnlikeTrack', () => ({
   useUnlikeTrack: vi.fn(),
+}));
+
+vi.mock('@/features/track-engagement/model/useRepostTrack', () => ({
+  useRepostTrack: vi.fn(),
+}));
+
+vi.mock('@/features/track-engagement/model/useUnrepostTrack', () => ({
+  useUnrepostTrack: vi.fn(),
+}));
+
+vi.mock('@/shared/ui/RepostToast/RepostToast', () => ({
+  RepostToast: () => null,
 }));
 
 vi.mock('@/shared/ui/TrackShareModal/TrackShareModal', () => ({
@@ -51,6 +65,8 @@ describe('TrackPreviewCard', () => {
   const mockPlayTrack = vi.fn();
   const mockLikeTrack = vi.fn();
   const mockUnlikeTrack = vi.fn();
+  const mockRepostTrack = vi.fn();
+  const mockUnrepostTrack = vi.fn();
   const mockUpdateTrack = vi.fn();
 
   const createWrapper = () => {
@@ -76,6 +92,8 @@ describe('TrackPreviewCard', () => {
 
     vi.mocked(likeHooks.useLikeTrack).mockReturnValue({ mutate: mockLikeTrack } as any);
     vi.mocked(unlikeHooks.useUnlikeTrack).mockReturnValue({ mutate: mockUnlikeTrack } as any);
+    vi.mocked(repostHooks.useRepostTrack).mockReturnValue({ mutate: mockRepostTrack } as any);
+    vi.mocked(unrepostHooks.useUnrepostTrack).mockReturnValue({ mutate: mockUnrepostTrack } as any);
     vi.mocked(trackQueries.useUpdateTrack).mockReturnValue({ mutateAsync: mockUpdateTrack, isPending: false } as any);
   });
 
@@ -160,6 +178,52 @@ describe('TrackPreviewCard', () => {
     fireEvent.click(likeBtn);
     
     expect(mockLikeTrack).toHaveBeenCalledWith('t1');
+  });
+
+  it('should toggle repost status when repost button is clicked', () => {
+    vi.mocked(trackQueries.useTrack).mockReturnValue({
+      data: {
+        id: 't1',
+        title: 'Mock Track',
+        artist: 'Mock Artist',
+        repostCount: 3,
+        waveform: [],
+      },
+      isLoading: false,
+    } as any);
+
+    render(<TrackPreviewCard track={mockTrack} />, { wrapper: createWrapper() });
+
+    const repostBtn = screen.getByTestId('track-preview-repost-btn');
+    fireEvent.click(repostBtn);
+
+    // Should call repost mutation with correct args
+    expect(mockRepostTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ trackId: 't1' })
+    );
+  });
+
+  it('should call unrepost mutation when clicking repost button while already reposted', () => {
+    vi.mocked(trackQueries.useTrack).mockReturnValue({
+      data: {
+        id: 't1',
+        title: 'Mock Track',
+        artist: 'Mock Artist',
+        repostCount: 3,
+        waveform: [],
+      },
+      isLoading: false,
+    } as any);
+
+    render(<TrackPreviewCard track={mockTrack} />, { wrapper: createWrapper() });
+
+    const repostBtn = screen.getByTestId('track-preview-repost-btn');
+    // First click → repost
+    fireEvent.click(repostBtn);
+    // Second click → unrepost
+    fireEvent.click(repostBtn);
+
+    expect(mockUnrepostTrack).toHaveBeenCalledWith('t1');
   });
 
   it('should open share modal when share button is clicked', async () => {

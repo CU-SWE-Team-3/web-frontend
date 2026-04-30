@@ -92,6 +92,10 @@ export const sendMessage = async (
   if (attachment) {
     payload.attachmentType = attachment.type;
     payload.attachmentId = attachment.id;
+    payload.attachment = {
+      type: attachment.type,
+      referenceId: attachment.id,
+    };
   }
 
   const { data: res } = await apiClient.post<{ success: boolean; data: { message: Message } }>(
@@ -108,10 +112,11 @@ export const sendMessageToUser = async (
   attachmentType?: 'track' | 'playlist',
   attachmentId?: string
 ): Promise<Message> => {
-  const payload: SendMessagePayload = { receiverId, content };
+  const payload: any = { receiverId, content };
   if (attachmentType && attachmentId) {
     payload.attachmentType = attachmentType;
     payload.attachmentId = attachmentId;
+    payload.attachment = { type: attachmentType, referenceId: attachmentId };
   }
   
   const { data: res } = await apiClient.post<{ success: boolean; data: { message: Message } }>(
