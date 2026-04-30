@@ -220,6 +220,29 @@ function NotificationRow({ notification }: { notification: Notification }) {
           {moreOpen && (
             <div className={s.notifMoreDropdown}>
               <button
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (actor) {
+                    apiClient.post(`/network/${actor._id}/block`, {}, { withCredentials: true })
+                      .then(() => alert(`Blocked ${actor.displayName}`))
+                      .catch(() => alert(`Error blocking ${actor.displayName}`));
+                  }
+                  setMoreOpen(false) 
+                }}
+              >
+                Block {actor?.displayName}
+              </button>
+              <button
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  alert(`Reported ${actor?.displayName}`);
+                  setMoreOpen(false) 
+                }}
+              >
+                Report {actor?.displayName}
+              </button>
+              <div className={s.dropdownDivider} />
+              <button
                 onClick={(e) => { e.stopPropagation(); removeNotification(notification._id); setMoreOpen(false) }}
                 data-testid={`notif-page-delete-${notification._id}`}
               >

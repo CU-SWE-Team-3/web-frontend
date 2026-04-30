@@ -269,13 +269,22 @@
 /* ─── Notification Dot ─── */
 .notifDot {
   position: absolute;
-  top: -1px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  top: -4px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 10px;
   background: var(--sc-primary, #f50);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
   pointer-events: none;
+  border: 2px solid var(--sc-bg-base);
+  box-sizing: border-box;
 }
 
 /* ─── More Dropdown (scrollable) ─── */

@@ -343,31 +343,37 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background: var(--sc-bg-surface, #222);
-  border: 1px solid var(--sc-border, rgba(255,255,255,0.08));
-  border-radius: var(--sc-radius-md, 8px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  background: var(--sc-bg-surface, #1a1a1a);
+  border: 1px solid var(--sc-border, rgba(255,255,255,0.1));
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
   z-index: 50;
-  min-width: 180px;
-  padding: 6px 0;
+  min-width: 220px;
+  padding: 4px 0;
 
   button {
     display: block;
     width: 100%;
     padding: 10px 16px;
-    font-size: 13px;
+    font-size: 16px;
+    font-weight: 700;
     font-family: var(--sc-font-family);
-    color: var(--sc-text-secondary, #999);
+    color: var(--sc-text-primary, #fff);
     background: none;
     border: none;
     cursor: pointer;
     text-align: left;
-    transition: all 120ms;
+    transition: background 120ms;
 
     &:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--sc-text-primary, #fff);
+      background: rgba(255,255,255,0.08);
     }
+  }
+
+  .dropdownDivider {
+    height: 1px;
+    background: var(--sc-border, rgba(255,255,255,0.08));
+    margin: 4px 0;
   }
 }
 
