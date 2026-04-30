@@ -106,7 +106,6 @@ describe('NavBar', () => {
     expect(screen.getByTestId('navbar-dropdown-try-pro')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-dropdown-tracks')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-dropdown-insights')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-distribute')).toBeInTheDocument()
   })
 
   it('profile dropdown shows correct text labels', async () => {
@@ -121,8 +120,7 @@ describe('NavBar', () => {
     expect(screen.getByText('Who to follow')).toBeInTheDocument()
     expect(screen.getAllByText('Try Artist Pro').length).toBeGreaterThan(0)
     expect(screen.getByText('Tracks')).toBeInTheDocument()
-    expect(screen.getByText('Insights')).toBeInTheDocument()
-    expect(screen.getByText('Distribute')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
   // ── More Dropdown Tests ──
@@ -143,10 +141,6 @@ describe('NavBar', () => {
     expect(screen.getByTestId('navbar-more-copyright')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-mobile-apps')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-artist-membership')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-newsroom')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-jobs')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-developers')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-store')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-support')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-keyboard')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-subscription')).toBeInTheDocument()

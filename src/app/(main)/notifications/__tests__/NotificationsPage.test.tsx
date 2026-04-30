@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NotificationsPage from '../page'
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore'
 import { useAuthStore } from '@/features/auth/model/useAuthStore'
@@ -45,6 +46,13 @@ vi.mock('@/shared/api/client', () => ({
   },
 }))
 
+// Mock useFollowing to avoid QueryClient requirement
+vi.mock('@/features/social-graph/model/useFollowing', () => ({
+  useFollowing: () => ({ data: [], isLoading: false }),
+}))
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
 const mockNotification = (overrides: Partial<Notification> = {}): Notification => ({
   _id: 'test-n1',
   recipient: 'user1',
@@ -86,31 +94,31 @@ describe('NotificationsPage', () => {
   })
 
   it('renders the notifications page', () => {
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notifications-page')).toBeInTheDocument()
   })
 
   it('renders the page title "Notifications"', () => {
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notifications-page-title')).toHaveTextContent('Notifications')
   })
 
   it('renders the filter button', () => {
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notifications-filter-button')).toBeInTheDocument()
     expect(screen.getByTestId('notifications-filter-button')).toHaveTextContent('All notifications')
   })
 
   it('opens filter dropdown on click', async () => {
     const user = userEvent.setup()
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     await user.click(screen.getByTestId('notifications-filter-button'))
     expect(screen.getByTestId('notifications-filter-dropdown')).toBeInTheDocument()
   })
 
   it('shows all filter options in dropdown', async () => {
     const user = userEvent.setup()
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     await user.click(screen.getByTestId('notifications-filter-button'))
 
     expect(screen.getByTestId('notifications-filter-all')).toBeInTheDocument()
@@ -121,7 +129,7 @@ describe('NotificationsPage', () => {
   })
 
   it('shows "No notifications" when list is empty', () => {
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notifications-empty')).toBeInTheDocument()
   })
 
@@ -132,7 +140,7 @@ describe('NotificationsPage', () => {
         mockNotification({ _id: 'n2', type: 'FOLLOW', actors: [{ _id: 'a2', displayName: 'Jane', avatarUrl: null }] }),
       ],
     })
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notif-page-item-n1')).toBeInTheDocument()
     expect(screen.getByTestId('notif-page-item-n2')).toBeInTheDocument()
   })
@@ -145,13 +153,9 @@ describe('NotificationsPage', () => {
       mockNotification({ _id: 'n3', type: 'COMMENT', contentSnippet: 'Nice!', actors: [{ _id: 'a3', displayName: 'Bob', avatarUrl: null }] }),
     ]
     useNotificationStore.setState({ notifications: testNotifs })
-
-    render(<NotificationsPage />)
-
-    // Filter to LIKE only
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     await user.click(screen.getByTestId('notifications-filter-button'))
     await user.click(screen.getByTestId('notifications-filter-LIKE'))
-
     expect(screen.getByTestId('notif-page-item-n1')).toBeInTheDocument()
     expect(screen.queryByTestId('notif-page-item-n2')).not.toBeInTheDocument()
     expect(screen.queryByTestId('notif-page-item-n3')).not.toBeInTheDocument()
@@ -163,7 +167,7 @@ describe('NotificationsPage', () => {
         mockNotification({ _id: 'n1', type: 'FOLLOW', actors: [{ _id: 'follower1', displayName: 'Jane', avatarUrl: null }] }),
       ],
     })
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getAllByTestId('notif-page-follow-btn-follower1').length).toBeGreaterThan(0)
     expect(screen.getAllByTestId('notif-page-follow-btn-follower1')[0]).toHaveTextContent('Follow back')
   })
@@ -172,7 +176,7 @@ describe('NotificationsPage', () => {
     useNotificationStore.setState({
       notifications: [mockNotification({ _id: 'n1' })],
     })
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByTestId('notif-page-more-n1')).toBeInTheDocument()
   })
 
@@ -182,7 +186,7 @@ describe('NotificationsPage', () => {
         mockNotification({ _id: 'n1', type: 'FOLLOW', actors: [{ _id: 'f1', displayName: 'Follower1', avatarUrl: null }] }),
       ],
     })
-    render(<NotificationsPage />)
+    render(<QueryClientProvider client={queryClient}><NotificationsPage /></QueryClientProvider>)
     expect(screen.getByText('RECENT FOLLOWERS')).toBeInTheDocument()
     expect(screen.getAllByText(/Follower1/).length).toBeGreaterThan(0)
   })

@@ -7,10 +7,14 @@ import FeedPage from '../page'
 import { useAuthStore } from '@/features/auth/model/useAuthStore'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-vi.mock('@/shared/ui', () => ({
-  NavBar: () => <div data-testid="mock-navbar" />,
-  SearchBar: () => <div data-testid="mock-search-bar" />,
-}))
+vi.mock('@/shared/ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared/ui')>()
+  return {
+    ...actual,
+    NavBar: () => <div data-testid="mock-navbar" />,
+    SearchBar: () => <div data-testid="mock-search-bar" />,
+  }
+})
 
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -24,7 +28,7 @@ const queryClient = new QueryClient({
 })
 
 const server = setupServer(
-  http.get('http://localhost:8000/api/network/feed', () => {
+  http.get('*/feed', () => {
     return HttpResponse.json({
       success: true,
       data: [
@@ -44,7 +48,7 @@ const server = setupServer(
       ]
     })
   }),
-  http.get('http://localhost:8000/api/network/suggested', () => {
+  http.get('*/network/suggested', () => {
     return HttpResponse.json({
       success: true,
       data: [
@@ -52,7 +56,7 @@ const server = setupServer(
       ]
     })
   }),
-  http.post('http://localhost:8000/api/network/artist-1/follow', () => {
+  http.post('*/network/artist-1/follow', () => {
     return HttpResponse.json({ success: true })
   })
 )
@@ -76,7 +80,7 @@ const renderFeed = () => {
 describe('Feed Page', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api'
-    useAuthStore.setState({ isAuthenticated: true, user: { id: 'test-user' } as any })
+    useAuthStore.setState({ isInitialized: true, isAuthenticated: true, user: { id: 'test-user' } as any })
   })
 
   it('renders feed page', async () => {

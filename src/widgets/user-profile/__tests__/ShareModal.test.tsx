@@ -20,14 +20,13 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
+let mockWriteText: any
+
 describe('Share Modal', () => {
   beforeEach(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-      configurable: true,
-    });
+    mockWriteText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator.clipboard, { writeText: mockWriteText })
+    vi.clearAllMocks()
   })
 
   it('does not render if closed', () => {
@@ -53,8 +52,8 @@ describe('Share Modal', () => {
     const copyBtn = screen.getByTestId('share-modal-copy-button')
     await user.click(copyBtn)
     
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('https://biobeats.com/testuser'))
     expect(copyBtn).toHaveTextContent('Copied!')
+    expect(mockWriteText).toHaveBeenCalledWith(expect.stringContaining('https://biobeats.com/testuser'))
   })
 
   it('calls TinyURL when shorten checkbox is checked', async () => {

@@ -1,29 +1,55 @@
-# BioBeats Unit Test Coverage Audit
+# BioBeats Unit Test Coverage Report
 
-Generated on: 2026-04-12
+Generated on: 2026-04-30
 
-## 1. Executive Summary
-The BioBeats frontend unit test suite currently consists of **145 tests** across **69 test files**. While the underlying code coverage is high for core features, the test runner currently reports a failure rate of 16% due to environment and configuration mismatches.
+Command used:
+
+```bash
+npx vitest run --coverage --coverage.reportOnFailure=true --coverage.reporter=text --coverage.reporter=html --coverage.reporter=json-summary
+```
+
+## Summary
+
+The Vitest unit coverage report was generated successfully, but the test command exited with failures.
 
 | Metric | Value |
 | :--- | :--- |
-| **Total Test Suites** | 69 |
-| **Passed Suites** | 50 |
-| **Failed Suites** | 19 |
-| **Total Tests** | 145 |
-| **Passed Tests** | 122 |
-| **Failed Tests** | 23 |
-| **Pass Rate** | **90.1%** |
+| Test files | 71 |
+| Passed test files | 68 |
+| Failed test files | 3 |
+| Total tests | 401 |
+| Passed tests | 397 |
+| Failed tests | 4 |
+| Pass rate | 99.00% |
 
-## 2. Coverage by Module
-Estimated coverage based on successful test executions and codebase analysis.
+## Coverage Totals
 
-| Module | Test Status | Estimated Coverage | Key Features Covered |
-| :--- | :--- | :--- | :--- |
-| **Authentication** | 10+ Passed | High (85%) | Login, Register, Persistence, JWT Handling |
-| **Shared UI** | 30+ Passed | Excellent (95%) | AppButton, TrackCards, NavBar (Basic), Icons |
-| **Audio Player** | 15+ Passed | High (90%) | Play/Pause, Queue, Seek, Repeat, Shuffle Logic |
-| **Engagement** | 10+ Passed | Moderate (70%) | Likes, Reposts, Comments API |
-| **App Pages** | 5+ Failed | Low (40%) | Direct Page routing and complex navigation |
+| Coverage type | Covered | Total | Percent |
+| :--- | ---: | ---: | ---: |
+| Statements | 2,685 | 8,390 | 32.00% |
+| Branches | 1,952 | 7,836 | 24.91% |
+| Functions | 627 | 2,633 | 23.81% |
+| Lines | 2,509 | 7,384 | 33.97% |
 
+## Report Artifacts
 
+| Artifact | Location |
+| :--- | :--- |
+| HTML coverage report | `coverage/index.html` |
+| JSON coverage summary | `coverage/coverage-summary.json` |
+| Full console output | `coverage-report.txt` |
+
+## Current Failing Tests
+
+| Test file | Failing test | Failure summary |
+| :--- | :--- | :--- |
+| `src/features/social-graph/tests/BlockedUsersList.test.tsx` | `BlockedUsersList > 1. renders blocked users list` | `getByText("User One")` matches both the avatar and username text. |
+| `src/widgets/user-profile/__tests__/ShareModal.test.tsx` | `Share Modal > copies to clipboard on copy click` | Expected clipboard `writeText` mock was not called. |
+| `src/app/(main)/feed/__tests__/FeedPage.test.tsx` | `Feed Page > loads and displays suggested artists` | Could not find `data-testid="feed-artist-suggestions"`. |
+| `src/app/(main)/feed/__tests__/FeedPage.test.tsx` | `Feed Page > artist follow button toggles state on click` | Could not find `data-testid="feed-artist-follow-button"`. |
+
+## Notes
+
+- The report uses the existing `vitest.config.ts` coverage settings.
+- `src/features/player/tests/**` is excluded by the Vitest config, so those tests are not part of this coverage run.
+- The HTML report is available even though the test process returned exit code `1`, because `coverage.reportOnFailure=true` was used.
