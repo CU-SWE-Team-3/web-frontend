@@ -83,7 +83,7 @@ export const PlayerQueueSidebar: FC = () => {
       a.rel = 'noopener noreferrer';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.parentNode?.removeChild(a);
       showToast('Download started');
     } else {
       showToast('No audio file available');

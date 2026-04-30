@@ -252,8 +252,10 @@
 .actionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   border: 1px solid var(--sc-border, #444);
   background-color: #222; /* very dark gray for button */
   color: #ccc;

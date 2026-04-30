@@ -56,7 +56,7 @@ export const ShareModal: FC<ShareModalProps> = ({
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
-      document.body.removeChild(textarea);
+      textarea.parentNode?.removeChild(textarea);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
