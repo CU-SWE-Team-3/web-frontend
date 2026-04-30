@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useConversations } from '../model/useConversations';
 import { ConversationList } from './ConversationList';
 import { ConversationView } from './ConversationView';
+import { NewConversationModal } from './NewConversationModal';
 import { NavBar } from '@/shared/ui/NavBar';
 import s from './MessagesPage.module.scss';
 
