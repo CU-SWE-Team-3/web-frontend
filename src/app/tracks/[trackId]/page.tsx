@@ -124,9 +124,11 @@ const TrackDetailPage: React.FC = () => {
     );
   }
 
+  // BUILD_BREAK: Ensuring latest changes are picked up
   const statusClassMap: Record<Track["status"], string> = {
     Processing: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     Finished: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    Failed: "bg-red-500/10 text-red-500 border-red-500/20",
   };
 
   const visibilityClassMap: Record<Track["visibility"], string> = {

@@ -253,6 +253,10 @@ export const tracksRepository = {
           publisher: payload.publisher,
           buyLink: payload.buyLink,
           allowComments: payload.allowComments ?? true,
+          playCount: 0,
+          likeCount: 0,
+          repostCount: 0,
+          commentCount: 0,
         };
 
         return uploadedTrack;

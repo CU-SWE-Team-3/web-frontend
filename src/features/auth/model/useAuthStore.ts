@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           displayName: "Local Developer",
           permalink: "local-dev",
           email: "dev@biobeats.local", 
-          avatarUrl: null,
+          avatarUrl: undefined,
           role: "Artist",
           isPremium: true,
           followerCount: 0,
