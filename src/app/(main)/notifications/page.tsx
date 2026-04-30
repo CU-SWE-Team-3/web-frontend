@@ -8,6 +8,9 @@ import { ROUTES } from '@/shared/constants/routes'
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore'
 import type { Notification, NotificationType } from '@/shared/types'
 import apiClient from '@/shared/api/client'
+import { BlockUserModal } from '@/features/messaging/ui/BlockUserModal'
+import { ReportUserModal } from '@/features/messaging/ui/ReportUserModal'
+import { useBlockStore } from '@/features/social-graph/model/useBlockStore'
 import s from './page.module.scss'
 
 // ─── Filter Types ───────────────────────────────────────────────────────────────
@@ -63,8 +66,42 @@ import { useFollowStore } from '@/features/social-graph/model/useFollowStore'
 import { useFollowing } from '@/features/social-graph/model/useFollowing'
 import { useAuthStore } from '@/features/auth/model/useAuthStore'
 
+// ─── Block Button Component ─────────────────────────────────────────────────────
+function BlockButton({ userId, onUnblock }: { userId: string; onUnblock: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLoading(true)
+    try {
+      await onUnblock()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      className={`${s.followBtn} ${hovered ? s.followBtnUnfollow : s.followBtnFollowing}`}
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      disabled={loading}
+      data-testid={`notif-page-blocked-btn-${userId}`}
+    >
+      {hovered ? 'Unblock' : 'Blocked'}
+    </button>
+  )
+}
+
 // ─── Follow Button Component ────────────────────────────────────────────────────
-function FollowButton({ userId, initialFollowing = false }: { userId: string; initialFollowing?: boolean }) {
+function FollowButton({ userId, initialFollowing = false, isBlocked = false, onUnblock }: { 
+  userId: string; 
+  initialFollowing?: boolean;
+  isBlocked?: boolean;
+  onUnblock: () => void;
+}) {
   const followStore = useFollowStore()
   const authUser = useAuthStore(s => s.user)
   const myId = (authUser as any)?._id || authUser?.id
@@ -77,7 +114,12 @@ function FollowButton({ userId, initialFollowing = false }: { userId: string; in
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const handleClick = async () => {
+  if (isBlocked) {
+    return <BlockButton userId={userId} onUnblock={onUnblock} />
+  }
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     setLoading(true)
     try {
       if (isFollowing) {
@@ -111,8 +153,19 @@ function FollowButton({ userId, initialFollowing = false }: { userId: string; in
 }
 
 // ─── Notification Row ───────────────────────────────────────────────────────────
-function NotificationRow({ notification }: { notification: Notification }) {
-  const { markRead, removeNotification } = useNotificationStore()
+function NotificationRow({ 
+  notification, 
+  onBlock, 
+  onReport,
+  onUnblock
+}: { 
+  notification: Notification;
+  onBlock: (actor: any) => void;
+  onReport: (actor: any) => void;
+  onUnblock: (actor: any) => void;
+}) {
+  const { markRead } = useNotificationStore()
+  const { blockedMap } = useBlockStore()
   const [moreOpen, setMoreOpen] = useState(false)
 
   const actor = notification.actors[0]
@@ -131,7 +184,7 @@ function NotificationRow({ notification }: { notification: Notification }) {
     if (!notification.isRead) markRead(notification._id)
   }
 
-  const showFollowBtn = actor && notification.type === 'FOLLOW'
+  const showFollowBtn = actor && (notification.type === 'FOLLOW' || blockedMap[actor._id])
 
   return (
     <div
@@ -187,7 +240,12 @@ function NotificationRow({ notification }: { notification: Notification }) {
       <div className={s.notifActions}>
         {/* Follow button for social notifications */}
         {showFollowBtn && (
-          <FollowButton userId={actor._id} initialFollowing={actor.isFollowing} />
+          <FollowButton 
+            userId={actor._id} 
+            initialFollowing={actor.isFollowing} 
+            isBlocked={blockedMap[actor._id]}
+            onUnblock={() => onUnblock(actor)}
+          />
         )}
 
         {/* Track artwork thumbnail — clickable link */}
@@ -223,19 +281,21 @@ function NotificationRow({ notification }: { notification: Notification }) {
                 onClick={(e) => { 
                   e.stopPropagation(); 
                   if (actor) {
-                    apiClient.post(`/network/${actor._id}/block`, {}, { withCredentials: true })
-                      .then(() => alert(`Blocked ${actor.displayName}`))
-                      .catch(() => alert(`Error blocking ${actor.displayName}`));
+                    if (blockedMap[actor._id]) {
+                      onUnblock(actor);
+                    } else {
+                      onBlock(actor);
+                    }
                   }
                   setMoreOpen(false) 
                 }}
               >
-                Block {actor?.displayName}
+                {actor && blockedMap[actor._id] ? 'Unblock' : 'Block'} {actor?.displayName}
               </button>
               <button
                 onClick={(e) => { 
                   e.stopPropagation(); 
-                  alert(`Reported ${actor?.displayName}`);
+                  if (actor) onReport(actor);
                   setMoreOpen(false) 
                 }}
               >
@@ -268,8 +328,41 @@ export default function NotificationsPage() {
     unreadCount,
   } = useNotificationStore()
 
+  const { blockedMap, setBlocked } = useBlockStore()
+
   const [filter, setFilter] = useState<FilterKey>('all')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [selectedActor, setSelectedActor] = useState<any>(null)
+  const [blockModalOpen, setBlockModalOpen] = useState(false)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+
+  const handleBlockConfirm = async () => {
+    if (!selectedActor) return
+    try {
+      await apiClient.post(`/network/${selectedActor._id}/block`, {}, { withCredentials: true })
+      setBlocked(selectedActor._id, true)
+      setBlockModalOpen(false)
+    } catch {
+      alert('Error blocking user')
+    }
+  }
+
+  const handleUnblock = async (actor: any) => {
+    try {
+      await apiClient.delete(`/network/${actor._id}/block`, { withCredentials: true })
+      setBlocked(actor._id, false)
+    } catch {
+      alert('Error unblocking user')
+    }
+  }
+
+  const handleReportConfirm = (reason: string) => {
+    // API call would go here
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 4000)
+    setReportModalOpen(false)
+  }
 
   // Fetch notifications on mount
   useEffect(() => {
@@ -352,7 +445,13 @@ export default function NotificationsPage() {
               </div>
             ) : (
               filtered.map((n, idx) => (
-                <NotificationRow key={`${n._id}-${idx}`} notification={n} />
+                <NotificationRow 
+                  key={`${n._id}-${idx}`} 
+                  notification={n} 
+                  onBlock={(actor) => { setSelectedActor(actor); setBlockModalOpen(true); }}
+                  onReport={(actor) => { setSelectedActor(actor); setReportModalOpen(true); }}
+                  onUnblock={handleUnblock}
+                />
               ))
             )}
           </div>
@@ -379,7 +478,12 @@ export default function NotificationsPage() {
                     )}
                   </div>
                   <span className={s.sidebarUserName}>{actor.displayName}</span>
-                  <FollowButton userId={actor._id} initialFollowing={actor.isFollowing} />
+                  <FollowButton 
+                    userId={actor._id} 
+                    initialFollowing={actor.isFollowing} 
+                    isBlocked={blockedMap[actor._id]}
+                    onUnblock={() => handleUnblock(actor)}
+                  />
                 </div>
               ))}
             </div>
@@ -394,6 +498,28 @@ export default function NotificationsPage() {
           </div>
         </aside>
       </div>
+
+      {/* Modals */}
+      <BlockUserModal
+        open={blockModalOpen}
+        onClose={() => setBlockModalOpen(false)}
+        onConfirm={handleBlockConfirm}
+        displayName={selectedActor?.displayName || ''}
+      />
+
+      <ReportUserModal
+        open={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        onReport={handleReportConfirm}
+        displayName={selectedActor?.displayName || ''}
+      />
+
+      {/* Toast */}
+      {showToast && (
+        <div className={s.reportToast} data-testid="report-success-toast">
+          Thank you for your report. Our team will review this account as soon as possible.
+        </div>
+      )}
     </div>
   )
 }

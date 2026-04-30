@@ -10,6 +10,8 @@ import { useSubscriptionStore } from '@/features/subscription/model/useSubscript
 import { NotificationDropdown } from '@/features/notifications/ui/NotificationDropdown';
 import { MessageDropdown } from '@/features/messaging/ui/MessageDropdown';
 import { ChevronDownIcon, NotificationIcon, MoreIcon } from '@/shared/ui/icons';
+import { useBlockedUsers } from '@/features/social-graph/model/useBlockedUsers';
+import { useBlockStore } from '@/features/social-graph/model/useBlockStore';
 import { BioBeatsLogo } from '@/shared/ui/Brand';
 import s from './NavBar.module.scss';
 import { SearchBar } from '../SearchBar';
@@ -62,6 +64,18 @@ export const NavBar: FC<NavBarProps> = ({
       fetchUnreadCount();
     }
   }, [isAuthenticated, fetchUnreadCount]);
+
+  // ── Block list sync ──
+  const { data: blockedList } = useBlockedUsers();
+  const { setBlocked } = useBlockStore();
+
+  useEffect(() => {
+    if (isAuthenticated && blockedList) {
+      blockedList.forEach(user => {
+        setBlocked(user.id, true);
+      });
+    }
+  }, [isAuthenticated, blockedList, setBlocked]);
 
   // ── More dropdown state ──
   const [moreOpen, setMoreOpen] = useState(false);

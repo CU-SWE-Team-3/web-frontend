@@ -46,9 +46,13 @@ vi.mock('@/shared/api/client', () => ({
   },
 }))
 
-// Mock useFollowing to avoid QueryClient requirement
+// Mock hooks to avoid QueryClient requirement where possible
 vi.mock('@/features/social-graph/model/useFollowing', () => ({
-  useFollowing: () => ({ data: [], isLoading: false }),
+  useFollowing: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+}))
+
+vi.mock('@/features/social-graph/model/useBlockedUsers', () => ({
+  useBlockedUsers: vi.fn().mockReturnValue({ data: [] }),
 }))
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })

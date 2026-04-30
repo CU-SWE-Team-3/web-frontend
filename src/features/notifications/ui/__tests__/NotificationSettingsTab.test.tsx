@@ -15,6 +15,24 @@ vi.mock('../../api/notificationApi', () => ({
     allowMessages: true,
     allowNewTracks: true,
   }),
+  fetchNotificationPreferences: vi.fn().mockResolvedValue({
+    pushEnabled: true,
+    allowLikes: true,
+    allowReposts: true,
+    allowComments: true,
+    allowFollows: true,
+    allowMessages: true,
+    allowNewTracks: true,
+    allowRecommended: true,
+    emailLikes: true,
+    emailReposts: true,
+    emailComments: true,
+    emailFollows: true,
+    emailMessages: true,
+    emailNewTracks: true,
+    emailRecommended: true,
+    messagePermission: 'Everyone',
+  }),
 }))
 
 describe('NotificationSettingsTab', () => {

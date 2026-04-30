@@ -70,12 +70,31 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
       set((state) => ({
         activities: {
           ...state.activities,
-          newFollower: { email: prefs.allowFollowsEmail ?? true, devices: prefs.allowFollows ?? true },
-          repostOfYourPost: { email: prefs.allowRepostsEmail ?? true, devices: prefs.allowReposts ?? true },
-          newPostByFollowedUser: { email: prefs.allowNewTracksEmail ?? true, devices: prefs.allowNewTracks ?? true },
-          likesAndPlaysOnYourPost: { email: prefs.allowLikesEmail ?? true, devices: prefs.allowLikes ?? true },
-          commentOnYourPost: { email: prefs.allowCommentsEmail ?? false, devices: prefs.allowComments ?? true },
-          newMessage: { email: prefs.allowMessagesEmail ?? true, devices: prefs.allowMessages ? 'Everyone' : 'Nobody' },
+          newFollower: { email: prefs.emailFollows ?? true, devices: prefs.allowFollows ?? true },
+          repostOfYourPost: { email: prefs.emailReposts ?? true, devices: prefs.allowReposts ?? true },
+          newPostByFollowedUser: { email: prefs.emailNewTracks ?? true, devices: prefs.allowNewTracks ?? true },
+          likesAndPlaysOnYourPost: { email: prefs.emailLikes ?? true, devices: prefs.allowLikes ?? true },
+          commentOnYourPost: { email: prefs.emailComments ?? false, devices: prefs.allowComments ?? true },
+          recommendedContent: { email: prefs.emailRecommended ?? true, devices: prefs.allowRecommended ?? true },
+          newMessage: { 
+            email: prefs.emailMessages ?? true, 
+            devices: !prefs.allowMessages ? 'Nobody' : (prefs.messagePermission ?? 'Everyone')
+          },
+        },
+        updates: {
+          ...state.updates,
+          featureUpdatesAndEducation: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
+          surveysAndFeedback: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
+          promotionalAndPartnershipContent: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
         },
         isDirty: false,
       }))
@@ -115,23 +134,26 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
   savePreferences: async () => {
     set({ isLoading: true })
     try {
-      const { activities } = get()
+      const { activities, updates } = get()
       // Map UI state to API NotificationPreferences
       const prefs: Partial<NotificationPreferences> = {
         pushEnabled: true,
         emailEnabled: true,
         allowLikes: activities.likesAndPlaysOnYourPost.devices,
-        allowLikesEmail: activities.likesAndPlaysOnYourPost.email,
+        emailLikes: activities.likesAndPlaysOnYourPost.email,
         allowReposts: activities.repostOfYourPost.devices,
-        allowRepostsEmail: activities.repostOfYourPost.email,
+        emailReposts: activities.repostOfYourPost.email,
         allowComments: activities.commentOnYourPost.devices,
-        allowCommentsEmail: activities.commentOnYourPost.email,
+        emailComments: activities.commentOnYourPost.email,
         allowFollows: activities.newFollower.devices,
-        allowFollowsEmail: activities.newFollower.email,
+        emailFollows: activities.newFollower.email,
         allowMessages: activities.newMessage.devices !== 'Nobody',
-        allowMessagesEmail: activities.newMessage.email,
+        messagePermission: activities.newMessage.devices === 'Nobody' ? 'Everyone' : (activities.newMessage.devices as any),
+        emailMessages: activities.newMessage.email,
         allowNewTracks: activities.newPostByFollowedUser.devices,
-        allowNewTracksEmail: activities.newPostByFollowedUser.email,
+        emailNewTracks: activities.newPostByFollowedUser.email,
+        allowRecommended: activities.recommendedContent.devices || updates.featureUpdatesAndEducation.devices,
+        emailRecommended: activities.recommendedContent.email || updates.featureUpdatesAndEducation.email,
       }
       await apiUpdatePreferences(prefs)
       set({ isDirty: false })

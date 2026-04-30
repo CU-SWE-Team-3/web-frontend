@@ -46,6 +46,7 @@ export const ReportUserModal: React.FC<ReportUserModalProps> = ({
     if (reason === 'Spam') {
       setView('spam');
     } else {
+      onReport(reason);
       window.open(HELP_LINKS[reason] || HELP_LINKS['Other'], '_blank', 'noopener,noreferrer');
       onClose();
     }
