@@ -7,7 +7,7 @@ import { NavBar } from '@/shared/ui/NavBar/NavBar';
 import { ROUTES } from '@/shared/constants/routes';
 import { useHistoryStore } from '@/features/player/model/historyStore';
 import { usePlayerStore } from '@/features/player/model/playerStore';
-import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
+import { useLikedItems } from '@/features/track-engagement/model/useLikedTracks';
 import { TrackCard } from '@/features/track-engagement/ui/TrackCard';
 import { useFollowing } from '@/features/social-graph/model/useFollowing';
 import { useFollowUser } from '@/features/social-graph/model/useFollowUser';
@@ -22,6 +22,7 @@ import type { Track } from '@/features/player/model/playerStore';
 import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
 import { PlaylistGridCard } from '@/features/playlists/ui/PlaylistGridCard';
 import { CreatePlaylistModal } from '@/features/playlists/ui/CreatePlaylistModal';
+import { useLikedStations } from '@/features/trending/model/stationQueries';
 import type { Playlist } from '@/features/playlists/model/playlist';
 import s from './Library.module.scss';
 
@@ -50,11 +51,13 @@ function LibraryContent() {
   const { data: followingList, isLoading: followingLoading } = useFollowing(userId);
 
   // ─── Likes state ───
-  const { data: likedTracks, isLoading: likesLoading } = useLikedTracks();
+  const { data: likedData, isLoading: likesLoading } = useLikedItems();
+  const likedTracks = likedData?.tracks;
+  const likedPlaylists = likedData?.playlists;
   const [likesView, setLikesView] = useState<ViewMode>('grid');
   const [likesFilter, setLikesFilter] = useState('');
 
-  const filteredLikes = useMemo(() => {
+  const filteredLikesTracks = useMemo(() => {
     if (!likedTracks) return [];
     if (!likesFilter.trim()) return likedTracks;
     const q = likesFilter.toLowerCase();
@@ -62,6 +65,16 @@ function LibraryContent() {
       (t) => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
     );
   }, [likedTracks, likesFilter]);
+
+  const filteredLikesPlaylists = useMemo(() => {
+    if (!likedPlaylists) return [];
+    if (!likesFilter.trim()) return likedPlaylists;
+    const q = likesFilter.toLowerCase();
+    return likedPlaylists.filter(
+      (p) => p.title.toLowerCase().includes(q) || 
+      (typeof p.creator === 'string' ? p.creator.toLowerCase().includes(q) : p.creator?.displayName?.toLowerCase().includes(q))
+    );
+  }, [likedPlaylists, likesFilter]);
 
   // ─── History state ───
   const recentlyPlayed = useHistoryStore((st) => st.recentlyPlayed);
@@ -132,7 +145,8 @@ function LibraryContent() {
         )}
         {activeTab === 'likes' && (
           <LikesTab
-            tracks={filteredLikes}
+            tracks={filteredLikesTracks}
+            playlists={filteredLikesPlaylists}
             isLoading={likesLoading}
             filter={likesFilter}
             setFilter={setLikesFilter}
@@ -152,7 +166,7 @@ function LibraryContent() {
         )}
         {activeTab === 'playlists' && <PlaylistsLibraryTab userId={userId} />}
         {activeTab === 'albums' && <AlbumsLibraryTab userId={userId} />}
-        {activeTab === 'stations' && <PlaceholderTab title="Stations" />}
+        {activeTab === 'stations' && <StationsTab />}
         {activeTab === 'following' && (
           <FollowingTab users={followingList ?? []} isLoading={followingLoading} />
         )}
@@ -361,12 +375,13 @@ function OverviewTab({
    ═══════════════════════════════════════════════════════ */
 interface LikesTabProps {
   tracks: import('@/features/track-engagement/model/types').TrackNode[];
+  playlists: import('@/features/track-engagement/model/types').LikedPlaylistItem[];
   isLoading: boolean;
   filter: string;
   setFilter: (v: string) => void;
 }
 
-function LikesTab({ tracks, isLoading, filter, setFilter }: LikesTabProps) {
+function LikesTab({ tracks, playlists, isLoading, filter, setFilter }: LikesTabProps) {
   const unlikeMutation = useUnlikeTrack();
   const play = usePlayerStore((st) => st.play);
 
@@ -394,31 +409,55 @@ function LikesTab({ tracks, isLoading, filter, setFilter }: LikesTabProps) {
             <div key={i} className="h-40 bg-[var(--sc-bg-dark-elevated)] rounded-md animate-pulse" />
           ))}
         </div>
-      ) : tracks.length === 0 ? (
+      ) : tracks.length === 0 && playlists.length === 0 ? (
         <div className={s.emptyState}>
           <div className={s.emptyIcon}>♥</div>
-          <div className={s.emptyTitle}>No liked tracks yet</div>
-          <div className={s.emptyText}>Tracks you like will appear here</div>
+          <div className={s.emptyTitle}>No liked items yet</div>
+          <div className={s.emptyText}>Tracks and playlists you like will appear here</div>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-x-8 gap-y-10 mt-6 pb-24">
-          {tracks.map((track) => (
-            <SquareTrackCard
-              key={track.id}
-              id={track.id}
-              title={track.title}
-              artist={track.artist || 'Unknown Artist'}
-              artworkUrl={track.artworkUrl}
-              onPlay={() => play({
-                id: track.id,
-                title: track.title,
-                artist: track.artist || 'Unknown Artist',
-                artworkUrl: track.artworkUrl || '/placeholder.png',
-                hlsUrl: (track as any).streamUrl || (track as any).hlsUrl,
-              })}
-              titlePrefixNode={<Heart size={14} className="fill-[#999] text-[#999]" />}
-            />
-          ))}
+        <div className="pb-24">
+          {playlists.length > 0 && (
+            <div className="mb-10">
+              <div className={s.subsectionHeader}>
+                <h3 className={s.subsectionTitle}>Liked Playlists</h3>
+              </div>
+              <div className="flex flex-wrap gap-x-8 gap-y-10 mt-4">
+                {playlists.map((playlist) => (
+                  <div key={playlist._id} style={{ width: '180px' }}>
+                    <PlaylistGridCard playlist={playlist as any} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tracks.length > 0 && (
+            <div>
+              <div className={s.subsectionHeader}>
+                <h3 className={s.subsectionTitle}>Liked Tracks</h3>
+              </div>
+              <div className="flex flex-wrap gap-x-8 gap-y-10 mt-4">
+                {tracks.map((track) => (
+                  <SquareTrackCard
+                    key={track.id}
+                    id={track.id}
+                    title={track.title}
+                    artist={track.artist || 'Unknown Artist'}
+                    artworkUrl={track.artworkUrl}
+                    onPlay={() => play({
+                      id: track.id,
+                      title: track.title,
+                      artist: track.artist || 'Unknown Artist',
+                      artworkUrl: track.artworkUrl || '/placeholder.png',
+                      hlsUrl: (track as any).streamUrl || (track as any).hlsUrl,
+                    })}
+                    titlePrefixNode={<Heart size={14} className="fill-[#999] text-[#999]" />}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -747,13 +786,77 @@ function AlbumsLibraryTab({ userId }: { userId: string }) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Placeholder Tab (for Stations)
+   Stations Tab
    ═══════════════════════════════════════════════════════ */
-function PlaceholderTab({ title }: { title: string }) {
+function StationsTab() {
+  const { data: stations, isLoading } = useLikedStations(true);
+
+  // Map HydratedStation items into a shape PlaylistGridCard can render
+  const stationCards = useMemo(() => {
+    if (!stations) return [];
+    return stations.map((station) => {
+      const firstTrack = station.tracks?.[0];
+      return {
+        _id: station.stationId,
+        title: station.stationTitle || 'Untitled Station',
+        permalink: station.stationId,
+        creator: 'BioBeats',
+        description: station.stationDescription || '',
+        releaseType: 'playlist' as const,
+        tags: [] as string[],
+        genre: station.genre || '',
+        releaseDate: '',
+        labelName: '',
+        buyLink: '',
+        buyTitle: '',
+        upc: '',
+        tracks: station.tracks || [],
+        artworkUrl: firstTrack?.artworkUrl || '',
+        isPrivate: false,
+        secretToken: '',
+        trackCount: station.tracks?.length || 0,
+        totalDuration: (station.tracks || []).reduce(
+          (sum: number, t: any) => sum + (typeof t?.duration === 'number' ? t.duration : 0),
+          0
+        ),
+        playCount: 0,
+        likeCount: 0,
+        repostCount: 0,
+        isLiked: true,
+        isReposted: false,
+        createdAt: station.likedAt || '',
+        updatedAt: '',
+        _isStation: true,
+        _stationId: station.stationId,
+      };
+    });
+  }, [stations]);
+
   return (
-    <div className={s.placeholderTab}>
-      <h3>{title}</h3>
-      <p>This section is coming soon.</p>
+    <div>
+      <div className={s.sectionHeader}>
+        <span className={s.sectionTitle}>Your Stations</span>
+      </div>
+
+      {isLoading ? (
+        <div className="flex flex-col gap-6 mt-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-40 bg-[var(--sc-bg-dark-elevated)] rounded-md animate-pulse" />
+          ))}
+        </div>
+      ) : stationCards.length === 0 ? (
+        <div className={s.emptyState}>
+          <div className={s.emptyIcon}>📻</div>
+          <div className={s.emptyTitle}>No liked stations yet</div>
+          <div className={s.emptyText}>Stations you like will appear here</div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+          {stationCards.map((card) => (
+            <PlaylistGridCard key={card._id} playlist={card as any} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
