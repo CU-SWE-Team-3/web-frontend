@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/shared/api/client";
 import { useAuthStore } from "@/features/auth/model/useAuthStore";
-import { TrackNode } from "./types";
+import { stationsRepository, type HydratedStation } from "@/features/trending/api/stationsRepository";
+import { TrackNode, LikedPlaylistItem } from "./types";
 
 export const LIKED_TRACKS_QUERY_KEY = ["liked-tracks"] as const;
+export const LIKED_ITEMS_QUERY_KEY = ["liked-items"] as const;
 
 /**
  * Map raw API liked-track response to our TrackNode interface.
@@ -45,33 +47,102 @@ function mapLikedTrack(rawItem: any): TrackNode {
   };
 }
 
+function mapLikedPlaylist(rawItem: any): LikedPlaylistItem {
+  const p = rawItem.target || rawItem.playlist || rawItem;
+
+  return {
+    _id: p._id || p.id,
+    title: p.title || p.name || "Untitled Playlist",
+    permalink: p.permalink || p._id || p.id,
+    creator:
+      p.creator?.displayName ||
+      p.creator?.username ||
+      p.creator?.name ||
+      p.creator?.permalink ||
+      (typeof p.creator === "string" ? p.creator : "") ||
+      "Unknown Creator",
+    description: p.description || "",
+    releaseType: p.releaseType || "playlist",
+    tags: p.tags || [],
+    genre: p.genre || "",
+    releaseDate: p.releaseDate || "",
+    labelName: p.labelName || "",
+    buyLink: p.buyLink || "",
+    buyTitle: p.buyTitle || "",
+    upc: p.upc || "",
+    tracks: p.tracks || [],
+    artworkUrl: p.artworkUrl || p.coverUrl || p.imageUrl || "",
+    isPrivate: p.isPrivate || false,
+    secretToken: p.secretToken || "",
+    trackCount: p.trackCount || p.tracks?.length || 0,
+    totalDuration: p.totalDuration || 0,
+    playCount: p.playCount ?? 0,
+    likeCount: p.likeCount ?? 0,
+    repostCount: p.repostCount ?? 0,
+    isLiked: true,
+    isReposted: p.isReposted ?? false,
+    createdAt: p.createdAt || rawItem.likeDate || "",
+    updatedAt: p.updatedAt || "",
+  };
+}
+
 /**
- * Fetch the user's liked track list.
- * The backend endpoint is: GET /profile/{userId}/likes
- *
- * FIXES APPLIED:
- * 1. Auth hydration guard — waits for isInitialized before fetching
- * 2. No more swallowing errors — let React Query handle retries/error state
- * 3. staleTime: 0 — always refetch fresh data so likes stay in sync
- * 4. Proper field mapping — normalizes _id, nested artist objects, etc.
+ * Map a HydratedStation (from /stations/liked) into a LikedPlaylistItem
+ * so it can be rendered by PlaylistGridCard.
  */
-export const useLikedTracks = (userId: string = "me") => {
+function mapHydratedStation(station: HydratedStation): LikedPlaylistItem {
+  const firstTrack = station.tracks?.[0];
+  return {
+    _id: station.stationId,
+    title: station.stationTitle || "Untitled Station",
+    permalink: station.stationId,
+    creator: "BioBeats",
+    description: station.stationDescription || "",
+    releaseType: "playlist",
+    tags: [],
+    genre: station.genre || "",
+    releaseDate: "",
+    labelName: "",
+    buyLink: "",
+    buyTitle: "",
+    upc: "",
+    tracks: station.tracks || [],
+    artworkUrl: firstTrack?.artworkUrl || "",
+    isPrivate: false,
+    secretToken: "",
+    trackCount: station.tracks?.length || 0,
+    totalDuration: (station.tracks || []).reduce(
+      (sum: number, t: any) => sum + (typeof t?.duration === "number" ? t.duration : 0),
+      0
+    ),
+    playCount: 0,
+    likeCount: 0,
+    repostCount: 0,
+    isLiked: true,
+    isReposted: false,
+    createdAt: station.likedAt || "",
+    updatedAt: "",
+    // Custom marker so UI can route to /discover/sets/ instead of /playlist/
+    _isStation: true,
+    _stationId: station.stationId,
+  } as LikedPlaylistItem;
+}
+
+/**
+ * Fetch the user's liked track and playlist items.
+ */
+export const useLikedItems = (userId: string = "me") => {
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const user = useAuthStore((s) => s.user);
 
-  // If "me" is passed, use the real user ID to prevent 400 Bad Requests
   const actualUserId = userId === "me" ? (user?.id || (user as any)?._id || "me") : userId;
-
-  // Check if the userId looks like a MongoDB ObjectId (24 hex chars)
   const isObjectId = /^[0-9a-fA-F]{24}$/.test(actualUserId);
 
-  return useQuery<TrackNode[], Error>({
-    queryKey: [...LIKED_TRACKS_QUERY_KEY, actualUserId],
-    queryFn: async (): Promise<TrackNode[]> => {
+  return useQuery<{ tracks: TrackNode[]; playlists: LikedPlaylistItem[] }, Error>({
+    queryKey: [...LIKED_ITEMS_QUERY_KEY, actualUserId],
+    queryFn: async () => {
       let resolvedId = actualUserId;
 
-      // If the userId is not a MongoDB ObjectId (it's a permalink/username),
-      // resolve it to the actual profile _id first
       if (!isObjectId && actualUserId !== "me") {
         try {
           const profileRes = await apiClient.get(`/profile/${actualUserId}`, {
@@ -82,42 +153,74 @@ export const useLikedTracks = (userId: string = "me") => {
             resolvedId = profileData._id || profileData.id;
           }
         } catch (profileErr) {
-          console.warn("[useLikedTracks] Could not resolve permalink to ID:", profileErr);
-          // Continue with the original userId as a last-ditch attempt
+          console.warn("[useLikedItems] Could not resolve permalink to ID:", profileErr);
         }
       }
 
-      // Try fetching likes with the resolved ID
       try {
-        const { data } = await apiClient.get(`/profile/${resolvedId}/likes`, {
-          withCredentials: true,
-        });
+        const [likesResult, stationsResult] = await Promise.allSettled([
+          apiClient.get(`/profile/${resolvedId}/likes`, { withCredentials: true }),
+          stationsRepository.getLikedStations(true),
+        ]);
 
-        const rawTracks =
-          data?.data?.likes ||
-          data?.data?.likedTracks ||
-          data?.data ||
-          data?.likes ||
-          data ||
-          [];
+        const tracks: TrackNode[] = [];
+        const playlists: LikedPlaylistItem[] = [];
 
-        if (!Array.isArray(rawTracks)) {
-          console.warn(
-            "[useLikedTracks] API response is not an array, got:",
-            typeof rawTracks,
-            rawTracks
-          );
-          return [];
+        // ── Process profile likes (tracks + playlists) ──
+        if (likesResult.status === 'fulfilled') {
+          const data = likesResult.value.data;
+          const rawLikes =
+            data?.data?.likes ||
+            data?.data?.likedTracks ||
+            data?.data ||
+            data?.likes ||
+            data ||
+            [];
+
+          if (Array.isArray(rawLikes)) {
+            for (const item of rawLikes) {
+              if ((item?.targetModel || item?.model) === 'Playlist') {
+                playlists.push(mapLikedPlaylist(item));
+              } else {
+                tracks.push(mapLikedTrack(item));
+              }
+            }
+          }
+        } else {
+          console.warn("[useLikedItems] Failed to fetch profile likes:", likesResult.reason);
         }
 
-        return rawTracks.map(mapLikedTrack);
+        // ── Process liked stations ──
+        if (stationsResult.status === 'fulfilled') {
+          const stations = stationsResult.value;
+          if (Array.isArray(stations)) {
+            for (const station of stations) {
+              playlists.push(mapHydratedStation(station));
+            }
+          }
+        } else {
+          console.warn("[useLikedItems] Failed to fetch liked stations:", stationsResult.reason);
+        }
+
+        return { tracks, playlists };
       } catch (likesErr) {
-        console.warn("[useLikedTracks] Failed to fetch likes for", resolvedId, likesErr);
-        return [];
+        console.warn("[useLikedItems] Failed to fetch likes for", resolvedId, likesErr);
+        return { tracks: [], playlists: [] };
       }
     },
     enabled: isInitialized && !!actualUserId && actualUserId !== "",
     staleTime: 0,
     refetchOnMount: "always" as const,
   });
+};
+
+/**
+ * Fetch the user's liked track list. (Backward compatibility)
+ */
+export const useLikedTracks = (userId: string = "me") => {
+  const query = useLikedItems(userId);
+  return {
+    ...query,
+    data: query.data?.tracks,
+  };
 };

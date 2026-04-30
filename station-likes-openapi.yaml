@@ -1,0 +1,545 @@
+openapi: 3.0.3
+info:
+  title: BioBeats – Station Likes API
+  description: |
+    Endpoints that allow authenticated users to **like**, **unlike**, **check**, and **list** liked stations.
+
+    ## Authentication
+    Every endpoint requires a valid JWT.  
+    Send it as a **cookie** (`accessToken`) **or** as a Bearer token in the `Authorization` header.
+
+    ```
+    Authorization: Bearer <your_access_token>
+    ```
+
+    ## Station ID conventions
+    Station IDs are plain strings, not MongoDB ObjectIds. They follow the pattern produced by the discovery service:
+
+    | Type | Example stationId |
+    |------|-------------------|
+    | genre | `genre_electronic` |
+    | artist | `artist_507f1f77bcf86cd799439011` |
+    | trending | `trending_mix` |
+    | curated | `fresh_finds` · `trending_globally` · `spotlight` · `top_electronic` · `top_hiphop` |
+    | recommended | `recommended_for_you` |
+
+  version: "1.0.0"
+  contact:
+    name: BioBeats Backend
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development
+  - url: https://your-production-domain.com/api
+    description: Production
+
+tags:
+  - name: Stations
+    description: Station like / unlike / list operations
+
+# ─── Security ─────────────────────────────────────────────────────────────────
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ─── Reusable schemas ────────────────────────────────────────────────────────
+  schemas:
+
+    StationType:
+      type: string
+      enum: [genre, artist, trending, curated, recommended]
+      example: genre
+
+    LikeStationRequest:
+      type: object
+      required:
+        - stationType
+      properties:
+        stationType:
+          $ref: '#/components/schemas/StationType'
+        stationTitle:
+          type: string
+          maxLength: 100
+          example: "Electronic"
+          description: Human-readable label. Saved at like-time for display without re-fetching.
+        stationDescription:
+          type: string
+          maxLength: 300
+          example: "Top Electronic tracks based on your listening"
+        artistId:
+          type: string
+          pattern: '^[a-f\d]{24}$'
+          example: "507f1f77bcf86cd799439011"
+          description: Required when stationType = artist
+        genre:
+          type: string
+          maxLength: 50
+          example: "Electronic"
+          description: Required when stationType = genre
+
+    LikeStationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Station liked successfully."
+        data:
+          type: object
+          properties:
+            liked:
+              type: boolean
+              example: true
+            stationId:
+              type: string
+              example: "genre_electronic"
+            stationType:
+              $ref: '#/components/schemas/StationType'
+            stationTitle:
+              type: string
+              example: "Electronic"
+            likedAt:
+              type: string
+              format: date-time
+              example: "2025-04-30T10:00:00.000Z"
+
+    UnlikeStationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Station unliked successfully."
+        data:
+          type: object
+          properties:
+            liked:
+              type: boolean
+              example: false
+            stationId:
+              type: string
+              example: "genre_electronic"
+
+    CheckLikedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            liked:
+              type: boolean
+              example: true
+            stationId:
+              type: string
+              example: "genre_electronic"
+
+    TrackSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "507f1f77bcf86cd799439022"
+        title:
+          type: string
+          example: "Summer Vibes"
+        permalink:
+          type: string
+          example: "summer-vibes"
+        artworkUrl:
+          type: string
+          example: "https://blob.core.windows.net/biobeats/artworks/art-1234.jpg"
+        duration:
+          type: number
+          example: 210
+        genre:
+          type: string
+          example: "Electronic"
+        playCount:
+          type: number
+          example: 4200
+        likeCount:
+          type: number
+          example: 380
+        repostCount:
+          type: number
+          example: 45
+        artist:
+          type: object
+          properties:
+            _id:
+              type: string
+            displayName:
+              type: string
+              example: "DJ Nova"
+            permalink:
+              type: string
+              example: "dj-nova"
+            avatarUrl:
+              type: string
+
+    HydratedStation:
+      type: object
+      properties:
+        stationId:
+          type: string
+          example: "genre_electronic"
+        stationType:
+          $ref: '#/components/schemas/StationType'
+        stationTitle:
+          type: string
+          example: "Electronic"
+        stationDescription:
+          type: string
+          example: "Top Electronic tracks based on your listening"
+        artistId:
+          type: string
+          nullable: true
+          example: null
+        genre:
+          type: string
+          nullable: true
+          example: "Electronic"
+        likedAt:
+          type: string
+          format: date-time
+          example: "2025-04-30T10:00:00.000Z"
+        tracks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackSummary'
+
+    LikedStationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        results:
+          type: integer
+          example: 3
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 3
+            page:
+              type: integer
+              example: 1
+            totalPages:
+              type: integer
+              example: 1
+            stations:
+              type: array
+              items:
+                $ref: '#/components/schemas/HydratedStation'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        status:
+          type: string
+          example: "fail"
+        message:
+          type: string
+          example: "You have already liked this station."
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Unauthorized"
+
+    BadRequest:
+      description: Validation error or business rule violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+# ─── Paths ────────────────────────────────────────────────────────────────────
+paths:
+
+  /stations/liked:
+    get:
+      tags: [Stations]
+      summary: Get all liked stations
+      description: |
+        Returns a paginated list of stations the authenticated user has liked.
+
+        When `hydrate=true` (default), **each station includes its current tracks** fetched live from the discovery engine.  
+        When `hydrate=false`, only the station metadata is returned (much faster — good for a sidebar list).
+      operationId: getLikedStations
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+        - name: hydrate
+          in: query
+          description: Set to "false" to skip live track fetching (faster)
+          schema:
+            type: string
+            enum: ["true", "false"]
+            default: "true"
+          example: "true"
+      responses:
+        '200':
+          description: Liked stations list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikedStationsResponse'
+              examples:
+                with_tracks:
+                  summary: Hydrated (default)
+                  value:
+                    success: true
+                    results: 2
+                    data:
+                      total: 2
+                      page: 1
+                      totalPages: 1
+                      stations:
+                        - stationId: "genre_electronic"
+                          stationType: "genre"
+                          stationTitle: "Electronic"
+                          stationDescription: "Top Electronic tracks"
+                          artistId: null
+                          genre: "Electronic"
+                          likedAt: "2025-04-30T10:00:00.000Z"
+                          tracks:
+                            - _id: "507f1f77bcf86cd799439022"
+                              title: "Summer Vibes"
+                              permalink: "summer-vibes"
+                              artworkUrl: "https://blob.core.windows.net/art.jpg"
+                              duration: 210
+                              genre: "Electronic"
+                              playCount: 4200
+                              likeCount: 380
+                              repostCount: 45
+                              artist:
+                                _id: "507f1f77bcf86cd799439011"
+                                displayName: "DJ Nova"
+                                permalink: "dj-nova"
+                                avatarUrl: "https://blob.core.windows.net/av.jpg"
+                        - stationId: "trending_mix"
+                          stationType: "trending"
+                          stationTitle: "Trending now"
+                          stationDescription: "Most played tracks on the platform"
+                          artistId: null
+                          genre: null
+                          likedAt: "2025-04-29T08:00:00.000Z"
+                          tracks: []
+                no_tracks:
+                  summary: Lightweight (hydrate=false)
+                  value:
+                    success: true
+                    results: 1
+                    data:
+                      total: 1
+                      page: 1
+                      totalPages: 1
+                      stations:
+                        - stationId: "genre_electronic"
+                          stationType: "genre"
+                          stationTitle: "Electronic"
+                          stationDescription: "Top Electronic tracks"
+                          artistId: null
+                          genre: "Electronic"
+                          likedAt: "2025-04-30T10:00:00.000Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /stations/{stationId}/like:
+    parameters:
+      - name: stationId
+        in: path
+        required: true
+        description: |
+          The station identifier string. Examples:
+          - `genre_electronic`
+          - `artist_507f1f77bcf86cd799439011`
+          - `trending_mix`
+          - `fresh_finds`
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+        example: "genre_electronic"
+
+    post:
+      tags: [Stations]
+      summary: Like a station
+      description: |
+        Saves a station to the user's liked list.  
+        Returns **400** if the station is already liked.
+      operationId: likeStation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeStationRequest'
+            examples:
+              genre_station:
+                summary: Like a genre station
+                value:
+                  stationType: "genre"
+                  stationTitle: "Electronic"
+                  stationDescription: "Top Electronic tracks based on your listening"
+                  genre: "Electronic"
+              artist_station:
+                summary: Like an artist station
+                value:
+                  stationType: "artist"
+                  stationTitle: "More from DJ Nova"
+                  stationDescription: "Because you liked their music"
+                  artistId: "507f1f77bcf86cd799439011"
+              trending_station:
+                summary: Like the trending station
+                value:
+                  stationType: "trending"
+                  stationTitle: "Trending now"
+                  stationDescription: "Most played tracks on the platform"
+              curated_station:
+                summary: Like a curated station
+                value:
+                  stationType: "curated"
+                  stationTitle: "Fresh finds"
+                  stationDescription: "New uploads trending this week"
+      responses:
+        '201':
+          description: Station liked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeStationResponse'
+              example:
+                success: true
+                message: "Station liked successfully."
+                data:
+                  liked: true
+                  stationId: "genre_electronic"
+                  stationType: "genre"
+                  stationTitle: "Electronic"
+                  likedAt: "2025-04-30T10:00:00.000Z"
+        '400':
+          description: Already liked or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                already_liked:
+                  value:
+                    success: false
+                    status: "fail"
+                    message: "You have already liked this station."
+                missing_field:
+                  value:
+                    success: false
+                    status: "fail"
+                    message: "stationType is required"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags: [Stations]
+      summary: Unlike a station
+      description: |
+        Removes a station from the user's liked list.  
+        Returns **400** if the station was not liked.
+      operationId: unlikeStation
+      responses:
+        '200':
+          description: Station unliked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlikeStationResponse'
+              example:
+                success: true
+                message: "Station unliked successfully."
+                data:
+                  liked: false
+                  stationId: "genre_electronic"
+        '400':
+          description: Station was not liked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                status: "fail"
+                message: "You have not liked this station."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags: [Stations]
+      summary: Check if a station is liked
+      description: |
+        Lightweight check — returns `{ liked: true/false }` for the current user.  
+        Use this to show/hide the heart icon on a station card without fetching the full list.
+      operationId: checkStationLiked
+      responses:
+        '200':
+          description: Like status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckLikedResponse'
+              examples:
+                liked:
+                  value:
+                    success: true
+                    data:
+                      liked: true
+                      stationId: "genre_electronic"
+                not_liked:
+                  value:
+                    success: true
+                    data:
+                      liked: false
+                      stationId: "genre_electronic"
+        '401':
+          $ref: '#/components/responses/Unauthorized'

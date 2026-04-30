@@ -11,8 +11,10 @@ import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { usePlayerStore, type Track } from '@/features/player/model/playerStore';
 import { useEditorial, useGenreStation, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
 import { matchesStationId } from '@/features/trending/lib/stationLinks';
+import { useLikeStation, useUnlikeStation, useCheckStationLiked } from '@/features/trending/model/stationQueries';
 import { PlaylistShareModal } from '@/features/playlists/ui/PlaylistShareModal';
 import type { Playlist } from '@/features/playlists/model/playlist';
+import type { StationType } from '@/features/trending/api/stationsRepository';
 
 function fmt(n?: number): string {
   const value = Number(n || 0);
@@ -133,6 +135,11 @@ export default function DiscoverSetPage() {
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'error' } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  const likeMutation = useLikeStation();
+  const unlikeMutation = useUnlikeStation();
+  const { data: likedCheck } = useCheckStationLiked(setId);
+  const isLiked = likedCheck?.liked ?? false;
 
   const { data: mixedData, isLoading: isMixedLoading } = useMixedForYou();
   const { data: curatedBuckets, isLoading: isCuratedLoading } = useEditorial();
@@ -294,7 +301,34 @@ export default function DiscoverSetPage() {
   };
 
   const handleStationLike = () => {
-    showToast('Station likes are not supported by the backend yet', 'info');
+    if (likeMutation.isPending || unlikeMutation.isPending) return;
+
+    if (isLiked) {
+      unlikeMutation.mutate(setId, {
+        onSuccess: () => showToast('Removed from your Likes', 'info'),
+        onError: () => showToast('Could not unlike station', 'error')
+      });
+    } else {
+      // Determine stationType from the station entry context
+      const source = stationEntry?.source;
+      let stationType: StationType = 'curated';
+      if (source === 'station' && station?.genre) stationType = 'genre';
+      else if (source === 'mix') stationType = 'recommended';
+      else if (source === 'set') stationType = 'curated';
+
+      likeMutation.mutate({
+        stationId: setId,
+        payload: {
+          stationType,
+          stationTitle: title,
+          stationDescription: station?.description || '',
+          genre: station?.genre || undefined,
+        },
+      }, {
+        onSuccess: () => showToast('Added to your Likes', 'success'),
+        onError: () => showToast('Could not like station', 'error')
+      });
+    }
   };
 
   const handleShareStation = () => {
@@ -418,9 +452,13 @@ export default function DiscoverSetPage() {
           <button
             type="button"
             onClick={handleStationLike}
-            className="h-8 w-8 rounded-sm border border-white/15 text-[#d7d7d7] hover:border-white/35 flex items-center justify-center"
-            aria-label="Like station"
-            title="Like"
+            className={`h-8 w-8 rounded-sm border flex items-center justify-center transition-colors ${
+              isLiked 
+                ? 'border-[#ff5500] text-[#ff5500] hover:border-[#ff5500]' 
+                : 'border-white/15 text-[#d7d7d7] hover:border-white/35'
+            }`}
+            aria-label={isLiked ? "Unlike station" : "Like station"}
+            title={isLiked ? "Unlike" : "Like"}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
           </button>

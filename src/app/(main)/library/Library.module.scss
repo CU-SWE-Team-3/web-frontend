@@ -81,6 +81,19 @@
   color: var(--sc-white);
 }
 
+.subsectionHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  margin-top: 24px;
+}
+
+.subsectionTitle {
+  font-size: var(--sc-font-size-md);
+  font-weight: var(--sc-font-weight-semibold);
+  color: var(--sc-gray-300);
+}
+
 .headerActions {
   display: flex;
   align-items: center;
