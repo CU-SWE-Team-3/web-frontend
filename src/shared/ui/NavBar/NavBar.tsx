@@ -244,7 +244,9 @@ export const NavBar: FC<NavBarProps> = ({
                 <span
                   data-testid="notification-unread-dot"
                   className={s.notifDot}
-                />
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
               )}
             </button>
             <NotificationDropdown />
