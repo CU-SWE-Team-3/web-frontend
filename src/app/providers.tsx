@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthHydrator } from '@/features/auth/ui/AuthHydrator';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
-import { connectSocket, disconnectSocket, getSocket } from '@/shared/socket';
+import { connectSocket, disconnectSocket } from '@/shared/socket';
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
+import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
+import { ROUTES } from '@/shared/constants/routes';
 
 /**
  * Gate that waits until auth hydration is complete before rendering children.
@@ -107,6 +110,49 @@ function SocketProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminRouteGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const isAdmin = user?.role?.toLowerCase?.() === 'admin';
+  const isAdminPath = pathname?.startsWith('/admin') ?? false;
+  const isAuthPath = [
+    ROUTES.LOGIN,
+    ROUTES.REGISTER,
+    ROUTES.FORGOT_PASSWORD,
+    ROUTES.RESET_PASSWORD,
+    ROUTES.VERIFY_EMAIL,
+  ].some((route) => pathname?.startsWith(route));
+
+  useEffect(() => {
+    if (!isInitialized || !isAuthenticated || !isAdmin) return;
+    if (isAdminPath || isAuthPath) return;
+
+    router.replace(ROUTES.ADMIN_DASHBOARD);
+  }, [isInitialized, isAuthenticated, isAdmin, isAdminPath, isAuthPath, router]);
+
+  if (isInitialized && isAuthenticated && isAdmin && !isAdminPath && !isAuthPath) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
+function SubscriptionSync() {
+  const user = useAuthStore((s) => s.user);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const syncFromUser = useSubscriptionStore((s) => s.syncFromUser);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    syncFromUser(user);
+  }, [isInitialized, user, syncFromUser]);
+
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -123,9 +169,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthHydrator />
+      <SubscriptionSync />
       <AuthGate>
         <SocketProvider>
-          {children}
+          <AdminRouteGuard>{children}</AdminRouteGuard>
         </SocketProvider>
       </AuthGate>
     </QueryClientProvider>

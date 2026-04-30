@@ -52,7 +52,7 @@ describe('NewConversationModal', () => {
 
     render(<NewConversationModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />, { wrapper: createWrapper() });
     
-    const searchInput = screen.getByTestId('user-search-input');
+    const searchInput = screen.getByTestId('recipient-search-input');
     fireEvent.change(searchInput, { target: { value: 'John' } });
 
     await waitFor(() => {
@@ -69,14 +69,14 @@ describe('NewConversationModal', () => {
 
     render(<NewConversationModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />, { wrapper: createWrapper() });
     
-    const searchInput = screen.getByTestId('user-search-input');
+    const searchInput = screen.getByTestId('recipient-search-input');
     fireEvent.change(searchInput, { target: { value: 'John' } });
 
-    const resultItem = await screen.findByTestId('user-result-u1');
+    const resultItem = await screen.findByTestId('search-result-u1');
     fireEvent.click(resultItem);
 
     // Selected user should appear, input should disappear
-    expect(screen.queryByTestId('user-search-input')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('recipient-search-input')).not.toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 
@@ -88,8 +88,8 @@ describe('NewConversationModal', () => {
     render(<NewConversationModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />, { wrapper: createWrapper() });
     
     // Select user
-    fireEvent.change(screen.getByTestId('user-search-input'), { target: { value: 'John' } });
-    fireEvent.click(await screen.findByTestId('user-result-u1'));
+    fireEvent.change(screen.getByTestId('recipient-search-input'), { target: { value: 'John' } });
+    fireEvent.click(await screen.findByTestId('search-result-u1'));
 
     // Type message
     fireEvent.change(screen.getByTestId('new-conv-message-input'), { target: { value: 'Hello John!' } });
@@ -109,7 +109,7 @@ describe('NewConversationModal', () => {
     render(<NewConversationModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />, { wrapper: createWrapper() });
     
     // Type but don't select
-    fireEvent.change(screen.getByTestId('user-search-input'), { target: { value: 'john' } });
+    fireEvent.change(screen.getByTestId('recipient-search-input'), { target: { value: 'john' } });
     fireEvent.change(screen.getByTestId('new-conv-message-input'), { target: { value: 'Hello John!' } });
 
     fireEvent.click(screen.getByTestId('new-conv-send-button'));
@@ -132,7 +132,7 @@ describe('NewConversationModal', () => {
 
     render(<NewConversationModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />, { wrapper: createWrapper() });
     
-    fireEvent.change(screen.getByTestId('user-search-input'), { target: { value: 'john doe' } });
+    fireEvent.change(screen.getByTestId('recipient-search-input'), { target: { value: 'john doe' } });
     fireEvent.change(screen.getByTestId('new-conv-message-input'), { target: { value: 'Hello John!' } });
 
     fireEvent.click(screen.getByTestId('new-conv-send-button'));

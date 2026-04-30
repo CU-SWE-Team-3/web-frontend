@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useEditorial } from '../model/trendingQueries';
 import { ROUTES } from '@/shared/constants/routes';
+import { getStationHref } from '../lib/stationLinks';
 
 export const TrendingByGenre: React.FC = () => {
   const { data: buckets = [], isLoading } = useEditorial();
@@ -33,7 +34,7 @@ export const TrendingByGenre: React.FC = () => {
       <div className="flex items-baseline justify-between mb-6">
         <div>
           <h2 className="text-[22px] font-bold text-white mb-1">Trending by genre</h2>
-          <p className="text-sm text-[#999]">The biggest tracks in the SoundCloud community</p>
+          <p className="text-sm text-[#999]">The biggest tracks in the BioBeats community</p>
         </div>
         <Link 
           href={ROUTES.TRENDING} 
@@ -49,16 +50,16 @@ export const TrendingByGenre: React.FC = () => {
         </div>
       ) : (
         <div className="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
-          {genreBuckets.map((bucket) => {
+          {genreBuckets.map((bucket, index) => {
             // Find the first track to use as artwork if the bucket itself doesn't have one
             const firstTrack = bucket.tracks?.[0];
             const artwork = firstTrack?.artworkUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop';
-            const title = bucket.title.replace('Top ', '');
+            const title = bucket.title.replace('Top ', '').replace(/SoundCloud/gi, 'BioBeats');
 
             return (
               <Link
                 key={bucket.id}
-                href={`/trending-music-eg/sets/${title.toLowerCase().replace(/\s+/g, '-')}`}
+                href={getStationHref(bucket, index, 'set')}
                 className="group min-w-[160px] max-w-[160px] flex flex-col gap-2 no-underline"
               >
                 <div className="relative aspect-square rounded-md overflow-hidden bg-[#222] shadow-lg transition-transform group-hover:scale-[1.02]">

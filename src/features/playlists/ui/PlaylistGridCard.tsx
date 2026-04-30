@@ -122,6 +122,13 @@ export const PlaylistGridCard: FC<PlaylistGridCardProps> = ({
   const tracks = (playlist.tracks || []) as (TrackSummary | string)[];
   const trackCount = tracks.length || playlist.trackCount || 0;
 
+  // Detect if this is a liked station (mapped from HydratedStation)
+  const isStation = !!(playlist as any)._isStation;
+  const stationId = (playlist as any)._stationId || playlist._id;
+  const detailHref = isStation
+    ? `/discover/sets/${encodeURIComponent(stationId)}`
+    : ROUTES.PLAYLIST(playlist._id);
+
   const handlePlay = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -158,7 +165,7 @@ export const PlaylistGridCard: FC<PlaylistGridCardProps> = ({
     >
       <div className={s.cover}>
         <Link
-          href={ROUTES.PLAYLIST(playlist._id)}
+          href={detailHref}
           className={s.artworkLink}
           data-testid={`playlist-grid-card-${playlist._id}`}
         >
@@ -196,7 +203,7 @@ export const PlaylistGridCard: FC<PlaylistGridCardProps> = ({
 
         {/* Release type badge */}
         <span className={s.typeBadge}>
-          {RELEASE_TYPE_LABELS[playlist.releaseType] || 'Playlist'}
+          {isStation ? 'Station' : (RELEASE_TYPE_LABELS[playlist.releaseType] || 'Playlist')}
         </span>
 
         {/* Track count */}
@@ -214,7 +221,7 @@ export const PlaylistGridCard: FC<PlaylistGridCardProps> = ({
         )}
       </div>
 
-      <Link href={ROUTES.PLAYLIST(playlist._id)} className={s.info}>
+      <Link href={detailHref} className={s.info}>
         <span className={s.title} data-testid="playlist-grid-card-title">{playlist.title}</span>
         <span className={s.creator} data-testid="playlist-grid-card-creator">{getCreatorName(playlist.creator)}</span>
       </Link>

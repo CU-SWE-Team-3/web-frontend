@@ -13,48 +13,27 @@ export function AuthHydrator() {
     hasAttempted.current = true;
 
     const hydrate = async () => {
-      // 5-second timeout so it doesn't hang forever if backend is slow
       const axiosConfig = { timeout: 5000, withCredentials: true };
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-      // Strategy 1: Try cookie-based refresh
+      // Use POST /auth/refresh — the only reliable endpoint for cookie-based session restoration.
+      // There is no GET /auth/me endpoint on this backend.
       try {
         const res = await axios.post(`${apiUrl}/auth/refresh`, {}, axiosConfig);
 
         if (res.data?.success && res.data?.data?.user) {
           const token = res.data?.data?.accessToken || res.data?.accessToken;
           login(res.data.data.user, token);
-          useAuthStore.setState({ isInitialized: true }); // FIX: Ensure we mark initialized on refresh success!
+          // Ensure accessToken is persisted so the apiClient interceptor can attach it
+          if (token && typeof window !== 'undefined') {
+            localStorage.setItem('accessToken', token);
+          }
           return; // Success — session restored
         }
       } catch {
-        // Cookie refresh failed — try localStorage fallback
+        // Cookie refresh failed — user is not logged in
       }
 
-      // Strategy 2: Try localStorage token or HttpOnly Cookie + GET /auth/me
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken');
-        
-        try {
-          const res = await axios.get(`${apiUrl}/auth/me`, {
-            ...axiosConfig,
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          });
-          const user = res.data?.data?.user || res.data?.data || res.data?.user;
-          if (user) {
-            login(user, token || undefined);
-            useAuthStore.setState({ isInitialized: true });
-            return;
-          }
-        } catch (err: any) {
-          // Only clean up if it's explicitly an auth error (401/403)
-          // Do not delete token on 500 or timeout network errors
-          if (err.response?.status === 401 || err.response?.status === 403) {
-            localStorage.removeItem('accessToken');
-          }
-        }
-      }
-      
       // Hydration complete — user is not logged in
       useAuthStore.setState({ isInitialized: true });
     };

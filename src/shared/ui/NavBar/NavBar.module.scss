@@ -19,7 +19,7 @@
 .leftSection {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 22px;
   flex-shrink: 0;
 
   @media (max-width: 768px) {
@@ -32,6 +32,17 @@
   align-items: center;
   text-decoration: none;
   gap: 8px;
+  min-width: 136px;
+
+  @media (max-width: 980px) {
+    min-width: auto;
+  }
+
+  @media (max-width: 640px) {
+    span span {
+      display: none;
+    }
+  }
 }
 
 .navLink {

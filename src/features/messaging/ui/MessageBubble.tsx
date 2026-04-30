@@ -1,14 +1,19 @@
 'use client';
 
 import React from 'react';
-import type { Message, MessageStatus } from '../model/types';
+import type { Message, MessageStatus, MessageUser } from '../model/types';
 import { TrackPreviewCard } from './TrackPreviewCard';
-import { formatRelativeTime } from './utils';
+import { PlaylistPreviewCard } from './PlaylistPreviewCard';
+import { formatRelativeTime, decodeEmojis } from './utils';
 import s from './MessagesPage.module.scss';
 
 interface MessageBubbleProps {
   message: Message;
   isOwnMessage?: boolean;
+  /** All participants in the conversation — used to resolve sender info */
+  participants?: MessageUser[];
+  /** Current logged-in user info */
+  currentUser?: { _id: string; displayName: string; avatarUrl: string | null } | null;
 }
 
 /** Renders the delivery status ticks for sent messages */
@@ -25,9 +30,73 @@ const StatusTicks: React.FC<{ status: MessageStatus }> = ({ status }) => {
   }
 };
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) => {
-  const senderName = message.sender?.displayName || 'Unknown';
-  const senderAvatar = message.sender?.avatarUrl || null;
+/** Resolves sender display name and avatar from props */
+function resolveSender(
+  message: Message,
+  isOwnMessage: boolean,
+  participants?: MessageUser[],
+  currentUser?: { _id: string; displayName: string; avatarUrl: string | null } | null
+): { name: string; avatar: string | null } {
+  // Own messages → show "Me"
+  if (isOwnMessage) {
+    return {
+      name: 'Me',
+      avatar: currentUser?.avatarUrl || null,
+    };
+  }
+
+  // Try resolving from message.sender first (populated by backend)
+  if (message.sender?.displayName && message.sender.displayName !== 'Unknown') {
+    return {
+      name: message.sender.displayName,
+      avatar: message.sender.avatarUrl || null,
+    };
+  }
+
+  // Fallback: resolve from participants array
+  if (participants) {
+    const found = participants.find((p) => p._id === message.senderId);
+    if (found) {
+      return {
+        name: found.displayName || 'Unknown',
+        avatar: found.avatarUrl || null,
+      };
+    }
+  }
+
+  return { name: message.sender?.displayName || 'Unknown', avatar: message.sender?.avatarUrl || null };
+}
+
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
+  isOwnMessage = false,
+  participants,
+  currentUser,
+}) => {
+  const { name: senderName, avatar: senderAvatar } = resolveSender(
+    message, isOwnMessage, participants, currentUser
+  );
+
+  // Extract attachment info
+  const attachment = message.attachment;
+  const sharedTrack = message.sharedTrack;
+
+  let trackPreview = null;
+  let playlistPreview = null;
+
+  if (sharedTrack) {
+    trackPreview = sharedTrack;
+  } else if (attachment) {
+    const referenceId = attachment.referenceId
+        || (attachment as any).attachmentId
+        || (attachment as any).id
+        || (attachment as any)._id;
+    if (attachment.type === 'track') {
+      trackPreview = { trackId: referenceId, title: '', artist: '', artworkUrl: null, duration: 0, trackUrl: '' };
+    } else if (attachment.type === 'playlist') {
+      playlistPreview = { playlistId: referenceId, title: '', artist: '', artworkUrl: null, trackCount: 0 };
+    }
+  }
 
   // Deleted message
   if (message.isDeleted) {
@@ -36,7 +105,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMess
         <div className={s.msgAvatar}>
           {senderAvatar ? (
             <img src={senderAvatar} alt={senderName} className={s.msgAvatarImg} />
-          ) : null}
+          ) : (
+            <span className={s.msgAvatarInitial}>{senderName.charAt(0).toUpperCase()}</span>
+          )}
         </div>
         <div className={s.msgContent}>
           <div className={s.msgHeader}>
@@ -58,7 +129,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMess
       <div className={s.msgAvatar} data-testid={`message-avatar-${message._id}`}>
         {senderAvatar ? (
           <img src={senderAvatar} alt={senderName} className={s.msgAvatarImg} />
-        ) : null}
+        ) : (
+          <span className={s.msgAvatarInitial}>{senderName.charAt(0).toUpperCase()}</span>
+        )}
       </div>
       <div className={s.msgContent}>
         <div className={s.msgHeader}>
@@ -67,14 +140,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMess
             {formatRelativeTime(message.createdAt)}
           </span>
         </div>
-        <div className={s.msgText} data-testid={`message-content-${message._id}`}>
-          {message.content}
-          {message.isEdited && (
-            <span className={s.msgEdited} data-testid={`message-edited-${message._id}`}> (edited)</span>
-          )}
-        </div>
-        {message.sharedTrack && (
-          <TrackPreviewCard track={message.sharedTrack} />
+        {message.content?.trim() && (
+          <div className={s.msgText} data-testid={`message-content-${message._id}`}>
+            {decodeEmojis(message.content)}
+            {message.isEdited && (
+              <span className={s.msgEdited} data-testid={`message-edited-${message._id}`}> (edited)</span>
+            )}
+          </div>
+        )}
+        {trackPreview && (
+          <TrackPreviewCard track={trackPreview} />
+        )}
+        {playlistPreview && (
+          <PlaylistPreviewCard playlist={playlistPreview} />
         )}
         {/* Status ticks for own messages */}
         {isOwnMessage && message.status && (

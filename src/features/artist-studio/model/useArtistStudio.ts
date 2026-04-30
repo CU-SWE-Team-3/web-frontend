@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { artistStudioRepository } from "../api/artistStudioRepository";
 import type { ArtistStudioSummary, ArtistStudioTrack } from "../api/artistStudioRepository";
 import { tracksRepository } from "@/features/tracks/api/tracksRepository";
@@ -10,15 +10,23 @@ export const ARTIST_STUDIO_QUERY_KEY = ["artist-studio"] as const;
 
 export function useArtistStudio() {
   const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const pendingTracks = usePendingTracksStore((state) => state.pendingTracks);
+  const removeResolvedPendingTracks = usePendingTracksStore((state) => state.removeResolvedPendingTracks);
 
   const query = useQuery({
     queryKey: ARTIST_STUDIO_QUERY_KEY,
     queryFn: () => artistStudioRepository.getSummary(),
-    enabled: isInitialized,
+    enabled: isInitialized && isAuthenticated,
     staleTime: 0,
     refetchOnMount: "always" as const,
+    refetchInterval: pendingTracks.length > 0 ? 5_000 : false,
   });
+
+  useEffect(() => {
+    if (!query.isFetched) return;
+    removeResolvedPendingTracks((query.data?.tracks ?? []).map((track) => track.id));
+  }, [query.data?.tracks, query.isFetched, removeResolvedPendingTracks]);
 
   const data = useMemo<ArtistStudioSummary | undefined>(() => {
     if (!query.data && pendingTracks.length === 0) return query.data;

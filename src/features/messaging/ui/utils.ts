@@ -1,3 +1,7 @@
+import { encodeEmojis, decodeEmojis } from '@/shared/utils/emojiUtils';
+
+export { encodeEmojis, decodeEmojis };
+
 /**
  * Utility: format a date string to relative time like "13 days ago", "2 hours ago", etc.
  */

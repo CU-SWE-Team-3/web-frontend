@@ -51,6 +51,103 @@
   gap: var(--sc-space-3);
 }
 
+.preview {
+  display: flex;
+  align-items: center;
+  gap: var(--sc-space-3);
+  padding: 12px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-md);
+  background: var(--sc-bg-dark-elevated);
+}
+
+.artwork {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-bg-dark);
+  color: var(--sc-gray-500);
+}
+
+.artworkImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.creator {
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-sm);
+  font-family: var(--sc-font-family);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlistTitle {
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-md);
+  font-family: var(--sc-font-family);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.socialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sc-space-3);
+}
+
+.socialBtn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--sc-white);
+  text-decoration: none;
+  transition: opacity var(--sc-transition-fast), transform var(--sc-transition-fast);
+
+  &:hover {
+    opacity: 0.86;
+    transform: translateY(-1px);
+  }
+}
+
+.twitter {
+  background: #1da1f2;
+}
+
+.facebook {
+  background: #1877f2;
+}
+
+.tumblr {
+  background: #36465d;
+}
+
+.pinterest {
+  background: #e60023;
+}
+
+.email {
+  background: #666;
+}
+
 .fieldLabel {
   font-size: var(--sc-font-size-sm);
   font-weight: var(--sc-font-weight-medium);

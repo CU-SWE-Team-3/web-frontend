@@ -23,6 +23,14 @@ export interface SharedTrackPreview {
   trackUrl: string;
 }
 
+export interface SharedPlaylistPreview {
+  playlistId: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+  trackCount: number;
+}
+
 export type MessageStatus = 'sent' | 'delivered' | 'read';
 
 export interface Message {
@@ -79,6 +87,10 @@ export interface SendMessagePayload {
   content?: string;
   attachmentType?: 'track' | 'playlist';
   attachmentId?: string;
+  attachment?: {
+    type: 'track' | 'playlist';
+    referenceId: string;
+  };
 }
 
 export interface EditMessagePayload {

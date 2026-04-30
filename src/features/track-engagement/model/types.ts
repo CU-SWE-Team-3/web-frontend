@@ -1,3 +1,5 @@
+import { Playlist } from '@/features/playlists/model/playlist';
+
 export interface TrackNode {
   id: string;
   title: string;
@@ -14,5 +16,8 @@ export interface TrackNode {
   streamUrl?: string;
   hlsUrl?: string;
   audioFileName?: string;
+  permalink?: string;
   duration?: number;
 }
+
+export type LikedPlaylistItem = Playlist;

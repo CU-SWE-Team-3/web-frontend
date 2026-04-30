@@ -25,6 +25,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import type { TrackResult, UserResult, PlaylistResult } from '@/features/search';
 
 import apiClient from '@/shared/api/client';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
@@ -268,12 +269,13 @@ export default function SearchPage() {
                       />
                     }
                     onPlay={async () => {
-                      let streamUrl = t.hlsUrl ?? '';
+                      // Search results are Track objects but hlsUrl may not be populated.
+                      // Call /player/{id}/stream to get the actual HLS/stream URL.
+                      let streamUrl = t.hlsUrl ?? t.streamUrl ?? '';
                       if (!streamUrl) {
                         try {
-                          const res = await apiClient.get(`/tracks/${t._id}`);
-                          const detail = res.data?.data ?? res.data;
-                          streamUrl = detail?.hlsUrl ?? detail?.streamUrl ?? '';
+                          const { data: streamData } = await apiClient.get(`/player/${t._id}/stream`);
+                          streamUrl = streamData?.data?.streamUrl ?? streamData?.data?.hlsUrl ?? '';
                         } catch { /* play with empty url */ }
                       }
                       play({
@@ -313,6 +315,14 @@ export default function SearchPage() {
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                           {isReposted(t._id) ? 'Reposted' : 'Repost'}
                         </button>
+
+                        <OfflineDownloadButton
+                          trackId={t._id}
+                          title={t.title}
+                          artist={t.artist.displayName}
+                          artworkUrl={t.artworkUrl}
+                          duration={t.duration}
+                        />
                       </div>
                     }
                   />

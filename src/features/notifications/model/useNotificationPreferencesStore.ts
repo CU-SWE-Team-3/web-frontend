@@ -70,12 +70,12 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
       set((state) => ({
         activities: {
           ...state.activities,
-          newFollower: { email: prefs.emailFollows ?? true, devices: prefs.allowFollows ?? true },
-          repostOfYourPost: { email: prefs.emailReposts ?? true, devices: prefs.allowReposts ?? true },
-          newPostByFollowedUser: { email: prefs.emailNewTracks ?? true, devices: prefs.allowNewTracks ?? true },
-          likesAndPlaysOnYourPost: { email: prefs.emailLikes ?? true, devices: prefs.allowLikes ?? true },
-          commentOnYourPost: { email: prefs.emailComments ?? false, devices: prefs.allowComments ?? true },
-          newMessage: { email: prefs.emailMessages ?? true, devices: prefs.allowMessages ? 'Everyone' : 'Nobody' },
+          newFollower: { email: prefs.allowFollowsEmail ?? true, devices: prefs.allowFollows ?? true },
+          repostOfYourPost: { email: prefs.allowRepostsEmail ?? true, devices: prefs.allowReposts ?? true },
+          newPostByFollowedUser: { email: prefs.allowNewTracksEmail ?? true, devices: prefs.allowNewTracks ?? true },
+          likesAndPlaysOnYourPost: { email: prefs.allowLikesEmail ?? true, devices: prefs.allowLikes ?? true },
+          commentOnYourPost: { email: prefs.allowCommentsEmail ?? false, devices: prefs.allowComments ?? true },
+          newMessage: { email: prefs.allowMessagesEmail ?? true, devices: prefs.allowMessages ? 'Everyone' : 'Nobody' },
         },
         isDirty: false,
       }))
@@ -121,17 +121,17 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
         pushEnabled: true,
         emailEnabled: true,
         allowLikes: activities.likesAndPlaysOnYourPost.devices,
-        emailLikes: activities.likesAndPlaysOnYourPost.email,
+        allowLikesEmail: activities.likesAndPlaysOnYourPost.email,
         allowReposts: activities.repostOfYourPost.devices,
-        emailReposts: activities.repostOfYourPost.email,
+        allowRepostsEmail: activities.repostOfYourPost.email,
         allowComments: activities.commentOnYourPost.devices,
-        emailComments: activities.commentOnYourPost.email,
+        allowCommentsEmail: activities.commentOnYourPost.email,
         allowFollows: activities.newFollower.devices,
-        emailFollows: activities.newFollower.email,
+        allowFollowsEmail: activities.newFollower.email,
         allowMessages: activities.newMessage.devices !== 'Nobody',
-        emailMessages: activities.newMessage.email,
+        allowMessagesEmail: activities.newMessage.email,
         allowNewTracks: activities.newPostByFollowedUser.devices,
-        emailNewTracks: activities.newPostByFollowedUser.email,
+        allowNewTracksEmail: activities.newPostByFollowedUser.email,
       }
       await apiUpdatePreferences(prefs)
       set({ isDirty: false })

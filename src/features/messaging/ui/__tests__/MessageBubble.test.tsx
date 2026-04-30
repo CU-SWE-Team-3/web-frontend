@@ -1,8 +1,16 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MessageBubble } from '../MessageBubble';
 import type { Message } from '../../model/types';
+
+vi.mock('../TrackPreviewCard', () => ({
+  TrackPreviewCard: ({ track }: any) => <div data-testid="mock-track-preview">{track.trackId}</div>
+}));
+
+vi.mock('../PlaylistPreviewCard', () => ({
+  PlaylistPreviewCard: ({ playlist }: any) => <div data-testid="mock-playlist-preview">{playlist.playlistId}</div>
+}));
 
 const mockMessage: Message = {
   _id: 'msg-1',
@@ -53,5 +61,35 @@ describe('MessageBubble', () => {
     rerender(<MessageBubble message={{ ...mockMessage, status: 'delivered' }} isOwnMessage={true} />);
     expect(screen.getByTestId('message-status-msg-1')).toBeInTheDocument();
     expect(screen.getByTestId('message-status-delivered')).toBeInTheDocument();
+  });
+
+  it('renders TrackPreviewCard for track attachments', () => {
+    const messageWithTrack: Message = {
+      ...mockMessage,
+      attachment: { type: 'track', referenceId: 'track-123' }
+    };
+    render(<MessageBubble message={messageWithTrack} />);
+    expect(screen.getByTestId('mock-track-preview')).toBeInTheDocument();
+    expect(screen.getByText('track-123')).toBeInTheDocument();
+  });
+
+  it('renders PlaylistPreviewCard for playlist attachments', () => {
+    const messageWithPlaylist: Message = {
+      ...mockMessage,
+      attachment: { type: 'playlist', referenceId: 'playlist-456' }
+    };
+    render(<MessageBubble message={messageWithPlaylist} />);
+    expect(screen.getByTestId('mock-playlist-preview')).toBeInTheDocument();
+    expect(screen.getByText('playlist-456')).toBeInTheDocument();
+  });
+
+  it('renders preview card correctly when attachment uses attachmentId field', () => {
+    const messageWithBackendAttachment: Message = {
+      ...mockMessage,
+      attachment: { type: 'track', attachmentId: 'track-backend-123' } as any
+    };
+    render(<MessageBubble message={messageWithBackendAttachment} />);
+    expect(screen.getByTestId('mock-track-preview')).toBeInTheDocument();
+    expect(screen.getByText('track-backend-123')).toBeInTheDocument();
   });
 });

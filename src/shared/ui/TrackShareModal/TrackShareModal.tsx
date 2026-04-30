@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { CloseIcon } from '@/shared/ui/icons';
+import React, { useState, useRef, useEffect } from 'react';
+import { CloseIcon, SearchIcon, CheckIcon } from '@/shared/ui/icons';
+import apiClient from '@/shared/api/client';
+import { sendMessageToUser } from '@/features/messaging/api/messagingApi';
+import { encodeEmojis } from '@/shared/utils/emojiUtils';
 
 export interface TrackShareModalProps {
   open: boolean;
@@ -10,6 +13,8 @@ export interface TrackShareModalProps {
   trackArtist: string;
   trackArtworkUrl?: string | null;
   trackUrl: string;
+  /** Optional: pass the resolved track ID directly to avoid URL parsing */
+  trackId?: string;
   trackAge?: string;
   trackGenre?: string;
 }
@@ -34,6 +39,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
   trackArtist,
   trackArtworkUrl,
   trackUrl,
+  trackId: trackIdProp,
   trackAge,
   trackGenre,
 }) => {
@@ -52,6 +58,61 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
   // Message
   const [messageTo, setMessageTo] = useState('');
   const [messageBody, setMessageBody] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!messageTo.trim() || selectedUser) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const { data } = await apiClient.get(`/tracks/search?q=${encodeURIComponent(messageTo)}&type=users`);
+        setSearchResults(data.data?.users || []);
+      } catch (err) {
+        console.error('Failed to search users', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [messageTo, selectedUser]);
+
+  const handleSendMessage = async () => {
+    if (!selectedUser) return;
+    setIsSending(true);
+    setSendError(null);
+    try {
+      // Use the directly-passed trackId first; fall back to parsing the URL path
+      const resolvedTrackId = trackIdProp || trackUrl.split('/').filter(Boolean).pop() || '';
+      if (!resolvedTrackId) {
+        setSendError('Could not resolve track ID. Please try again.');
+        return;
+      }
+      
+      let content = messageBody.trim() || `Check out "${trackTitle}" by ${trackArtist}`;
+      if (content === fullUrl || content === trackUrl) {
+        content = `Check out this track: ${fullUrl}`;
+      }
+      
+      await sendMessageToUser(selectedUser._id, encodeEmojis(content), 'track', resolvedTrackId);
+      setSendSuccess(true);
+      setTimeout(() => {
+        setSendSuccess(false);
+        onClose();
+      }, 2000);
+    } catch (err: any) {
+      setSendError(err.response?.data?.message || 'Failed to send message');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   if (!open) return null;
 
@@ -249,7 +310,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
             { label: 'Enable automatic play', checked: autoPlay, set: setAutoPlay },
             { label: 'Show comments', checked: showComments, set: setShowComments },
             { label: 'Show recommendations', checked: showRecommendations, set: setShowRecommendations },
-            { label: 'Show SoundCloud overlays', checked: showOverlays, set: setShowOverlays },
+            { label: 'Show BioBeats overlays', checked: showOverlays, set: setShowOverlays },
           ].map(({ label, checked, set }) => (
             <label key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#ccc', fontSize: 13 }}>
               <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)}
@@ -279,7 +340,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ color: '#999', fontSize: 9 }}>SOUNDCLOUD</span>
+                <span style={{ color: '#999', fontSize: 9 }}>BIOBEATS</span>
                 <button style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 2, padding: '3px 8px', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
                   Share
@@ -308,16 +369,70 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
   const renderMessageTab = () => (
     <>
       {/* To field */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, position: 'relative' }}>
         <label style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>
           To<span style={{ color: '#ff5500' }}>*</span>
         </label>
-        <input
-          value={messageTo}
-          onChange={(e) => setMessageTo(e.target.value)}
-          placeholder=""
-          style={{ ...inputStyle, marginTop: 8 }}
-        />
+        
+        {!selectedUser ? (
+          <>
+            <div style={{ position: 'relative', marginTop: 8 }}>
+              <input
+                value={messageTo}
+                onChange={(e) => setMessageTo(e.target.value)}
+                placeholder="Search for a user..."
+                style={{ ...inputStyle, paddingRight: 32 }}
+              />
+              <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', color: '#999' }}>
+                <SearchIcon size={16} />
+              </div>
+            </div>
+
+            {/* Search Dropdown */}
+            {messageTo.trim() && searchResults.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#222', border: '1px solid #333', borderRadius: 4, marginTop: 4, zIndex: 10, maxHeight: 200, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                {searchResults.map((u) => (
+                  <button
+                    key={u._id}
+                    onClick={() => { setSelectedUser(u); setMessageTo(''); setSearchResults([]); }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: 'transparent', border: 'none', borderBottom: '1px solid #333', cursor: 'pointer', textAlign: 'left', color: '#fff' }}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#444', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#fff', textTransform: 'uppercase' }}>{u.displayName.charAt(0)}</span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 14 }}>{u.displayName}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {messageTo.trim() && searchResults.length === 0 && !isSearching && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#222', border: '1px solid #333', borderRadius: 4, marginTop: 4, zIndex: 10, padding: 12, color: '#999', fontSize: 13, textAlign: 'center' }}>
+                No users found
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, padding: '6px 12px', background: '#333', borderRadius: 4, width: 'fit-content' }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#444', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {selectedUser.avatarUrl ? (
+                <img src={selectedUser.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textTransform: 'uppercase' }}>{selectedUser.displayName.charAt(0)}</span>
+              )}
+            </div>
+            <span style={{ color: '#fff', fontSize: 14 }}>{selectedUser.displayName}</span>
+            <button
+              onClick={() => setSelectedUser(null)}
+              style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', display: 'flex', padding: 0, marginLeft: 4 }}
+            >
+              <CloseIcon size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Message body */}
@@ -345,28 +460,29 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
         <span style={{ color: '#999', fontSize: 13, flex: 1 }}>
           {trackArtist}  ·  {trackTitle}
         </span>
-        <button
-          style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}
-          title="Remove track"
-        >×</button>
       </div>
 
+      {sendError && (
+        <div style={{ color: '#ff5500', fontSize: 13, marginTop: 8 }}>{sendError}</div>
+      )}
+
       {/* Send button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, alignItems: 'center', gap: 12 }}>
+        {sendSuccess && <span style={{ color: '#009A55', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}><CheckIcon size={14} /> Sent</span>}
         <button
+          onClick={handleSendMessage}
+          disabled={!selectedUser || isSending || sendSuccess}
           style={{
-            background: '#fff',
-            color: '#333',
+            background: !selectedUser || isSending || sendSuccess ? '#666' : '#fff',
+            color: !selectedUser || isSending || sendSuccess ? '#999' : '#333',
             border: 'none',
             borderRadius: 4,
             padding: '8px 20px',
             fontSize: 13,
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: !selectedUser || isSending || sendSuccess ? 'not-allowed' : 'pointer',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = '#eee')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
-        >Send</button>
+        >{isSending ? 'Sending...' : 'Send'}</button>
       </div>
     </>
   );

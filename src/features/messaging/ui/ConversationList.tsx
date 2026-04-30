@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Conversation } from '../model/types';
-import { formatRelativeTime } from './utils';
+import { formatRelativeTime, decodeEmojis } from './utils';
 import s from './MessagesPage.module.scss';
 
 interface ConversationListProps {
@@ -40,15 +40,24 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           onClick={() => onSelect(conv._id)}
           data-testid={`conversation-item-${conv._id}`}
         >
-          {/* Avatar */}
-          <div className={s.convAvatar}>
-            {conv.participant.avatarUrl ? (
-              <img
-                src={conv.participant.avatarUrl}
-                alt={conv.participant.displayName}
-                className={s.convAvatarImg}
-              />
-            ) : null}
+          {/* Avatar with unread dot */}
+          <div className={s.convAvatarWrapper}>
+            {conv.unreadCount > 0 && (
+              <div className={s.convUnreadDot} data-testid={`unread-dot-${conv._id}`} />
+            )}
+            <div className={s.convAvatar}>
+              {conv.participant.avatarUrl ? (
+                <img
+                  src={conv.participant.avatarUrl}
+                  alt={conv.participant.displayName}
+                  className={s.convAvatarImg}
+                />
+              ) : (
+                <span className={s.convAvatarInitial}>
+                  {conv.participant.displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Info */}
@@ -64,14 +73,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               </span>
             </div>
             <div className={s.convPreview}>
-              {conv.lastMessage?.content || ''}
+              {conv.lastMessage?.content ? decodeEmojis(conv.lastMessage.content) : ''}
             </div>
           </div>
-
-          {/* Unread dot */}
-          {conv.unreadCount > 0 && (
-            <div className={s.convUnread} data-testid={`unread-dot-${conv._id}`} />
-          )}
         </button>
       ))}
     </div>

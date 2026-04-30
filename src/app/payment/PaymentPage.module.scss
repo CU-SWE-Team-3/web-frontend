@@ -1,0 +1,702 @@
+/* component-id: PaymentPageStyles_001 */
+
+.page {
+  min-height: 100vh;
+  background: #fff;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  color: #111;
+}
+
+.header {
+  height: 52px;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: relative;
+  z-index: 20;
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brandText {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ── Profile Dropdown ── */
+.profileWrapper {
+  position: relative;
+}
+
+.profileBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 150ms;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #555;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.avatarInitial {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profileName {
+  color: #ddd;
+  font-size: 13px;
+}
+
+.chevronIcon {
+  color: #888;
+  font-size: 11px;
+}
+
+.profileDropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.profileDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 11px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #111;
+  font-family: inherit;
+  transition: background 150ms;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+/* ── Go+ Promo Banner ── */
+.goplusPromoBanner {
+  background: linear-gradient(90deg, #1a7ec8 0%, #3b9de8 100%);
+  padding: 12px 24px;
+  text-align: center;
+}
+
+.goplusPromoText {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+
+  strong {
+    font-weight: 800;
+  }
+}
+
+/* ── Success Banner ───────────────────────────────────────────────────── */
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.successIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.successTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.successSubtext {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 2px 0 0;
+}
+
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 36px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 48px;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Left Column ─────────────────────────────────────────────────────────── */
+.leftCol {}
+
+/* ── Billing Cycle ─────────────────────────────────────────────────────── */
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111;
+}
+
+.lockIcon {
+  font-size: 14px;
+}
+
+.billingOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.billingOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms;
+  position: relative;
+
+  &.selected {
+    border-color: #ff5500;
+  }
+
+  &:hover:not(.selected) {
+    border-color: #aaa;
+  }
+}
+
+.billingRadio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 150ms;
+
+  &.checked {
+    border-color: #ff5500;
+
+    &::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff5500;
+    }
+  }
+}
+
+.billingInfo {
+  flex: 1;
+}
+
+.billingLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.billingPrice {
+  font-size: 12px;
+  color: #666;
+}
+
+.discountBadge {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ff5500;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── Payment Methods ─────────────────────────────────────────────────────── */
+.paymentOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 150ms;
+
+  &.selected {
+    border-color: #111;
+  }
+
+  &:hover:not(.selected) {
+    border-color: #aaa;
+  }
+}
+
+.paymentLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+  flex: 1;
+}
+
+.paymentLogos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.paymentLogo {
+  height: 20px;
+  width: auto;
+}
+
+.applePayLogo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+  border: 1px solid #ccc;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── Stripe ─────────────────────────────────────────────────────────────── */
+.stripeLogoWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stripeLogo {
+  font-size: 16px;
+  font-weight: 900;
+  color: #635bff;
+  letter-spacing: -0.5px;
+  text-transform: lowercase;
+  font-style: italic;
+}
+
+.cardIcons {
+  display: flex;
+  gap: 4px;
+}
+
+.cardIcon {
+  width: 32px;
+  height: 20px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  border: 1px solid #ddd;
+
+  &.visa { background: #1a1f71; color: #fff; }
+  &.mc { background: linear-gradient(90deg, #eb001b 40%, #f79e1b 60%); color: transparent; }
+  &.amex { background: #2e77bc; color: #fff; }
+  &.maestro { background: #6f6f6f; color: #fff; }
+  &.jcb { background: #003087; color: #fff; }
+  &.discover { background: #ff6600; color: #fff; }
+}
+
+/* ── Stripe Form ─────────────────────────────────────────────────────────── */
+.stripeForm {
+  background: #fafafa;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stripeFormRow {
+  margin-bottom: 14px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.stripeFormRowSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.stripeLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  letter-spacing: 0.02em;
+}
+
+.stripeInput {
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid #d4d4d4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Inter', monospace;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder {
+    color: #bbb;
+  }
+
+  &:focus {
+    border-color: #635bff;
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+  }
+}
+
+.stripeSecure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #888;
+  margin-top: 14px;
+}
+
+.stripeLockIcon {
+  font-size: 12px;
+}
+
+/* ── Right Column ────────────────────────────────────────────────────────── */
+.rightCol {}
+
+.reviewSection {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.reviewTitle {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #111;
+}
+
+.reviewProductRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reviewProductIcon {
+  width: 40px;
+  height: 40px;
+  background: #ff5500;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    fill: #fff;
+  }
+}
+
+.reviewProductName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.couponLink {
+  display: block;
+  font-size: 13px;
+  color: #ff5500;
+  text-decoration: none;
+  cursor: pointer;
+  margin-bottom: 16px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.reviewDivider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 14px 0;
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reviewLabel {
+  font-size: 13px;
+  color: #111;
+  font-weight: 600;
+}
+
+.reviewValue {
+  font-size: 13px;
+  color: #111;
+  font-weight: 700;
+}
+
+.reviewBillingLabel {
+  font-size: 12px;
+  color: #888;
+}
+
+.reviewBillingValue {
+  font-size: 12px;
+  color: #888;
+}
+
+.reviewNote {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.reviewCurrency {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+/* ── Buy Button ────────────────────────────────────────────────────────── */
+.buyBtn {
+  width: 100%;
+  padding: 14px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms;
+  margin-bottom: 12px;
+
+  &:hover:not(:disabled) {
+    background: #111;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.processing {
+    background: #635bff;
+    animation: pulse 1.5s infinite;
+  }
+
+  &.success {
+    background: #059669;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.legalNote {
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.5;
+  text-align: center;
+
+  a {
+    color: #ff5500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.footerSignIn {
+  font-size: 12px;
+  color: #666;
+
+  a {
+    color: #ff5500;
+    text-decoration: none;
+  }
+}
+
+.footerSignOutLink {
+  background: none;
+  border: none;
+  color: #ff5500;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.footerLinks {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footerLink {
+  font-size: 11px;
+  color: #888;
+  text-decoration: none;
+
+  &:hover {
+    color: #333;
+  }
+}
+
+/* ── Error ────────────────────────────────────────────────────────────── */
+.errorMsg {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}

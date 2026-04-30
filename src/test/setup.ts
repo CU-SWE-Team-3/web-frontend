@@ -107,7 +107,15 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
 
 // Mock AudioContext
 class MockAudioContext {
-  createBuffer() { return {}; }
+  createBuffer(channels: number = 1, length: number = 1, sampleRate: number = 44100) { 
+    return { 
+      length,
+      duration: length / sampleRate,
+      sampleRate,
+      numberOfChannels: channels,
+      getChannelData: () => new Float32Array(length) 
+    }; 
+  }
   createBufferSource() { return { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), disconnect: vi.fn() }; }
   createGain() { return { connect: vi.fn(), disconnect: vi.fn(), gain: { value: 1 } }; }
   createAnalyser() { return { connect: vi.fn(), disconnect: vi.fn() }; }
@@ -118,3 +126,20 @@ class MockAudioContext {
 }
 (window as any).AudioContext = MockAudioContext;
 (window as any).webkitAudioContext = MockAudioContext;
+
+class MockAudioBuffer {
+  length = 0;
+  duration = 0;
+  sampleRate = 44100;
+  numberOfChannels = 1;
+  getChannelData() { return new Float32Array(0); }
+  copyFromChannel() {}
+  copyToChannel() {}
+}
+(window as any).AudioBuffer = MockAudioBuffer;
+
+Object.assign(navigator, {
+  clipboard: {
+    writeText: vi.fn().mockResolvedValue(undefined),
+  },
+});

@@ -13,6 +13,7 @@ import { FeedTrackCard } from '@/shared/ui/FeedTrackCard/FeedTrackCard';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 import s from './History.module.scss';
 
 const LIBRARY_TABS = [
@@ -256,6 +257,14 @@ export default function HistoryPage() {
                           </svg>
                           Remove
                         </button>
+
+                        <OfflineDownloadButton
+                          trackId={entry.track.id}
+                          title={entry.track.title}
+                          artist={entry.track.artist || 'Unknown Artist'}
+                          artworkUrl={entry.track.artworkUrl}
+                          duration={(entry.track as any).duration}
+                        />
                       </div>
                     }
                   />

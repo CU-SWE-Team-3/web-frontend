@@ -10,6 +10,7 @@ import {
 import { SeekBar } from '@/features/player/ui/player/SeekBar';
 import { VolumeControl } from '@/features/player/ui/player/VolumeControl';
 import { formatTime } from '@/features/player/lib/playbackUtils';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 import s from './PlayerBar.module.scss';
 
 export interface PlayerBarProps {
@@ -236,6 +237,17 @@ export const PlayerBar: FC<PlayerBarProps> = ({
         <button onClick={onAddToPlaylist} className={s.iconBtn} aria-label="Add to playlist">
           <ListPlus size={16} />
         </button>
+
+        {/* Go+ offline download — only renders for Go+ subscribers */}
+        {track && (
+          <OfflineDownloadButton
+            trackId={track.id}
+            title={track.title}
+            artist={track.artist}
+            artworkUrl={track.artworkUrl}
+            iconOnly
+          />
+        )}
 
         <div className={s.volWrap}>
           <VolumeControl

@@ -35,7 +35,7 @@ describe('trendingRepository', () => {
       const result = await trendingRepository.getTrending('all');
 
       expect(apiClient.get).toHaveBeenCalledWith('/discovery/trending', expect.objectContaining({
-        params: expect.objectContaining({ limit: 50 }),
+        params: expect.objectContaining({ limit: 20 }),
       }));
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('Test Track');
