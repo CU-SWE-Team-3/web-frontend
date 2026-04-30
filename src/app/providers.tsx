@@ -7,6 +7,7 @@ import { AuthHydrator } from '@/features/auth/ui/AuthHydrator';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { connectSocket, disconnectSocket } from '@/shared/socket';
 import { useNotificationStore } from '@/features/notifications/model/useNotificationStore';
+import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
 import { ROUTES } from '@/shared/constants/routes';
 
 /**
@@ -139,6 +140,19 @@ function AdminRouteGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function SubscriptionSync() {
+  const user = useAuthStore((s) => s.user);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const syncFromUser = useSubscriptionStore((s) => s.syncFromUser);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    syncFromUser(user);
+  }, [isInitialized, user, syncFromUser]);
+
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -155,6 +169,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthHydrator />
+      <SubscriptionSync />
       <AuthGate>
         <SocketProvider>
           <AdminRouteGuard>{children}</AdminRouteGuard>

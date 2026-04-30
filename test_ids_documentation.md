@@ -176,6 +176,329 @@ This document outlines all the `data-testid` attributes implemented in the BioBe
 
 ---
 
+## Module 7-12 Feature Test IDs
+
+### Module 7: Sets & Playlists
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Playlist Page** | `playlist-error-state` | Playlist detail error state |
+| **Playlist CRUD** | `create-playlist-title` | Playlist title input in create flows |
+| | `create-playlist-save` | Create playlist submit button |
+| | `edit-playlist-title` | Playlist title input in edit modal |
+| | `edit-playlist-save` | Save playlist changes button |
+| | `edit-modal-delete-btn` | Delete playlist button inside edit modal |
+| | `delete-playlist-cancel` | Cancel delete confirmation |
+| | `delete-playlist-confirm` | Confirm playlist deletion |
+| **Add To Playlist** | `add-to-playlist-tab-add` | Existing playlist tab |
+| | `add-to-playlist-tab-create` | Create playlist tab |
+| | `add-to-playlist-filter` | Playlist filter input |
+| | `add-to-playlist-row-{playlistId}` | Selectable playlist row |
+| | `add-to-playlist-confirm` | Add selected track to playlist button |
+| **Track Picker** | `track-picker-search` | Track search input |
+| | `track-picker-option-{trackId}` | Selectable track option |
+| | `track-picker-cancel` | Cancel track picker |
+| | `track-picker-add` | Add selected tracks button |
+| **Track Sequencing** | `playlist-track-list` | Ordered playlist track list |
+| | `playlist-track-{trackId}` | Playlist track row |
+| | `playlist-track-drag-{trackId}` | Drag handle for reordering |
+| | `playlist-track-remove-{trackId}` | Remove track from playlist button |
+| | `playlist-tracks-empty` | Empty playlist track state |
+| | `playlist-add-first-track` | Empty-state add first track button |
+| | `playlist-add-tracks` | Add tracks button in populated list |
+| | `edit-track-remove-{trackId}` | Remove track from edit playlist modal |
+| **Playlist Detail Header** | `playlist-detail-header` | Playlist header root |
+| | `playlist-title` | Playlist title |
+| | `playlist-header-play-btn` | Playlist play button |
+| | `playlist-header-creator-name` | Creator name in header |
+| | `playlist-header-track-count` | Header track count |
+| | `playlist-artwork` | Playlist cover artwork |
+| | `playlist-like-btn` | Playlist like button |
+| | `playlist-add-to-next-btn` | Add playlist to queue button |
+| | `playlist-share-btn` | Open playlist share modal |
+| | `playlist-edit-btn` | Open edit playlist modal |
+| | `playlist-delete-btn` | Open delete playlist dialog |
+| | `playlist-header-creator-avatar` | Creator avatar image |
+| | `playlist-header-creator-avatar-placeholder` | Creator avatar fallback |
+| | `playlist-header-sidebar-creator-name` | Creator name in sidebar |
+| **Playlist Grid Card** | `playlist-grid-card` | Playlist card root |
+| | `playlist-grid-card-{playlistId}` | Playlist artwork/detail link |
+| | `playlist-grid-card-artwork` | Playlist cover image |
+| | `playlist-grid-card-artwork-placeholder` | Empty cover fallback |
+| | `playlist-grid-card-play-button` | Card play button |
+| | `playlist-grid-card-track-count` | Track count label |
+| | `playlist-grid-card-title` | Playlist title |
+| | `playlist-grid-card-creator` | Playlist creator |
+| **Playlist Stream Card** | `playlist-stream-{playlistId}` | Stream playlist card root |
+| | `stream-play-btn` | Stream card play button |
+| | `playlist-stream-view-more` | Expand collapsed stream tracks |
+| **Playlist Share / Embed** | `share-tab-link` | Share link tab |
+| | `share-tab-embed` | Embed tab |
+| | `playlist-share-facebook-button` | Facebook playlist share button |
+| | `share-link-input` | Share URL input |
+| | `share-copy-link` | Copy playlist URL button |
+| | `share-embed-textarea` | Embed iframe text area |
+| | `share-copy-embed` | Copy embed code button |
+| **Playlist Privacy** | No dedicated `data-testid` | Privacy radios are present in `EditPlaylistModal`, but they currently do not expose specific test IDs. |
+
+### Module 8: Feed, Search & Discover
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Stream / Activity Feed** | `feed-page` | Feed page root |
+| | `feed-skeleton` | Feed loading skeleton |
+| | `feed-track-list` | Chronological track list |
+| | `feed-track-item` | Individual feed track wrapper |
+| | `feed-suggested-artist-card` | Suggested artist card |
+| | `feed-artist-follow-button` | Suggested artist follow button |
+| | `suggested-artists-section` | Suggested artists section |
+| | `feed-sidebar-likes` | Sidebar likes module |
+| | `track-card-like-button` | Feed track like button |
+| **Feed Track Card** | `track-card` | Feed track card root |
+| | `track-card-artwork` | Track artwork |
+| | `track-card-title` | Track title link |
+| | `track-card-waveform` | Track waveform container |
+| | `track-card-plays` | Track play count |
+| | `track-card-comments` | Track comment count |
+| **Comments / Engagement** | `comment-list` | Comment list root |
+| | `comment-item-{commentId}` | Individual comment row |
+| | `comment-input` | Comment input root |
+| | `comment-text-input` | Comment text field |
+| | `comment-timestamp-badge` | Timestamp marker badge |
+| | `comment-submit-button` | Submit comment button |
+| | `engagement-list-modal` | Likes/reposts modal root |
+| | `engagement-list-content` | Modal content wrapper |
+| | `engagement-list-loading` | Engagement list loading state |
+| | `engagement-list-empty` | Empty engagement list |
+| | `engagement-list-items` | Populated engagement list |
+| | `engagement-item-{userId}` | User item in engagement list |
+| | `engagement-user-{userId}` | Engagement user row |
+| **Resource Resolver** | No dedicated `data-testid` | `src/lib/resolvePermalink.ts` is non-UI logic and is covered through unit tests rather than DOM IDs. |
+| **Global Search Bar** | `navbar-search-bar` | Search bar wrapper |
+| | `navbar-search-submit-button` | Search submit button |
+| | `navbar-search-input` | Search text input |
+| | `navbar-search-clear-button` | Clear search button |
+| **Search Page** | `search-page` | Search page root |
+| | `search-sidebar` | Search filter sidebar |
+| | `search-tab-{tabId}` | Search category tab |
+| | `search-results-list` | Search results container |
+| **Discover / Trending** | `discover-page` | Discover page root |
+| | `trending-by-genre` | Trending by genre section |
+
+### Module 9: Messaging & Track Sharing
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Messages Page** | `messages-page` | Messages layout root |
+| | `messages-sidebar` | Conversation sidebar |
+| | `new-message-button` | New conversation button |
+| | `messages-chat-empty` | Empty chat panel |
+| **Conversation List** | `conversation-list` | Conversation list root |
+| | `conversation-item-{conversationId}` | Conversation row |
+| | `unread-dot-{conversationId}` | Conversation unread indicator |
+| **Conversation View** | `conversation-view` | Open conversation panel |
+| | `first-message-banner` | First-message safety banner |
+| | `chat-action-bar` | Conversation action toolbar |
+| | `block-button` | Block user button |
+| | `report-button` | Report user button |
+| | `mark-unread-button` | Mark conversation unread button |
+| | `delete-conversation-button` | Open delete/archive popover |
+| | `blocked-banner` | Blocked conversation banner |
+| | `message-thread` | Message thread container |
+| | `typing-indicator` | Typing indicator |
+| | `report-spam-toast` | Report spam confirmation toast |
+| **Message Composer** | `message-composer` | Composer root |
+| | `message-textarea` | Message text input |
+| | `message-send-button` | Send message button |
+| **Message Bubble** | `message-{messageId}` | Message bubble root |
+| | `message-avatar-{messageId}` | Sender avatar |
+| | `message-sender-{messageId}` | Sender name |
+| | `message-time-{messageId}` | Message timestamp |
+| | `message-content-{messageId}` | Message body |
+| | `message-edited-{messageId}` | Edited marker |
+| | `message-status-{messageId}` | Status row |
+| | `message-status-sent` | Sent status icon |
+| | `message-status-delivered` | Delivered status icon |
+| | `message-status-read` | Read status icon |
+| **Message Dropdown** | `navbar-messages-button` | Navbar messages button |
+| | `unread-badge` | Navbar unread count |
+| | `message-dropdown` | Message dropdown panel |
+| | `msg-dropdown-item-{conversationId}` | Dropdown conversation item |
+| | `dropdown-unread-dot-{conversationId}` | Dropdown unread marker |
+| | `view-all-messages` | Link to messages page |
+| **New Conversation** | `new-conversation-modal` | New conversation modal |
+| | `recipient-search-input` | Recipient search field |
+| | `search-result-{userId}` | Recipient search result |
+| | `new-conv-message-input` | Initial message input |
+| | `new-conv-send-button` | Start conversation button |
+| **Attachments / Previews** | `add-attachment-modal` | Track/playlist attachment modal |
+| | `attachment-track-{trackId}` | Track attachment option |
+| | `attachment-playlist-{playlistId}` | Playlist attachment option |
+| | `track-preview-{trackId}` | Embedded track preview card |
+| | `track-preview-play-btn` | Track preview play button |
+| | `track-preview-share-btn` | Track preview share button |
+| | `track-preview-like-btn` | Track preview like button |
+| | `playlist-preview-{playlistId}` | Embedded playlist preview card |
+| | `playlist-preview-play-btn` | Playlist preview play button |
+| | `playlist-preview-like-btn` | Playlist preview like button |
+| **Blocking / Reporting** | `block-user-modal` | Block user modal |
+| | `block-modal-close` | Close block modal |
+| | `remove-content-checkbox` | Remove old messages checkbox |
+| | `report-spam-checkbox` | Report spam checkbox |
+| | `block-modal-cancel` | Cancel block action |
+| | `block-modal-confirm` | Confirm block action |
+| | `delete-conversation-popover` | Delete/archive popover |
+| | `archive-report-spam-checkbox` | Report archived conversation as spam |
+| | `archive-cancel` | Cancel archive/delete action |
+| | `archive-confirm` | Confirm archive/delete action |
+| | `report-user-modal` | Report user modal |
+| | `report-modal-close` | Close report modal |
+| | `report-reason-{reason-slug}` | Report reason link |
+| | `report-spam-cancel` | Cancel spam report |
+| | `report-spam-confirm` | Confirm spam report |
+| **Track / Profile Sharing** | `track-share-modal` | Track share modal root |
+| | `share-modal` | Profile share modal root |
+| | `share-modal-twitter-button` | Twitter/X profile share button |
+| | `share-modal-facebook-button` | Facebook profile share button |
+| | `share-modal-url-input` | Profile share URL input |
+| | `share-modal-copy-button` | Copy profile share URL button |
+| | `share-modal-shorten-checkbox` | Shorten profile URL checkbox |
+
+### Module 10: Real-Time Notifications
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Activity Triggers / Navbar** | `navbar-notifications-button` | Navbar notifications button |
+| | `notification-unread-dot` | Navbar unread indicator |
+| **Notification Dropdown** | `notification-dropdown` | Dropdown root |
+| | `notification-dropdown-header` | Dropdown header |
+| | `notification-mark-all-read` | Mark all read button |
+| | `notification-dropdown-settings-link` | Notification settings link |
+| | `notification-dropdown-list` | Notification dropdown list |
+| | `notification-dropdown-empty` | Empty dropdown state |
+| | `notification-dropdown-view-all` | View all notifications link |
+| **Notification Item** | `notification-item-{notificationId}` | Notification row |
+| | `notification-item-avatar-{notificationId}` | Notification actor avatar |
+| | `notification-item-text-{notificationId}` | Notification text |
+| | `notification-follow-btn-{userId}` | Follow button inside notification item |
+| **Notifications Page** | `notifications-page` | Notifications page root |
+| | `notif-banner-close` | Close notification banner |
+| | `notifications-page-title` | Page title |
+| | `notifications-filter-button` | Filter dropdown trigger |
+| | `notifications-filter-dropdown` | Filter dropdown panel |
+| | `notifications-filter-{filterKey}` | Individual filter option |
+| | `notifications-list` | Notification list |
+| | `notifications-empty` | Empty page state |
+| | `notif-page-item-{notificationId}` | Page notification row |
+| | `notif-page-avatar-{notificationId}` | Page notification avatar |
+| | `notif-page-actor-link-{notificationId}` | Actor profile link |
+| | `notif-page-artwork-{notificationId}` | Related track/playlist artwork |
+| | `notif-page-more-{notificationId}` | More actions button |
+| | `notif-page-delete-{notificationId}` | Delete notification action |
+| | `notif-page-follow-btn-{userId}` | Follow button on notification page |
+| **Notification Settings** | `notification-settings-tab` | Settings tab root |
+| | `notification-settings-activities` | Activity notification preferences |
+| | `notification-activities-email-header` | Activity email column header |
+| | `notification-activities-devices-header` | Activity devices column header |
+| | `notification-settings-updates` | Update notification preferences |
+| | `notification-updates-email-header` | Updates email column header |
+| | `notification-updates-devices-header` | Updates devices column header |
+| | `notification-pref-{preferenceKey}-email` | Email preference checkbox |
+| | `notification-pref-{preferenceKey}-devices` | Device/push preference checkbox |
+| | `notification-settings-cancel-btn` | Cancel settings changes |
+| | `notification-settings-save-btn` | Save settings changes |
+
+### Module 11: Moderation & Admin Dashboard
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **User Report System** | `report-user-modal` | User-facing report modal |
+| | `report-modal-close` | Close report modal |
+| | `report-reason-{reason-slug}` | Report reason link, such as spam or abuse |
+| | `report-spam-cancel` | Cancel spam report |
+| | `report-spam-confirm` | Confirm spam report |
+| **Blocking / Spam Moderation** | `block-user-modal` | Block user modal |
+| | `remove-content-checkbox` | Remove old conversation content checkbox |
+| | `report-spam-checkbox` | Also report as spam checkbox |
+| | `block-modal-cancel` | Cancel block action |
+| | `block-modal-confirm` | Confirm block action |
+| | `settings-blocked-users-list` | Blocked users settings section |
+| | `blocked-users-list` | Blocked users list |
+| | `settings-blocked-user-item` | Blocked user row |
+| | `blocked-user-username` | Blocked user's display name |
+| | `settings-unblock-button` | Unblock user button |
+| | `blocked-loading` | Blocked users loading state |
+| | `blocked-empty-state` | Empty blocked users state |
+| **Admin Panel** | No dedicated `data-testid` | `src/features/admin/**` currently has no `data-testid` attributes; admin panels use component structure and some DOM `id` attributes instead. |
+| **Platform Health** | No dedicated `data-testid` | Health dashboard UI currently has no `data-testid` attributes. |
+
+### Module 12: Premium Subscription (Pro/Go+)
+| Feature / Component | Test ID | Description |
+|-----------|---------|-------------|
+| **Subscription Page** | `subscription-page` | Subscription page root |
+| | `subscription-banner` | Top subscription banner |
+| | `subscription-banner-link` | Banner CTA link |
+| | `subscription-banner-close` | Close banner button |
+| | `subscription-title` | Page title |
+| | `subscription-current-plans-title` | Current plan section title |
+| | `subscription-error` | Subscription error message |
+| | `subscription-cancel-success` | Cancel success message |
+| | `subscription-cancel-confirm` | Cancel confirmation card |
+| | `subscription-cancel-confirm-yes` | Confirm cancellation |
+| | `subscription-cancel-confirm-no` | Keep subscription button |
+| | `subscription-plan-card` | Current plan card |
+| | `subscription-plan-name` | Current plan name |
+| | `subscription-active-badge` | Active subscription badge |
+| | `subscription-plan-description` | Plan description |
+| | `subscription-plan-active-desc` | Active plan description |
+| | `subscription-billing-info` | Billing details |
+| | `subscription-expiry-note` | Subscription expiry note |
+| | `subscription-try-pro-btn` | Try Pro button |
+| | `subscription-cancel-btn` | Cancel subscription button |
+| | `subscription-offline-card` | Offline listening card |
+| | `subscription-student-banner` | Student plan banner |
+| | `subscription-student-link` | Student plan CTA |
+| | `subscription-history-title` | Billing history title |
+| | `subscription-history-empty` | Empty billing history |
+| | `subscription-sidebar` | Help/sidebar root |
+| | `subscription-sidebar-troubleshoot` | Troubleshooting link |
+| | `subscription-sidebar-billing-help` | Billing help link |
+| | `subscription-sidebar-tax` | Tax information link |
+| | `subscription-lang-select` | Language selector |
+| **Offline Perks** | `offline-download-{trackId}` | Offline download button for a track |
+| | `offline-library-empty` | Empty offline library |
+| | `offline-library` | Offline library root |
+| | `offline-clear-all` | Clear offline library button |
+| | `offline-track-{trackId}` | Offline track card |
+| | `offline-remove-{trackId}` | Remove offline track button |
+| **Premium Ads** | `premium-ad-banner` | Premium upsell banner |
+| | `premium-ad-dismiss` | Dismiss premium ad |
+| | `premium-ad-subscribe-link` | Premium subscribe link |
+| **Artist Pro Page** | `artist-pro-page` | Artist Pro page root |
+| | `artist-pro-navbar` | Artist Pro navbar |
+| | `artist-pro-logo` | Artist Pro logo link |
+| | `artist-pro-user-info` | Signed-in user info |
+| | `artist-pro-profile-btn` | Profile dropdown button |
+| | `artist-pro-profile-dropdown` | Profile dropdown menu |
+| | `artist-pro-signout-btn` | Sign out button |
+| | `artist-pro-hero` | Hero section |
+| | `artist-pro-title` | Hero title |
+| | `artist-pro-get-btn` | Primary get Pro CTA |
+| | `artist-pro-all-plans-btn` | All plans CTA |
+| | `artist-pro-features` | Feature list |
+| | `artist-pro-feature-item` | Feature item |
+| | `artist-pro-plans` | Plans section |
+| | `artist-pro-plans-title` | Plans section title |
+| | `plan-card-artist` | Free Artist plan card |
+| | `plan-card-artist-cta` | Artist plan CTA |
+| | `plan-card-artist-pro` | Artist Pro plan card |
+| | `plan-card-pro-cta` | Artist Pro CTA |
+| | `artist-pro-compare` | Plan comparison section |
+| | `artist-pro-compare-title` | Comparison section title |
+| | `compare-artist-cta` | Artist comparison CTA |
+| | `compare-pro-cta` | Pro comparison CTA |
+| | `compare-section-{section-slug}` | Comparison section |
+| | `compare-row` | Comparison row |
+| | `artist-pro-footer` | Footer |
+| | `artist-pro-footer-signout` | Footer sign out link |
+
+---
+
 ## Usage Examples
 
 ### React Testing Library

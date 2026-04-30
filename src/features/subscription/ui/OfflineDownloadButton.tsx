@@ -1,9 +1,10 @@
 'use client';
 // component-id: OfflineDownloadButton_001
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOfflineStore } from '@/features/subscription/model/useOfflineStore';
 import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
+import { tracksRepository } from '@/features/tracks/api/tracksRepository';
 import s from './OfflineDownloadButton.module.scss';
 
 interface OfflineDownloadButtonProps {
@@ -26,6 +27,7 @@ export const OfflineDownloadButton: React.FC<OfflineDownloadButtonProps> = ({
 }) => {
   const { currentPlan } = useSubscriptionStore();
   const { downloadTrack, removeTrack, isDownloaded, hydrate } = useOfflineStore();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     hydrate();
@@ -36,13 +38,31 @@ export const OfflineDownloadButton: React.FC<OfflineDownloadButtonProps> = ({
 
   const downloaded = isDownloaded(trackId);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (downloaded) {
       removeTrack(trackId);
-    } else {
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const { blob, filename } = await tracksRepository.downloadTrack(trackId);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
       downloadTrack({ id: trackId, title, artist, artworkUrl, duration });
+    } catch (error) {
+      console.error('[OfflineDownloadButton] Download failed:', error);
+      alert(error instanceof Error ? error.message : 'Unable to download this track for offline listening.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -53,6 +73,7 @@ export const OfflineDownloadButton: React.FC<OfflineDownloadButtonProps> = ({
       aria-label={downloaded ? `Remove "${title}" from offline library` : `Download "${title}" for offline listening`}
       title={downloaded ? 'Remove from offline' : 'Download for offline'}
       data-testid={`offline-download-${trackId}`}
+      disabled={isDownloading}
     >
       {downloaded ? (
         <>
@@ -66,7 +87,7 @@ export const OfflineDownloadButton: React.FC<OfflineDownloadButtonProps> = ({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
           </svg>
-          {!iconOnly && <span>Download</span>}
+          {!iconOnly && <span>{isDownloading ? 'Downloading...' : 'Download'}</span>}
         </>
       )}
     </button>

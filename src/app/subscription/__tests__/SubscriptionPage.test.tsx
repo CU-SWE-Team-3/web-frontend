@@ -44,6 +44,7 @@ vi.mock('@/features/auth/model/useAuthStore', () => ({
 // Mock subscription store
 const mockSyncFromUser = vi.fn();
 const mockMockCancel = vi.fn();
+const mockCancel = vi.fn().mockResolvedValue(undefined);
 
 const mockSubscriptionStore: {
   currentPlan: 'Free' | 'Artist' | 'Pro' | 'Go+';
@@ -54,6 +55,7 @@ const mockSubscriptionStore: {
   error: string | null;
   syncFromUser: typeof mockSyncFromUser;
   mockCancel: typeof mockMockCancel;
+  cancel: typeof mockCancel;
 } = {
   currentPlan: 'Free' as const,
   isPremium: false,
@@ -63,6 +65,7 @@ const mockSubscriptionStore: {
   error: null,
   syncFromUser: mockSyncFromUser,
   mockCancel: mockMockCancel,
+  cancel: mockCancel,
 };
 
 vi.mock('@/features/subscription/model/useSubscriptionStore', () => ({
@@ -229,7 +232,7 @@ describe('SubscriptionPage', () => {
     expect(screen.queryByTestId('subscription-cancel-confirm')).toBeNull();
   });
 
-  it('calls mockCancel and shows success message after confirming cancel', () => {
+  it('calls cancel and shows success message after confirming cancel', async () => {
     mockSubscriptionStore.currentPlan = 'Pro';
     mockSubscriptionStore.isPremium = true;
     render(<SubscriptionPage />);
@@ -237,10 +240,10 @@ describe('SubscriptionPage', () => {
     fireEvent.click(screen.getByTestId('subscription-cancel-btn'));
     fireEvent.click(screen.getByTestId('subscription-cancel-confirm-yes'));
 
-    expect(mockMockCancel).toHaveBeenCalled();
+    await waitFor(() => expect(mockCancel).toHaveBeenCalled());
     expect(screen.getByTestId('subscription-cancel-success')).toBeDefined();
     expect(screen.getByTestId('subscription-cancel-success').textContent).toContain(
-      'Your plan has been cancelled. Your account has been reset to Basic.'
+      'You keep premium access until the billing period ends.'
     );
   });
 });

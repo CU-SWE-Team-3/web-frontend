@@ -11,7 +11,7 @@ import s from './SubscriptionPage.module.scss';
 
 export default function SubscriptionPage() {
   const { user } = useAuthStore();
-  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, mockCancel, error } =
+  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, cancel, isLoading, error } =
     useSubscriptionStore();
   const [showBanner, setShowBanner] = useState(true);
   const [cancelSuccess, setCancelSuccess] = useState(false);
@@ -26,11 +26,14 @@ export default function SubscriptionPage() {
     setShowCancelConfirm(true);
   };
 
-  const handleConfirmCancel = () => {
-    // Fully reset to Free plan — no API call
-    mockCancel();
-    setShowCancelConfirm(false);
-    setCancelSuccess(true);
+  const handleConfirmCancel = async () => {
+    try {
+      await cancel();
+      setShowCancelConfirm(false);
+      setCancelSuccess(true);
+    } catch {
+      setShowCancelConfirm(false);
+    }
   };
 
   const handleDismissCancel = () => {
@@ -102,7 +105,7 @@ export default function SubscriptionPage() {
           {/* Cancel Success */}
           {cancelSuccess && (
             <div className={s.successMsg} data-testid="subscription-cancel-success">
-              Your plan has been cancelled. Your account has been reset to Basic.
+              Your plan has been cancelled. You keep premium access until the billing period ends.
             </div>
           )}
 
@@ -110,15 +113,16 @@ export default function SubscriptionPage() {
           {showCancelConfirm && (
             <div className={s.cancelConfirmCard} data-testid="subscription-cancel-confirm">
               <p className={s.cancelConfirmText}>
-                Are you sure you want to cancel your plan? You will lose access to all premium features immediately.
+                Are you sure you want to cancel your plan? You will keep premium access until the billing period ends.
               </p>
               <div className={s.cancelConfirmActions}>
                 <button
                   className={s.cancelConfirmYes}
                   onClick={handleConfirmCancel}
+                  disabled={isLoading}
                   data-testid="subscription-cancel-confirm-yes"
                 >
-                  Yes, cancel plan
+                  {isLoading ? 'Cancelling...' : 'Yes, cancel plan'}
                 </button>
                 <button
                   className={s.cancelConfirmNo}
@@ -183,7 +187,7 @@ export default function SubscriptionPage() {
                   <button
                     className={s.cancelBtn}
                     onClick={handleCancel}
-                    disabled={showCancelConfirm}
+                    disabled={showCancelConfirm || isLoading}
                     data-testid="subscription-cancel-btn"
                   >
                     Cancel plan
