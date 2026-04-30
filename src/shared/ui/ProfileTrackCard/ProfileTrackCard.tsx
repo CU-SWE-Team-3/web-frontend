@@ -16,6 +16,7 @@ import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
 import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
 import { useDeleteTrack } from '@/features/tracks/model/trackQueries';
 import { AddToPlaylistModal } from '@/features/playlists';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 
 const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
 
@@ -77,6 +78,9 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
 }) => {
   const { isAuthenticated } = useAuthStore();
   const play = usePlayerStore((s) => s.play);
+  const pause = usePlayerStore((s) => s.pause);
+  const currentTrack = usePlayerStore((s) => s.currentTrack);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
   const addToQueue = usePlayerStore((s) => s.addToQueue);
   const [liked, setLiked] = useState(initialLiked);
   const [likeCountLocal, setLikeCountLocal] = useState(initialLiked ? Math.max(1, initialLikeCount) : initialLikeCount);
@@ -157,6 +161,11 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   }, [reposted, isAuthenticated, track, repostMutation, unrepostMutation]);
 
   const handlePlay = () => {
+    // Toggle: if this track is already playing, pause it
+    if (currentTrack?.id === track.id && isPlaying) {
+      pause();
+      return;
+    }
     play({
       id: track.id,
       title: track.title,
@@ -189,9 +198,16 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2">
               <button data-testid="track-card-play-button" onClick={handlePlay} className="w-9 h-9 bg-[#f50] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#d44000] focus:outline-none transition-colors">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
+                {currentTrack?.id === track.id && isPlaying ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1"/>
+                    <rect x="14" y="4" width="4" height="16" rx="1"/>
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                )}
               </button>
               <div className="min-w-0">
                 {/* Artist name — with repost indicator inline if reposted */}
@@ -326,6 +342,15 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
               <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
             </svg>
           </button>
+
+          {/* Download (Go+ only — positioned between Copy and More menu) */}
+          <OfflineDownloadButton
+            trackId={track.id}
+            title={track.title}
+            artist={userFullName || username}
+            artworkUrl={track.artworkUrl}
+            duration={typeof track.duration === 'string' ? track.duration.split(':').reduce((acc, time) => (60 * acc) + +time, 0) : track.duration}
+          />
 
           {/* More (icon only) & Dropdown */}
           <div style={{ position: 'relative' }}>

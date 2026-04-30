@@ -42,8 +42,16 @@ function formatTime(s: number) {
 export default function UploadPage() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const currentPlan = useSubscriptionStore((s) => s.currentPlan);
-  const isPro = currentPlan === "Pro";
+  const { currentPlan, syncFromUser } = useSubscriptionStore();
+
+  // Sync subscription state from user on mount so plan is always current
+  useEffect(() => {
+    syncFromUser(user);
+  }, [user, syncFromUser]);
+
+  // Artist Pro plan (currentPlan === 'Pro') → unlimited uploads
+  // All other plans (Free, Artist, Go+) → capped at 3 tracks
+  const isArtistPro = currentPlan === "Pro";
 
   // Stage
   const [stage, setStage] = useState<"dropzone" | "form">("dropzone");
@@ -96,8 +104,8 @@ export default function UploadPage() {
   const { data: existingTracks = [] } = useTracks();
   const uploadLimit = 3;
   const uploadCount = existingTracks.length;
-  const uploadPercent = isPro ? 0 : Math.min(100, Math.round((uploadCount / uploadLimit) * 100));
-  const uploadLimitReached = !isPro && uploadCount >= uploadLimit;
+  const uploadPercent = isArtistPro ? 0 : Math.min(100, Math.round((uploadCount / uploadLimit) * 100));
+  const uploadLimitReached = !isArtistPro && uploadCount >= uploadLimit;
 
   // ── File handling ─────────────────────────────────────────────────────
   const validateFile = useCallback((f: File) => {
@@ -112,7 +120,7 @@ export default function UploadPage() {
 
   const handleFileSelect = useCallback((f: File | null) => {
     if (uploadLimitReached) {
-      setFileError("Free and Go+ accounts are limited to 3 tracks. Upgrade to Artist Pro for unlimited uploads.");
+      setFileError("You've reached your upload limit. Upgrade to Artist Pro for unlimited uploads.");
       return;
     }
     if (!f || !validateFile(f)) return;
@@ -174,7 +182,7 @@ export default function UploadPage() {
   // Submit
   const handleUpload = useCallback(async () => {
     if (!file || isSaving) return;
-    if (!isPro && optionsData?.releaseDate && new Date(optionsData.releaseDate).getTime() > Date.now()) {
+    if (!isArtistPro && optionsData?.releaseDate && new Date(optionsData.releaseDate).getTime() > Date.now()) {
       setSaveError("Scheduling a future release requires an Artist Pro subscription.");
       return;
     }
@@ -217,7 +225,7 @@ export default function UploadPage() {
       const exactErr = typeof backendMsg === 'string' ? backendMsg : JSON.stringify(backendMsg);
       setSaveError(exactErr || err?.message || "Upload failed. Please try again.");
     } finally { setIsSaving(false); }
-  }, [file, title, genre, tags, description, privacy, artworkUrl, artworkFile, optionsData, user, uploadMutation, isSaving, isPro]);
+  }, [file, title, genre, tags, description, privacy, artworkUrl, artworkFile, optionsData, user, uploadMutation, isSaving, isArtistPro]);
 
   const handleCancel = useCallback(() => {
     setFile(null); setStage("dropzone"); setUploadProgress(0); setUploadComplete(false);
@@ -271,11 +279,11 @@ export default function UploadPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#1a1a1a", borderRadius: 8, marginBottom: 32, border: "1px solid #333", flexWrap: "wrap", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span style={{ fontSize: 13, color: "#ccc" }}>{isPro ? "Unlimited uploads available" : `${uploadPercent}% of uploads used`}</span>
+                <span style={{ fontSize: 13, color: "#ccc" }}>{isArtistPro ? "Unlimited uploads available" : `${uploadPercent}% of uploads used`}</span>
                 <div style={{ width: 140, height: 4, background: "#333", borderRadius: 2 }}><div style={{ width: `${uploadPercent}%`, height: "100%", background: uploadLimitReached ? "#e53935" : "#f50", borderRadius: 2 }} /></div>
-                <span style={{ fontSize: 13, color: "#999" }}>{isPro ? "Pro plan: unlimited tracks" : `${uploadCount} of ${uploadLimit} tracks`}</span>
+                <span style={{ fontSize: 13, color: "#999" }}>{isArtistPro ? "Artist Pro: unlimited tracks" : `${uploadCount} of ${uploadLimit} tracks`}</span>
               </div>
-              {!isPro && (
+              {!isArtistPro && (
                 <button
                   type="button"
                   onClick={() => router.push(ROUTES.ARTIST_PRO)}

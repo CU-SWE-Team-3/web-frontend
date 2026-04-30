@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Update profile data without re-logging in
   setUser: (user) => set({ user }),
 
-  // Called on app load — check localStorage for token and validate with backend
+  // Called on app load — try to restore session via cookie-based refresh
   initAuth: async () => {
     if (get().isInitialized) return
     if (typeof window === 'undefined') {
@@ -55,26 +55,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return
     }
 
-    const token = localStorage.getItem('accessToken');
-
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '/api'
       const axios = (await import('axios')).default
-      const response = await axios.get(`${apiUrl}/auth/me`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      const response = await axios.post(`${apiUrl}/auth/refresh`, {}, {
         withCredentials: true,
+        timeout: 5000,
       })
-      const user = response.data?.data?.user || response.data?.data || response.data?.user
+      const user = response.data?.data?.user
+      const token = response.data?.data?.accessToken || response.data?.accessToken
       if (user) {
+        if (token) localStorage.setItem('accessToken', token)
         set({ user, isAuthenticated: true, isInitialized: true })
       } else {
-        localStorage.removeItem('accessToken')
         set({ isInitialized: true })
       }
-    } catch (err: any) {
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
-        localStorage.removeItem('accessToken')
-      }
+    } catch {
       set({ user: null, isAuthenticated: false, isInitialized: true })
     }
   },
