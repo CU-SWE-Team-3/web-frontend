@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Notification } from '@/shared/types'
 import { useNotificationStore } from '../model/useNotificationStore'
 import { useFollowStore } from '@/features/social-graph/model/useFollowStore'
+import { useBlockStore } from '@/features/social-graph/model/useBlockStore'
 import s from './NotificationDropdown.module.scss'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
@@ -57,9 +58,10 @@ import { useAuthStore } from '@/features/auth/model/useAuthStore'
 interface FollowBtnProps {
   userId: string
   initialFollowing?: boolean
+  isBlocked?: boolean
 }
 
-const FollowBtn: FC<FollowBtnProps> = ({ userId, initialFollowing = false }) => {
+const FollowBtn: FC<FollowBtnProps> = ({ userId, initialFollowing = false, isBlocked = false }) => {
   const followStore = useFollowStore()
   const authUser = useAuthStore(s => s.user)
   const myId = (authUser as any)?._id || authUser?.id
@@ -72,6 +74,14 @@ const FollowBtn: FC<FollowBtnProps> = ({ userId, initialFollowing = false }) => 
 
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  if (isBlocked) {
+    return (
+      <button className={`${s.followBtn} ${s.followBtnFollowing}`} disabled>
+        Blocked
+      </button>
+    )
+  }
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -117,6 +127,7 @@ export interface NotificationItemProps {
 
 export const NotificationItem: FC<NotificationItemProps> = ({ notification }) => {
   const markRead = useNotificationStore((s) => s.markRead)
+  const { blockedMap } = useBlockStore()
 
   const handleClick = useCallback(() => {
     if (!notification.isRead) {
@@ -181,7 +192,11 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
 
       {/* Follow button shown only for FOLLOW notifications; artwork shown for track/playlist ones */}
       {actor && notification.type === 'FOLLOW' ? (
-        <FollowBtn userId={actor._id} initialFollowing={actor.isFollowing} />
+        <FollowBtn 
+          userId={actor._id} 
+          initialFollowing={actor.isFollowing} 
+          isBlocked={blockedMap[actor._id]}
+        />
       ) : notification.target?.artworkUrl && targetHref ? (
         <Link
           href={targetHref}

@@ -75,7 +75,18 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
           newPostByFollowedUser: { email: prefs.emailNewTracks ?? true, devices: prefs.allowNewTracks ?? true },
           likesAndPlaysOnYourPost: { email: prefs.emailLikes ?? true, devices: prefs.allowLikes ?? true },
           commentOnYourPost: { email: prefs.emailComments ?? false, devices: prefs.allowComments ?? true },
-          newMessage: { email: prefs.emailMessages ?? true, devices: prefs.allowMessages ? 'Everyone' : 'Nobody' },
+          recommendedContent: { email: prefs.emailRecommended ?? true, devices: prefs.allowRecommended ?? true },
+          newMessage: { 
+            email: prefs.emailMessages ?? true, 
+            devices: !prefs.allowMessages ? 'Nobody' : (prefs.messagePermission ?? 'Everyone')
+          },
+        },
+        updates: {
+          ...state.updates,
+          featureUpdatesAndEducation: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
         },
         isDirty: false,
       }))
@@ -129,9 +140,12 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
         allowFollows: activities.newFollower.devices,
         emailFollows: activities.newFollower.email,
         allowMessages: activities.newMessage.devices !== 'Nobody',
+        messagePermission: activities.newMessage.devices === 'Nobody' ? 'Everyone' : (activities.newMessage.devices as any),
         emailMessages: activities.newMessage.email,
         allowNewTracks: activities.newPostByFollowedUser.devices,
         emailNewTracks: activities.newPostByFollowedUser.email,
+        allowRecommended: activities.recommendedContent.devices || updates.featureUpdatesAndEducation.devices,
+        emailRecommended: activities.recommendedContent.email || updates.featureUpdatesAndEducation.email,
       }
       await apiUpdatePreferences(prefs)
       set({ isDirty: false })

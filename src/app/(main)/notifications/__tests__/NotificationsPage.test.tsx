@@ -45,6 +45,14 @@ vi.mock('@/shared/api/client', () => ({
   },
 }))
 
+vi.mock('@/features/social-graph/model/useFollowing', () => ({
+  useFollowing: vi.fn().mockReturnValue({ data: [] }),
+}))
+
+vi.mock('@/features/social-graph/model/useBlockedUsers', () => ({
+  useBlockedUsers: vi.fn().mockReturnValue({ data: [] }),
+}))
+
 const mockNotification = (overrides: Partial<Notification> = {}): Notification => ({
   _id: 'test-n1',
   recipient: 'user1',

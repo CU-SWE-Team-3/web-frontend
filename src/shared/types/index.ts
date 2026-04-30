@@ -162,6 +162,7 @@ export interface NotificationPreferences {
   emailMessages?: boolean
   emailNewTracks?: boolean
   emailRecommended?: boolean
+  messagePermission?: 'Everyone' | 'Following' | 'Nobody'
 
   // Legacy/Other mappings (optional to keep for backward compatibility during transition)
   allowLikesEmail?: boolean

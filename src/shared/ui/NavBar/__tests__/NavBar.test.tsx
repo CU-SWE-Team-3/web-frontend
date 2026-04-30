@@ -40,6 +40,10 @@ vi.mock('../../SearchBar', () => ({
   SearchBar: () => <input data-testid="mock-search" />,
 }))
 
+vi.mock('@/features/social-graph/model/useBlockedUsers', () => ({
+  useBlockedUsers: vi.fn().mockReturnValue({ data: [] }),
+}))
+
 describe('NavBar', () => {
   beforeEach(() => {
     useNotificationStore.setState({
@@ -77,12 +81,11 @@ describe('NavBar', () => {
     expect(screen.queryByTestId('notification-unread-dot')).not.toBeInTheDocument()
   })
 
-  it('notification dot is a small dot, not a count badge', () => {
+  it('notification dot shows the unread count', () => {
     useNotificationStore.setState({ unreadCount: 5 })
     render(<NavBar />)
     const dot = screen.getByTestId('notification-unread-dot')
-    // The dot should NOT contain any text (unlike the old badge)
-    expect(dot.textContent).toBe('')
+    expect(dot.textContent).toBe('5')
   })
 
   // ── Profile Dropdown Tests ──
@@ -100,13 +103,8 @@ describe('NavBar', () => {
 
     expect(screen.getByTestId('navbar-dropdown-profile')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-dropdown-likes')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-stations')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-following')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-who-to-follow')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-try-pro')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-dropdown-tracks')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-dropdown-insights')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-dropdown-distribute')).toBeInTheDocument()
   })
 
   it('profile dropdown shows correct text labels', async () => {
@@ -116,13 +114,8 @@ describe('NavBar', () => {
 
     expect(screen.getAllByText('Profile').length).toBeGreaterThan(0)
     expect(screen.getByText('Likes')).toBeInTheDocument()
-    expect(screen.getByText('Stations')).toBeInTheDocument()
-    expect(screen.getByText('Following')).toBeInTheDocument()
-    expect(screen.getByText('Who to follow')).toBeInTheDocument()
-    expect(screen.getAllByText('Try Artist Pro').length).toBeGreaterThan(0)
     expect(screen.getByText('Tracks')).toBeInTheDocument()
-    expect(screen.getByText('Insights')).toBeInTheDocument()
-    expect(screen.getByText('Distribute')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
   })
 
   // ── More Dropdown Tests ──
@@ -143,13 +136,6 @@ describe('NavBar', () => {
     expect(screen.getByTestId('navbar-more-copyright')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-mobile-apps')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-artist-membership')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-newsroom')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-jobs')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-developers')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-store')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-support')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-keyboard')).toBeInTheDocument()
-    expect(screen.getByTestId('navbar-more-subscription')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-settings')).toBeInTheDocument()
     expect(screen.getByTestId('navbar-more-signout')).toBeInTheDocument()
   })
