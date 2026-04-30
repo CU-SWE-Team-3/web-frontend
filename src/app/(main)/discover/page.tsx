@@ -12,6 +12,7 @@ import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { useEditorial, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists, useGenreStation } from '@/features/trending/model/trendingQueries';
 import { getStationHref } from '@/features/trending/lib/stationLinks';
+import { HorizontalScroll } from '@/shared/ui/HorizontalScroll/HorizontalScroll';
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -156,7 +157,7 @@ export default function DiscoverPage() {
               title={`Mixed for ${useAuthStore.getState().user?.displayName || 'you'}`} 
               isLoading={isMixedLoading}
             >
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 {mixedData.map((mix: any, i: number) => (
                   <MixCard
                     key={mix.id || mix._id || i}
@@ -166,25 +167,25 @@ export default function DiscoverPage() {
                     onPlay={() => handlePlayBucket(mix)}
                   />
                 ))}
-              </div>
+              </HorizontalScroll>
             </DiscoverSection>
           )}
 
           {moreLikeStation && (
             <DiscoverSection title="More of what you like" isLoading={isMoreLoading}>
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 <StationCard
                   station={moreLikeStation}
                   href={getStationHref(moreLikeStation, 0, 'station')}
                   onPlay={() => handlePlayBucket(moreLikeStation)}
                 />
-              </div>
+              </HorizontalScroll>
             </DiscoverSection>
           )}
 
           {(curatedBuckets && curatedBuckets.length > 0) && (
             <DiscoverSection title="Made for you">
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 {curatedBuckets.filter((bucket: any) => bucket.tracks?.length).map((bucket: any, bucketIndex: number) => (
                   <StationCard
                     key={bucket.id || bucket._id || bucketIndex}
@@ -193,7 +194,7 @@ export default function DiscoverPage() {
                     onPlay={() => handlePlayBucket(bucket)}
                   />
                 ))}
-              </div>
+              </HorizontalScroll>
             </DiscoverSection>
           )}
 
@@ -205,7 +206,7 @@ export default function DiscoverPage() {
 
           {genreStations.length > 0 && (
             <DiscoverSection title="Trending by genre" isLoading={isHiphopLoading || isElectronicLoading || isPopLoading}>
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 {genreStations.map((station, stationIndex) => (
                   <StationCard
                     key={station.id}
@@ -214,13 +215,13 @@ export default function DiscoverPage() {
                     onPlay={() => handlePlayBucket(station)}
                   />
                 ))}
-              </div>
+              </HorizontalScroll>
             </DiscoverSection>
           )}
 
           {/* New crew, suggested for you */}
           <DiscoverSection title="New crew, suggested for you" isLoading={isSuggestLoading}>
-            <div className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
+            <HorizontalScroll className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
               {suggestedArtists.length ? suggestedArtists.map((artist) => (
                 <ArtistCard 
                   key={artist._id} 
@@ -231,7 +232,7 @@ export default function DiscoverPage() {
               )) : (
                 <p className="text-[#666] text-[13px] py-4">No suggestions available right now.</p>
               )}
-            </div>
+            </HorizontalScroll>
           </DiscoverSection>
 
         </div>
