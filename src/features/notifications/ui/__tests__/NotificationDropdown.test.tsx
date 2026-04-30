@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NotificationDropdown } from '../NotificationDropdown'
 import { useNotificationStore } from '../../model/useNotificationStore'
 import type { Notification } from '@/shared/types'
@@ -23,6 +24,17 @@ vi.mock('../../api/notificationApi', () => ({
   markAllNotificationsRead: vi.fn(),
   deleteNotification: vi.fn(),
 }))
+
+// Mock useFollowing to avoid QueryClientProvider requirement
+vi.mock('@/features/social-graph/model/useFollowing', () => ({
+  useFollowing: () => ({ data: [], isLoading: false }),
+}))
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+const wrap = (ui: React.ReactElement) => (
+  <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+)
 
 const mockNotification = (overrides: Partial<Notification> = {}): Notification => ({
   _id: 'test-n1',
@@ -58,18 +70,18 @@ describe('NotificationDropdown', () => {
   })
 
   it('should render the dropdown when open', () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByTestId('notification-dropdown')).toBeInTheDocument()
   })
 
   it('should not render when dropdown is closed', () => {
     useNotificationStore.setState({ isDropdownOpen: false })
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.queryByTestId('notification-dropdown')).not.toBeInTheDocument()
   })
 
   it('should show "No notifications" when list is empty', async () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     await waitFor(() => {
       expect(screen.getByTestId('notification-dropdown-empty')).toBeInTheDocument()
     })
@@ -77,7 +89,7 @@ describe('NotificationDropdown', () => {
   })
 
   it('should render the header with title and settings link', () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByText('Notifications')).toBeInTheDocument()
     expect(screen.getByTestId('notification-dropdown-settings-link')).toBeInTheDocument()
     expect(screen.getByText('Settings')).toBeInTheDocument()
@@ -90,25 +102,25 @@ describe('NotificationDropdown', () => {
     ]
     useNotificationStore.setState({ notifications, isDropdownOpen: true })
 
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByTestId('notification-item-n1')).toBeInTheDocument()
     expect(screen.getByTestId('notification-item-n2')).toBeInTheDocument()
   })
 
   it('should render Settings link pointing to /settings?tab=notifications', () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     const link = screen.getByTestId('notification-dropdown-settings-link')
     expect(link).toHaveAttribute('href', '/settings?tab=notifications')
   })
 
   it('should render "View all notifications" link pointing to /notifications', () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     const link = screen.getByTestId('notification-dropdown-view-all')
     expect(link).toHaveAttribute('href', '/notifications')
   })
 
   it('should show "View all notifications" footer always', () => {
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByTestId('notification-dropdown-view-all')).toBeInTheDocument()
   })
 
@@ -118,7 +130,7 @@ describe('NotificationDropdown', () => {
       unreadCount: 1,
       isDropdownOpen: true,
     })
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByTestId('notification-mark-all-read')).toBeInTheDocument()
   })
 
@@ -127,7 +139,7 @@ describe('NotificationDropdown', () => {
       notifications: [mockNotification({ _id: 'n1', type: 'LIKE' })],
       isDropdownOpen: true,
     })
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByText('John Doe liked your track')).toBeInTheDocument()
   })
 
@@ -143,7 +155,7 @@ describe('NotificationDropdown', () => {
       ],
       isDropdownOpen: true,
     })
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByText('Fan One and 2 others liked your track')).toBeInTheDocument()
   })
 
@@ -152,7 +164,7 @@ describe('NotificationDropdown', () => {
       notifications: [mockNotification({ _id: 'n1', type: 'FOLLOW', actors: [{ _id: 'follower1', displayName: 'Jane', avatarUrl: null }] })],
       isDropdownOpen: true,
     })
-    render(<NotificationDropdown />)
+    render(wrap(<NotificationDropdown />))
     expect(screen.getByTestId('notification-follow-btn-follower1')).toBeInTheDocument()
     expect(screen.getByTestId('notification-follow-btn-follower1')).toHaveTextContent('Follow back')
   })

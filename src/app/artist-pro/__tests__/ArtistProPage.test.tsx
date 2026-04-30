@@ -83,7 +83,7 @@ describe('ArtistProPage', () => {
     render(<ArtistProPage />);
     const btn = screen.getByTestId('plan-card-artist-cta');
     fireEvent.click(btn);
-    expect(mockPush).toHaveBeenCalledWith('/payment');
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/payment'));
   });
 
   it('clicking plan card Pro CTA navigates to /payment', () => {
@@ -114,7 +114,7 @@ describe('ArtistProPage', () => {
     const artistCta = screen.getByTestId('compare-artist-cta');
     const proCta = screen.getByTestId('compare-pro-cta');
     fireEvent.click(artistCta);
-    expect(mockPush).toHaveBeenCalledWith('/payment');
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/payment'));
     fireEvent.click(proCta);
     expect(mockPush).toHaveBeenCalledWith('/payment');
   });

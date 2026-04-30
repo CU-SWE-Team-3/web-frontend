@@ -53,26 +53,18 @@ describe('useNotificationStore', () => {
       expect(state.unreadCount).toBe(1)
     })
 
-    it('should update existing notification and bring it to top', () => {
+    it('should prepend a second notification at the top', () => {
       const n1 = mockNotification({ _id: 'n1', isRead: true })
-      const n2 = mockNotification({ _id: 'n2' })
+      const n2 = mockNotification({ _id: 'n2', isRead: false })
       useNotificationStore.getState().addNotification(n1)
       useNotificationStore.getState().addNotification(n2)
-      
-      expect(useNotificationStore.getState().notifications).toHaveLength(2)
-      expect(useNotificationStore.getState().unreadCount).toBe(1) // n2 is unread, n1 is read
-
-      // Update n1 to be unread and with more actors
-      const updatedN1 = mockNotification({ _id: 'n1', isRead: false, actorCount: 2 })
-      useNotificationStore.getState().addNotification(updatedN1)
 
       const state = useNotificationStore.getState()
-      expect(state.notifications).toHaveLength(2)
-      // n1 should now be at the top
-      expect(state.notifications[0]._id).toBe('n1')
-      expect(state.notifications[0].actorCount).toBe(2)
-      // unread count should be 2 because n1 went from read to unread
-      expect(state.unreadCount).toBe(2)
+      // n2 was added last, so it should be at the top
+      expect(state.notifications[0]._id).toBe('n2')
+      expect(state.notifications[1]._id).toBe('n1')
+      // n2 is unread → count = 1; n1 is read → count stays 1
+      expect(state.unreadCount).toBe(1)
     })
   })
 

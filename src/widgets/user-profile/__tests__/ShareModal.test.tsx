@@ -23,11 +23,11 @@ afterAll(() => server.close())
 
 describe('Share Modal', () => {
   beforeEach(() => {
-    writeTextMock = vi.fn().mockResolvedValue(undefined);
+    writeTextMock = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', {
       ...navigator,
       clipboard: { writeText: writeTextMock },
-    });
+    })
   })
 
   it('does not render if closed', () => {
