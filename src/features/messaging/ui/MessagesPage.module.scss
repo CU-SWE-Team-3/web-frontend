@@ -754,6 +754,17 @@
   z-index: var(--sc-z-dropdown, 100);
   overflow: hidden;
   font-family: var(--sc-font-family);
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 54px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    margin-top: 0;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
 }
 
 .msgDropdownHeader {

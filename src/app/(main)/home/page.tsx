@@ -90,9 +90,9 @@ export default function HomePage() {
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main data-testid="home-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 40 }}>
+      <main data-testid="home-page" className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
         {/* ─── Main Feed (Left Column) ─── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="flex-1 min-w-0">
           
           {/* Mixed for You */}
           <HomeSection 
@@ -222,7 +222,7 @@ export default function HomePage() {
         </div>
 
         {/* ─── Sidebar (Right Column) ─── */}
-        <aside style={{ width: 340, flexShrink: 0 }}>
+        <aside className="w-full lg:w-[340px] shrink-0">
           
           {/* Artist Tools Card */}
           <div className="bg-[#1a1a1a] rounded-sm mb-8" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>

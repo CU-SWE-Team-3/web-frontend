@@ -184,7 +184,7 @@ export const NavBar: FC<NavBarProps> = ({
           </div>
 
           {/* ── Notification Bell with Dropdown (M10) ── */}
-          <div ref={notifRef} className={s.dropdownWrapper}>
+          <div ref={notifRef} style={{ position: 'relative' }}>
             <button
               className={s.iconBtn}
               onClick={handleBellClick}
