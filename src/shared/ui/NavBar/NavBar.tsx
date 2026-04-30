@@ -121,7 +121,7 @@ export const NavBar: FC<NavBarProps> = ({
   <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Left: Logo + Nav Links */}
     <div className={s.leftSection}>
-      <Link href={ROUTES.FEED} className={s.logoLink} data-testid="navbar-logo">
+      <Link href="/home" className={s.logoLink} data-testid="navbar-logo">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="var(--sc-primary)">
           <path d="M1.28 21.76a3.2 3.2 0 106.4 0v-6.4a3.2 3.2 0 00-6.4 0v6.4zM8.96 21.76a3.2 3.2 0 106.4 0v-9.6a3.2 3.2 0 00-6.4 0v9.6zM16.64 21.76a3.2 3.2 0 106.4 0V8.96a3.2 3.2 0 00-6.4 0v12.8zM24.32 21.76a3.2 3.2 0 106.4 0V6.4a3.2 3.2 0 00-6.4 0v15.36z"/>
         </svg>

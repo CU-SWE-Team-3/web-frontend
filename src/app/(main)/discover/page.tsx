@@ -41,7 +41,7 @@ export default function DiscoverPage() {
     <div className="min-h-screen bg-[#111111] text-white">
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main className="max-w-[1240px] mx-auto px-6 py-10 flex gap-10">
+      <main className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
         {/* Main Column */}
         <div className="flex-1 min-w-0">
           <h2 className="text-[24px] font-bold text-white mb-2">Discover</h2>
@@ -50,7 +50,7 @@ export default function DiscoverPage() {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-[300px] flex-shrink-0 flex flex-col gap-10">
+        <aside className="w-full lg:w-[300px] flex-shrink-0 flex flex-col gap-10">
           {/* History */}
           {recentlyPlayed.length > 0 && (
             <div>
