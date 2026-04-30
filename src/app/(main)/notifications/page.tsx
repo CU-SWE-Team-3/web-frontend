@@ -164,7 +164,7 @@ function NotificationRow({
   onReport: (actor: any) => void;
   onUnblock: (actor: any) => void;
 }) {
-  const { markRead } = useNotificationStore()
+  const { markRead, removeNotification } = useNotificationStore()
   const { blockedMap } = useBlockStore()
   const [moreOpen, setMoreOpen] = useState(false)
 
