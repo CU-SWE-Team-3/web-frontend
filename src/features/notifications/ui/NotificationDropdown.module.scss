@@ -13,6 +13,15 @@
   flex-direction: column;
   animation: dropdownSlideIn 180ms ease;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 54px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: calc(100vh - 70px);
+  }
 }
 
 @keyframes dropdownSlideIn {

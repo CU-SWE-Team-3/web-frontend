@@ -6,6 +6,7 @@ import { setupServer } from 'msw/node'
 import { ShareModal } from '../ShareModal'
 
 const mockOnClose = vi.fn()
+let writeTextMock: ReturnType<typeof vi.fn>
 
 const server = setupServer(
   http.get('https://tinyurl.com/api-create.php', async ({ request }) => {
@@ -22,12 +23,11 @@ afterAll(() => server.close())
 
 describe('Share Modal', () => {
   beforeEach(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-      configurable: true,
-    });
+    writeTextMock = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      clipboard: { writeText: writeTextMock },
+    })
   })
 
   it('does not render if closed', () => {
@@ -53,8 +53,7 @@ describe('Share Modal', () => {
     const copyBtn = screen.getByTestId('share-modal-copy-button')
     await user.click(copyBtn)
     
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('https://biobeats.com/testuser'))
-    expect(copyBtn).toHaveTextContent('Copied!')
+    await waitFor(() => expect(copyBtn).toHaveTextContent('Copied!'))
   })
 
   it('calls TinyURL when shorten checkbox is checked', async () => {

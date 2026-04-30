@@ -5,6 +5,7 @@ import { useConversations } from '../model/useConversations';
 import { ConversationList } from './ConversationList';
 import { ConversationView } from './ConversationView';
 import { NewConversationModal } from './NewConversationModal';
+import { NavBar } from '@/shared/ui/NavBar';
 import s from './MessagesPage.module.scss';
 
 export const MessagesPage: React.FC = () => {
@@ -26,8 +27,10 @@ export const MessagesPage: React.FC = () => {
   };
 
   return (
-    <div className={s.messagesLayout} data-testid="messages-page">
-      {/* Left sidebar */}
+    <div className={s.pageWrapper}>
+      <NavBar />
+      <div className={s.messagesLayout} data-testid="messages-page">
+        {/* Left sidebar */}
       <div className={s.sidebar} data-testid="messages-sidebar">
         <div className={s.sidebarHeader}>
           <h1 className={s.sidebarTitle}>Messages</h1>
@@ -81,6 +84,7 @@ export const MessagesPage: React.FC = () => {
         onClose={() => setShowNewModal(false)}
         onCreated={handleConversationCreated}
       />
+      </div>
     </div>
   );
 };

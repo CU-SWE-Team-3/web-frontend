@@ -13,6 +13,7 @@ import { usePlayerStore } from '@/features/player/model/playerStore';
 import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks';
 import { SquareTrackCard } from '@/shared/ui';
 import { useEditorial, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
+import { HorizontalScroll } from '@/shared/ui/HorizontalScroll/HorizontalScroll';
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -90,9 +91,9 @@ export default function HomePage() {
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main data-testid="home-page" style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 40 }}>
+      <main data-testid="home-page" className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
         {/* ─── Main Feed (Left Column) ─── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="flex-1 min-w-0">
           
           {/* Mixed for You */}
           <HomeSection 
@@ -110,7 +111,7 @@ export default function HomePage() {
 
           {/* More of what you like */}
           <HomeSection title="More of what you like" isLoading={isMoreLoading}>
-            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
               {moreOfWhatYouLike?.length ? moreOfWhatYouLike.map((track) => (
                 <SquareTrackCard 
                   key={track._id}
@@ -123,13 +124,13 @@ export default function HomePage() {
               )) : (
                 <p className="text-[#666] text-[13px] py-4">Like more tracks to get personalized recommendations.</p>
               )}
-            </div>
+            </HorizontalScroll>
           </HomeSection>
 
           {/* Recently Played */}
           <HomeSection title="Recently Played" hideIfEmpty={false}>
             {recentlyPlayed.length > 0 ? (
-              <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
                 {recentlyPlayed.map((track, i) => (
                   <SquareTrackCard 
                     key={`${track.id}-${i}`}
@@ -140,7 +141,7 @@ export default function HomePage() {
                     onPlay={() => handlePlayTrack(track)}
                   />
                 ))}
-              </div>
+              </HorizontalScroll>
             ) : (
               <p className="text-[#666] text-[13px] py-4">Your recent listening history will appear here.</p>
             )}
@@ -148,7 +149,7 @@ export default function HomePage() {
 
           {/* Made for You (Daily Drops / Weekly Wave) */}
           <HomeSection title="Made for you" isLoading={isCuratedLoading}>
-            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
               <EditorialCard type="DAILY" title="Daily Drops" />
               <EditorialCard type="WEEKLY" title="Weekly Wave" />
               {curatedBuckets?.slice(0, 3).map((bucket) => (
@@ -160,12 +161,12 @@ export default function HomePage() {
                   artworkUrl={bucket.tracks?.[0]?.artworkUrl}
                 />
               ))}
-            </div>
+            </HorizontalScroll>
           </HomeSection>
 
           {/* Liked By */}
           <HomeSection title="Liked By">
-            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
               {likedTracksList?.length ? likedTracksList.slice(0, 8).map((track) => (
                 <div key={track.id} className="min-w-[160px] relative group cursor-pointer">
                   <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
@@ -183,12 +184,12 @@ export default function HomePage() {
               )) : (
                 <p className="text-[#666] text-[13px] py-4">Like more tracks to see them here.</p>
               )}
-            </div>
+            </HorizontalScroll>
           </HomeSection>
 
           {/* Albums for You */}
           <HomeSection title="Albums for you">
-             <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+             <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
               {moreOfWhatYouLike?.length ? moreOfWhatYouLike.slice(3, 10).map((track) => (
                 <SquareTrackCard 
                   key={`album-${track._id}`}
@@ -200,12 +201,12 @@ export default function HomePage() {
               )) : (
                 [1,2,3,4,5].map(i => <div key={i} className="min-w-[160px] h-[200px] bg-[#111] rounded-sm" />)
               )}
-            </div>
+            </HorizontalScroll>
           </HomeSection>
 
           {/* New crew, suggested for you */}
           <HomeSection title="New crew, suggested for you" isLoading={isSuggestLoading}>
-            <div className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
+            <HorizontalScroll className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
               {suggestedArtists.length ? suggestedArtists.map((artist) => (
                 <ArtistCard 
                   key={artist._id} 
@@ -216,13 +217,13 @@ export default function HomePage() {
               )) : (
                 <p className="text-[#666] text-[13px] py-4">No suggestions available right now.</p>
               )}
-            </div>
+            </HorizontalScroll>
           </HomeSection>
 
         </div>
 
         {/* ─── Sidebar (Right Column) ─── */}
-        <aside style={{ width: 340, flexShrink: 0 }}>
+        <aside className="w-full lg:w-[340px] shrink-0">
           
           {/* Artist Tools Card */}
           <div className="bg-[#1a1a1a] rounded-sm mb-8" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>

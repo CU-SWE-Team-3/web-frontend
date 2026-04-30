@@ -87,6 +87,14 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
             email: prefs.emailRecommended ?? true, 
             devices: prefs.allowRecommended ?? true 
           },
+          surveysAndFeedback: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
+          promotionalAndPartnershipContent: { 
+            email: prefs.emailRecommended ?? true, 
+            devices: prefs.allowRecommended ?? true 
+          },
         },
         isDirty: false,
       }))
@@ -126,7 +134,7 @@ export const useNotificationPreferencesStore = create<NotificationSettingsState>
   savePreferences: async () => {
     set({ isLoading: true })
     try {
-      const { activities } = get()
+      const { activities, updates } = get()
       // Map UI state to API NotificationPreferences
       const prefs: Partial<NotificationPreferences> = {
         pushEnabled: true,

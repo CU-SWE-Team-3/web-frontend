@@ -24,7 +24,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
         <p className="text-[11px] text-gray-400 mb-6 leading-tight">
           By clicking on any of the &ldquo;Continue&rdquo; buttons below, you agree to 
-          SoundCloud&apos;s <span className="text-blue-500">Terms of Use</span> and 
+          BioBeats&apos; <span className="text-blue-500">Terms of Use</span> and 
           acknowledge our <span className="text-blue-500">Privacy Policy</span>.
         </p>
 

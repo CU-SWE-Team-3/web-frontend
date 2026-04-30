@@ -15,6 +15,21 @@ export default defineConfig({
         inline: ['lucide-react'],
       },
     },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'text-summary'],
+      reportsDirectory: './coverage',
+      all: false,
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/__tests__/**',
+        'src/**/tests/**',
+        'src/test/**',
+        'src/**/*.module.scss',
+        'node_modules/**',
+      ],
+    },
   },
   resolve: {
     alias: {

@@ -28,8 +28,9 @@ describe("SeekBar Component", () => {
       toJSON: () => {}
     });
 
-    // Fire click at exactly 50% width
-    fireEvent.click(seekbar.firstChild as Element, { clientX: 50 });
+    // Fire mousedown on the track, then mouseup on the document to complete the drag
+    fireEvent.mouseDown(seekbar.firstChild as Element, { clientX: 50 });
+    fireEvent.mouseUp(document, { clientX: 50 });
     
     // Should seek to 50% of 120s = 60s
     expect(handleSeek).toHaveBeenCalledWith(60);

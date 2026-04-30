@@ -20,7 +20,7 @@ info:
     { "success": false, "status": "fail|error", "message": "Human-readable description" }
     ```
     Development mode additionally includes `stack` and `error` fields.
-  version: '1.11'
+  version: "1.11"
   contact:
     name: BioBeats Engineering
     email: dev@biobeats.com
@@ -203,7 +203,7 @@ components:
 
     AttachmentType:
       type: string
-      enum: [track, playlist]
+      enum: [Track, Playlist, Station]
 
     ReleaseType:
       type: string
@@ -245,6 +245,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TrackSummary"
+    Station:
+      type: object
+      description: A saved station document in the database (genre or artist based)
+      properties:
+        _id:
+          $ref: "#/components/schemas/MongoId"
+        stationType:
+          type: string
+          enum: [genre, artist]
+          example: genre
+        identifier:
+          type: string
+          description: Genre name for genre stations, artist ObjectId for artist stations
+          example: Electronic
+        name:
+          type: string
+          example: Electronic Station
+        likeCount:
+          type: integer
+          example: 42
+        repostCount:
+          type: integer
+          example: 10
+        viralScore:
+          type: number
+          example: 156
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     CuratedBucket:
       type: object
@@ -548,7 +580,7 @@ components:
               - $ref: "#/components/schemas/PlaylistSummary"
           targetModel:
             type: string
-            enum: [Track, Playlist]
+            enum: [Track, Playlist, Station]
             description: Tells the frontend which card component to render
             example: "Track"
           isAd:
@@ -4527,7 +4559,7 @@ paths:
       tags: [Interactions]
       summary: Like a track
       description: |
-        Creates a LIKE interaction on a track (or playlist when `targetModel: "Playlist"`
+        Creates a LIKE interaction on a track, playlist, or station when `targetModel: "Station"`
         is passed in the body). Idempotent — returns 400 if already liked.
 
         **Side effects:**
@@ -4560,7 +4592,7 @@ paths:
               properties:
                 targetModel:
                   type: string
-                  enum: [Track, Playlist]
+                  enum: [Track, Playlist, Station]
                   default: Track
                   description: The model type. Defaults to `"Track"` if omitted.
             example:
@@ -4643,7 +4675,7 @@ paths:
               properties:
                 targetModel:
                   type: string
-                  enum: [Track, Playlist]
+                  enum: [Track, Playlist, Station]
                   default: Track
             example:
               targetModel: Track
@@ -4723,7 +4755,7 @@ paths:
               properties:
                 targetModel:
                   type: string
-                  enum: [Track, Playlist]
+                  enum: [Track, Playlist, Station]
                   default: Track
             example:
               targetModel: Track
@@ -4805,7 +4837,7 @@ paths:
               properties:
                 targetModel:
                   type: string
-                  enum: [Track, Playlist]
+                  enum: [Track, Playlist, Station]
                   default: Track
             example:
               targetModel: Track
@@ -8422,6 +8454,8 @@ paths:
                   data:
                     type: object
                     properties:
+                      stationId: # 👈 ADD THIS
+                        $ref: "#/components/schemas/MongoId"
                       tracks:
                         type: array
                         items:
@@ -8487,6 +8521,7 @@ paths:
                 status: "success"
                 results: 1
                 data:
+                  stationId: "507f1f77bcf86cd799439099" # 👈 ADD THIS
                   tracks:
                     - _id: "507f1f77bcf86cd799439022"
                       title: "Neon Pulse"
@@ -8505,6 +8540,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /discovery/liked-stations:
+    get:
+      tags: [Discovery]
+      summary: Get all stations liked by the authenticated user
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liked stations returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 2
+                  data:
+                    type: object
+                    properties:
+                      stations:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Station"
+              example:
+                success: true
+                count: 1
+                data:
+                  stations:
+                    - _id: "507f1f77bcf86cd799439099"
+                      stationType: genre
+                      identifier: Electronic
+                      name: Electronic Station
+                      likeCount: 42
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /discovery/related/{trackId}:
     get:

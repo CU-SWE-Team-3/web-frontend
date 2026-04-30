@@ -142,6 +142,29 @@
   }
 }
 
+.pauseIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  span {
+    display: block;
+    width: 4px;
+    height: 16px;
+    background: var(--sc-white);
+    border-radius: 1px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 3px;
+    span {
+      width: 3px;
+      height: 12px;
+    }
+  }
+}
+
 .titleInfo {
   display: flex;
   flex-direction: column;

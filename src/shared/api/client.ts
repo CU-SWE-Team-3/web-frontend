@@ -39,13 +39,23 @@ apiClient.interceptors.request.use((config) => {
 
 // ─── Response Interceptor ─────────────────────────────────────────────────────
 // If the server returns 401 (token expired), clear the session and redirect to login.
+// Skip redirect for auth endpoints (refresh/login/register) to avoid redirect loops.
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
+      const url = error.config?.url || '';
+      const isAuthEndpoint = url.includes('/auth/');
+      const authPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
+      if (!isAuthEndpoint && typeof window !== 'undefined') {
+        const hasToken = Boolean(localStorage.getItem('accessToken'));
+        const isAlreadyOnAuthPage = authPaths.some((path) => window.location.pathname.startsWith(path));
+
         localStorage.removeItem('accessToken')
-        window.location.href = '/login'
+
+        if (hasToken && !isAlreadyOnAuthPage) {
+          window.location.replace('/login')
+        }
       }
     }
     return Promise.reject(error)

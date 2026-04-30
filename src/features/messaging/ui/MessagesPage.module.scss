@@ -3,8 +3,15 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Page shell ── */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .messagesLayout {
   display: flex;
+  flex: 1;
   min-height: calc(100vh - 46px - 56px); /* navbar + player bar */
   background: var(--sc-bg-base, #111);
   font-family: var(--sc-font-family);
@@ -86,6 +93,12 @@
   background: var(--sc-bg-surface, #1a1a1a);
 }
 
+/* Avatar wrapper — holds avatar + unread dot */
+.convAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .convAvatar {
   width: 40px;
   height: 40px;
@@ -102,6 +115,35 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.convAvatarInitial {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Unread orange dot — positioned at top-left of avatar */
+.convUnreadDot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sc-primary, #ff5500);
+  z-index: 2;
+}
+
+/* Legacy — keep for backward compat */
+.convUnread {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc-primary, #ff5500);
+  flex-shrink: 0;
 }
 
 .convInfo {
@@ -141,12 +183,51 @@
   margin-top: 2px;
 }
 
-.convUnread {
-  width: 8px;
-  height: 8px;
+/* Dropdown avatar styles */
+.msgDropdownAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.msgDropdownUnreadDot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--sc-primary, #ff5500);
-  flex-shrink: 0;
+  z-index: 2;
+}
+
+.msgDropdownAvatarInitial {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* User result avatar styles */
+.userResultAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.userResultAvatarInitial {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 /* ── Right panel (chat) ── */
@@ -205,8 +286,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--sc-border, #333);
+  font-family: var(--sc-font-family);
+  background: #111;
 }
 
 .chatActionLeft {
@@ -216,28 +299,33 @@
 }
 
 .chatUserName {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--sc-text-primary, #fff);
 }
 
 .chatActionLink {
-  font-size: 13px;
-  color: var(--sc-text-secondary, #999);
   background: none;
   border: none;
+  color: var(--sc-text-primary, #fff);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-family: var(--sc-font-family);
   padding: 0;
-  transition: color var(--sc-transition-fast, 120ms ease);
 
   &:hover {
-    color: var(--sc-text-primary, #fff);
+    text-decoration: underline;
   }
 }
 
 .blockedTextOrange {
   color: var(--sc-primary, #ff5500) !important;
+  font-weight: 700 !important;
+
+  &:hover {
+    text-decoration: underline;
+    color: #ff7733 !important;
+  }
 }
 
 .chatActionRight {
@@ -247,34 +335,39 @@
 }
 
 .markUnreadBtn {
-  padding: 6px 14px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 500;
-  font-family: var(--sc-font-family);
-  color: var(--sc-text-primary, #fff);
-  background: none;
-  border: 1px solid var(--sc-border, #333);
-  border-radius: var(--sc-radius-md, 4px);
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--sc-transition-fast, 120ms ease);
+  transition: background 0.2s;
 
   &:hover {
-    border-color: var(--sc-text-secondary, #999);
+    border-color: #666;
   }
 }
 
+.deleteBtnWrapper {
+  position: relative;
+}
+
 .deleteBtn {
-  background: none;
-  border: none;
-  color: var(--sc-text-secondary, #999);
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 6px;
   cursor: pointer;
-  padding: 4px;
   display: flex;
   align-items: center;
-  transition: color var(--sc-transition-fast, 120ms ease);
+  justify-content: center;
+  transition: background 0.2s;
 
   &:hover {
-    color: var(--sc-text-primary, #fff);
+    border-color: #666;
   }
 }
 
@@ -458,8 +551,25 @@
 
 .composerActions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 12px;
+}
+
+.addTrackBtn {
+  background: #333;
+  color: #ccc;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--sc-font-family);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #444;
+  }
 }
 
 .sendBtn {
@@ -754,6 +864,17 @@
   z-index: var(--sc-z-dropdown, 100);
   overflow: hidden;
   font-family: var(--sc-font-family);
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 54px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    margin-top: 0;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
 }
 
 .msgDropdownHeader {

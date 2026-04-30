@@ -49,14 +49,15 @@ export const ShareModal: FC<ShareModalProps> = ({
       await navigator.clipboard.writeText(displayUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } catch (err) {
+      console.log('Clipboard fallback triggered:', err);
       // Fallback
       const textarea = document.createElement('textarea');
       textarea.value = displayUrl;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
-      document.body.removeChild(textarea);
+      textarea.parentNode?.removeChild(textarea);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

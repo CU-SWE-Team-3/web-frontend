@@ -173,6 +173,14 @@ export const useSocket = () => {
     socketRef.current?.emit('stop_typing', { receiverId });
   }, []);
 
+  const emitJoinChat = useCallback((conversationId: string) => {
+    socketRef.current?.emit('join_chat', { conversationId });
+  }, []);
+
+  const emitLeaveChat = useCallback((conversationId: string) => {
+    socketRef.current?.emit('leave_chat', { conversationId });
+  }, []);
+
   return {
     socket: socketRef.current,
     typingUsers,
@@ -180,5 +188,7 @@ export const useSocket = () => {
     emitMarkAsRead,
     emitTyping,
     emitStopTyping,
+    emitJoinChat,
+    emitLeaveChat,
   };
 };

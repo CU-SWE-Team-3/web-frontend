@@ -1,26 +1,16 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
-import axios from 'axios'
+import apiClient from '@/shared/api/client'
 import ResetPasswordForm from '../ResetPasswordForm'
 
 // --- Mocking ---
-vi.mock('axios', () => {
-  return {
-    default: {
-      patch: vi.fn(),
-      post: vi.fn(),
-      create: vi.fn(() => ({
-        interceptors: {
-          request: { use: vi.fn() },
-          response: { use: vi.fn() },
-        },
-        get: vi.fn(),
-        post: vi.fn(),
-        patch: vi.fn(),
-      })),
-    },
-  }
-})
+vi.mock('@/shared/api/client', () => ({
+  default: {
+    patch: vi.fn(),
+    post: vi.fn(),
+    get: vi.fn(),
+  },
+}))
 
 const mockPush = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -67,7 +57,7 @@ describe('ResetPasswordForm', () => {
   })
 
   it('calls the API with token and newPassword and shows success message', async () => {
-    ;(axios.patch as any).mockResolvedValueOnce({ data: { success: true } })
+    ;(apiClient.patch as any).mockResolvedValueOnce({ data: { success: true } })
     render(<ResetPasswordForm />)
     
     fireEvent.change(screen.getByTestId('reset-password-new-input'), { target: { value: 'strongpassword123' } })
@@ -76,10 +66,9 @@ describe('ResetPasswordForm', () => {
     fireEvent.submit(screen.getByTestId('reset-password-form'))
 
     await waitFor(() => {
-      expect(axios.patch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/auth/reset-password',
-        { token: 'valid-reset-token', newPassword: 'strongpassword123' },
-        { withCredentials: true }
+      expect(apiClient.patch).toHaveBeenCalledWith(
+        '/auth/reset-password',
+        { token: 'valid-reset-token', newPassword: 'strongpassword123' }
       )
     })
 
@@ -93,7 +82,7 @@ describe('ResetPasswordForm', () => {
   })
 
   it('displays API error appropriately', async () => {
-    ;(axios.patch as any).mockRejectedValueOnce(new Error('API failure'))
+    ;(apiClient.patch as any).mockRejectedValueOnce(new Error('API failure'))
     render(<ResetPasswordForm />)
     
     fireEvent.change(screen.getByTestId('reset-password-new-input'), { target: { value: 'strongpassword123' } })
