@@ -3,27 +3,24 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Megaphone } from 'lucide-react';
 import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
 import { ROUTES } from '@/shared/constants/routes';
 import s from './PremiumAdBanner.module.scss';
 
 /**
- * Floating "premium ad" toast — bottom-left of screen.
- * Only renders when user has NO active subscription (Free / null / undefined).
- * Disappears automatically for Go+, Artist, or Pro subscribers.
+ * Floating premium ad toast shown to users without an active subscription.
  */
 export const PremiumAdBanner: React.FC = () => {
   const { currentPlan, isPremium } = useSubscriptionStore();
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
 
-  // Slide-in after a short delay so it doesn't flash on page load
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 800);
     return () => clearTimeout(timer);
   }, []);
 
-  // Hide for any paid plan
   const isSubscribed =
     isPremium ||
     currentPlan === 'Go+' ||
@@ -39,22 +36,19 @@ export const PremiumAdBanner: React.FC = () => {
       role="complementary"
       aria-label="Premium subscription ad"
     >
-      {/* Dismiss button */}
       <button
         className={s.dismissBtn}
         onClick={() => setDismissed(true)}
         aria-label="Dismiss ad"
         data-testid="premium-ad-dismiss"
       >
-        ×
+        &times;
       </button>
 
-      {/* Ad icon */}
       <div className={s.iconWrap}>
-        <span className={s.icon}>📢</span>
+        <Megaphone className={s.icon} size={18} aria-hidden="true" />
       </div>
 
-      {/* Ad text */}
       <p className={s.text}>
         I am an ad{' '}
         <Link

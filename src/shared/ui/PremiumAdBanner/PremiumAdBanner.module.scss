@@ -100,7 +100,8 @@
 }
 
 .icon {
-  font-size: 18px;
+  color: #ff5500;
+  flex-shrink: 0;
 }
 
 /* ── Text ── */
@@ -124,5 +125,11 @@
     color: #ff7733;
     border-bottom-color: #ff7733;
     border-bottom-style: solid;
+  }
+}
+
+@media (max-width: 700px) {
+  .banner {
+    display: none;
   }
 }

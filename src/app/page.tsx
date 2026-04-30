@@ -46,8 +46,8 @@ export default function HomePage() {
       </div>
 
       {/* Search Bar */}
-      <div data-testid="search-section" className="flex items-center justify-center gap-4 px-4 py-6 max-w-[800px] mx-auto">
-        <div className="flex-1 relative">
+      <div data-testid="search-section" className="flex flex-col min-[430px]:flex-row items-stretch min-[430px]:items-center justify-center gap-3 min-[430px]:gap-4 px-4 py-6 max-w-[800px] mx-auto">
+        <div className="w-full min-[430px]:flex-1 relative">
           <input
             data-testid="search-input"
             type="text"
@@ -55,7 +55,7 @@ export default function HomePage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
             placeholder="Search for artists, bands, tracks, podcasts"
-            className="w-full h-10 pl-4 pr-10 bg-white text-black text-sm rounded-full outline-none focus:ring-2 focus:ring-[#ff5500] placeholder:text-gray-400"
+            className="w-full h-11 min-[430px]:h-10 pl-4 pr-10 bg-white text-black text-sm rounded-full outline-none focus:ring-2 focus:ring-[#ff5500] placeholder:text-gray-400"
           />
           <svg 
             onClick={handleSearch}
@@ -65,11 +65,11 @@ export default function HomePage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
           </svg>
         </div>
-        <span className="text-gray-400 text-sm shrink-0">or</span>
+        <span className="text-gray-400 text-sm shrink-0 text-center">or</span>
         <Link
           href={ROUTES.REGISTER}
           data-testid="upload-your-own-btn"
-          className="shrink-0 px-5 h-10 flex items-center border border-white/40 hover:border-white text-white text-sm font-medium rounded-full transition-colors"
+          className="shrink-0 px-5 h-11 min-[430px]:h-10 flex items-center justify-center border border-white/40 hover:border-white text-white text-sm font-medium rounded-full transition-colors"
         >
           Upload your own
         </Link>
