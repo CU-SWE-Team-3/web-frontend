@@ -4,7 +4,7 @@ import React from 'react';
 import type { Message, MessageStatus, MessageUser } from '../model/types';
 import { TrackPreviewCard } from './TrackPreviewCard';
 import { PlaylistPreviewCard } from './PlaylistPreviewCard';
-import { formatRelativeTime } from './utils';
+import { formatRelativeTime, decodeEmojis } from './utils';
 import s from './MessagesPage.module.scss';
 
 interface MessageBubbleProps {
@@ -87,7 +87,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   if (sharedTrack) {
     trackPreview = sharedTrack;
   } else if (attachment) {
-    const referenceId = attachment.referenceId || (attachment as any).id || (attachment as any).attachmentId;
+    const referenceId = attachment.referenceId
+        || (attachment as any).attachmentId
+        || (attachment as any).id
+        || (attachment as any)._id;
     if (attachment.type === 'track') {
       trackPreview = { trackId: referenceId, title: '', artist: '', artworkUrl: null, duration: 0, trackUrl: '' };
     } else if (attachment.type === 'playlist') {
@@ -137,9 +140,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {formatRelativeTime(message.createdAt)}
           </span>
         </div>
-        {message.content && (
+        {message.content?.trim() && (
           <div className={s.msgText} data-testid={`message-content-${message._id}`}>
-            {message.content}
+            {decodeEmojis(message.content)}
             {message.isEdited && (
               <span className={s.msgEdited} data-testid={`message-edited-${message._id}`}> (edited)</span>
             )}

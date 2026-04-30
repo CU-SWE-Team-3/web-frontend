@@ -87,6 +87,10 @@ export interface SendMessagePayload {
   content?: string;
   attachmentType?: 'track' | 'playlist';
   attachmentId?: string;
+  attachment?: {
+    type: 'track' | 'playlist';
+    referenceId: string;
+  };
 }
 
 export interface EditMessagePayload {

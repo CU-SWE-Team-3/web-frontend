@@ -82,4 +82,14 @@ describe('MessageBubble', () => {
     expect(screen.getByTestId('mock-playlist-preview')).toBeInTheDocument();
     expect(screen.getByText('playlist-456')).toBeInTheDocument();
   });
+
+  it('renders preview card correctly when attachment uses attachmentId field', () => {
+    const messageWithBackendAttachment: Message = {
+      ...mockMessage,
+      attachment: { type: 'track', attachmentId: 'track-backend-123' } as any
+    };
+    render(<MessageBubble message={messageWithBackendAttachment} />);
+    expect(screen.getByTestId('mock-track-preview')).toBeInTheDocument();
+    expect(screen.getByText('track-backend-123')).toBeInTheDocument();
+  });
 });

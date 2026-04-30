@@ -444,6 +444,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
         trackArtist={userFullName}
         trackArtworkUrl={track.artworkUrl}
         trackUrl={`/tracks/${track.id}`}
+        trackId={track.id}
         trackGenre={track.genre}
       />
 
