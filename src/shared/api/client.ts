@@ -46,9 +46,16 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const url = error.config?.url || '';
       const isAuthEndpoint = url.includes('/auth/');
+      const authPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
       if (!isAuthEndpoint && typeof window !== 'undefined') {
+        const hasToken = Boolean(localStorage.getItem('accessToken'));
+        const isAlreadyOnAuthPage = authPaths.some((path) => window.location.pathname.startsWith(path));
+
         localStorage.removeItem('accessToken')
-        window.location.href = '/login'
+
+        if (hasToken && !isAlreadyOnAuthPage) {
+          window.location.replace('/login')
+        }
       }
     }
     return Promise.reject(error)

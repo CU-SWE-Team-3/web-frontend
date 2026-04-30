@@ -133,6 +133,7 @@ function mapHydratedStation(station: HydratedStation): LikedPlaylistItem {
  */
 export const useLikedItems = (userId: string = "me") => {
   const isInitialized = useAuthStore((s) => s.isInitialized);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
 
   const actualUserId = userId === "me" ? (user?.id || (user as any)?._id || "me") : userId;
@@ -208,7 +209,7 @@ export const useLikedItems = (userId: string = "me") => {
         return { tracks: [], playlists: [] };
       }
     },
-    enabled: isInitialized && !!actualUserId && actualUserId !== "",
+    enabled: isInitialized && isAuthenticated && !!actualUserId && actualUserId !== "",
     staleTime: 0,
     refetchOnMount: "always" as const,
   });
