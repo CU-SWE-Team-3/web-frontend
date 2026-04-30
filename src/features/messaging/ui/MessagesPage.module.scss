@@ -3,8 +3,15 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Page shell ── */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .messagesLayout {
   display: flex;
+  flex: 1;
   min-height: calc(100vh - 46px - 56px); /* navbar + player bar */
   background: var(--sc-bg-base, #111);
   font-family: var(--sc-font-family);
@@ -86,6 +93,12 @@
   background: var(--sc-bg-surface, #1a1a1a);
 }
 
+/* Avatar wrapper — holds avatar + unread dot */
+.convAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .convAvatar {
   width: 40px;
   height: 40px;
@@ -102,6 +115,35 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.convAvatarInitial {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Unread orange dot — positioned at top-left of avatar */
+.convUnreadDot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sc-primary, #ff5500);
+  z-index: 2;
+}
+
+/* Legacy — keep for backward compat */
+.convUnread {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc-primary, #ff5500);
+  flex-shrink: 0;
 }
 
 .convInfo {
@@ -141,12 +183,51 @@
   margin-top: 2px;
 }
 
-.convUnread {
-  width: 8px;
-  height: 8px;
+/* Dropdown avatar styles */
+.msgDropdownAvatarWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.msgDropdownUnreadDot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--sc-primary, #ff5500);
-  flex-shrink: 0;
+  z-index: 2;
+}
+
+.msgDropdownAvatarInitial {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* User result avatar styles */
+.userResultAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.userResultAvatarInitial {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 /* ── Right panel (chat) ── */

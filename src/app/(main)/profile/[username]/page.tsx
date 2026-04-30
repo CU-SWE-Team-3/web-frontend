@@ -21,6 +21,7 @@ import { useLikedTracks } from '@/features/track-engagement/model/useLikedTracks
 import { useQueryClient } from '@tanstack/react-query';
 import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
 import { PlaylistStreamCard } from '@/features/playlists/ui/PlaylistStreamCard';
+import { PlaylistShareModal } from '@/features/playlists/ui/PlaylistShareModal';
 import type { Playlist } from '@/features/playlists/model/playlist';
 import s from './ProfilePage.module.scss';
 
@@ -480,6 +481,8 @@ function ProfilePlaylistGrid({
 }) {
   const { data: playlists, isLoading } = useUserPlaylists(userId, releaseType);
 
+  const [sharePlaylist, setSharePlaylist] = useState<Playlist | null>(null);
+
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -514,8 +517,17 @@ function ProfilePlaylistGrid({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {visiblePlaylists.map((pl: Playlist) => (
-        <PlaylistStreamCard key={pl._id} playlist={pl} />
+        <PlaylistStreamCard
+          key={pl._id}
+          playlist={pl}
+          onShare={() => setSharePlaylist(pl)}
+        />
       ))}
+      <PlaylistShareModal
+        open={!!sharePlaylist}
+        onClose={() => setSharePlaylist(null)}
+        playlist={sharePlaylist || visiblePlaylists[0]}
+      />
     </div>
   );
 }

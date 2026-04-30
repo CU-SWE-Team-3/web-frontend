@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useUserTracks } from '@/features/tracks/model/trackQueries';
+import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
 import { CloseIcon } from '@/shared/ui/icons';
 
 export interface AddAttachmentModalProps {
   open: boolean;
   onClose: () => void;
-  onSelectTrack: (track: any) => void;
+  onSelectTrack: (item: any, type: 'track' | 'playlist') => void;
 }
 
 export const AddAttachmentModal: React.FC<AddAttachmentModalProps> = ({
@@ -15,9 +16,14 @@ export const AddAttachmentModal: React.FC<AddAttachmentModalProps> = ({
   onClose,
   onSelectTrack,
 }) => {
-  const { data: myTracks = [], isLoading } = useUserTracks('me');
+  const [activeTab, setActiveTab] = useState<'tracks' | 'playlists'>('tracks');
+  const { data: myTracks = [], isLoading: loadingTracks } = useUserTracks('me');
+  const { data: myPlaylists = [], isLoading: loadingPlaylists } = useUserPlaylists('me');
 
   if (!open) return null;
+
+  const isLoading = activeTab === 'tracks' ? loadingTracks : loadingPlaylists;
+  const items = activeTab === 'tracks' ? myTracks : myPlaylists;
 
   return (
     <div
@@ -41,40 +47,71 @@ export const AddAttachmentModal: React.FC<AddAttachmentModalProps> = ({
           </button>
         </div>
 
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #333' }}>
+          <button
+            onClick={() => setActiveTab('tracks')}
+            style={{
+              flex: 1, padding: '12px', background: 'none', border: 'none',
+              color: activeTab === 'tracks' ? '#f50' : '#999',
+              borderBottom: activeTab === 'tracks' ? '2px solid #f50' : '2px solid transparent',
+              cursor: 'pointer', fontWeight: 600
+            }}
+          >
+            Tracks
+          </button>
+          <button
+            onClick={() => setActiveTab('playlists')}
+            style={{
+              flex: 1, padding: '12px', background: 'none', border: 'none',
+              color: activeTab === 'playlists' ? '#f50' : '#999',
+              borderBottom: activeTab === 'playlists' ? '2px solid #f50' : '2px solid transparent',
+              cursor: 'pointer', fontWeight: 600
+            }}
+          >
+            Playlists
+          </button>
+        </div>
+
         {/* Content */}
         <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
-          <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 600, color: '#999' }}>My Tracks</div>
           {isLoading ? (
-            <div style={{ color: '#999', textAlign: 'center', padding: 20 }}>Loading your tracks...</div>
-          ) : myTracks.length === 0 ? (
-            <div style={{ color: '#999', textAlign: 'center', padding: 20 }}>You don't have any tracks yet.</div>
+            <div style={{ color: '#999', textAlign: 'center', padding: 20 }}>Loading...</div>
+          ) : items.length === 0 ? (
+            <div style={{ color: '#999', textAlign: 'center', padding: 20 }}>
+              {activeTab === 'tracks' ? "You don't have any tracks yet." : "You don't have any playlists yet."}
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {myTracks.map(track => (
-                <div
-                  key={track.id}
-                  onClick={() => {
-                    onSelectTrack(track);
-                    onClose();
-                  }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
-                    background: '#111', borderRadius: 4, cursor: 'pointer',
-                    border: '1px solid #333'
-                  }}
-                  data-testid={`attachment-track-${track.id}`}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#555')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#333')}
-                >
-                  <div style={{ width: 40, height: 40, borderRadius: 2, background: '#333', flexShrink: 0, overflow: 'hidden' }}>
-                    {track.artworkUrl && <img src={track.artworkUrl} alt={track.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              {items.map((item: any) => {
+                const id = item.id || item._id;
+                const artwork = item.artworkUrl || (item as any).artwork_url;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => {
+                      onSelectTrack(item, activeTab === 'tracks' ? 'track' : 'playlist');
+                      onClose();
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
+                      background: '#111', borderRadius: 4, cursor: 'pointer',
+                      border: '1px solid #333'
+                    }}
+                    data-testid={`attachment-${activeTab === 'tracks' ? 'track' : 'playlist'}-${id}`}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#555')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#333')}
+                  >
+                    <div style={{ width: 40, height: 40, borderRadius: 2, background: '#333', flexShrink: 0, overflow: 'hidden' }}>
+                      {artwork && <img src={artwork} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: '#999' }}>{activeTab === 'tracks' ? 'Track' : 'Playlist'}</div>
+                    </div>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</div>
-                    <div style={{ fontSize: 12, color: '#999' }}>Track</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

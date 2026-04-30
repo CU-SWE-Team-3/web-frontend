@@ -5,7 +5,10 @@ import {
   type UseMutationOptions,
 } from '@tanstack/react-query';
 import apiClient from '@/shared/api/client';
-import { playlistsRepository } from '../api/playlistsRepository';
+import {
+  playlistsRepository,
+  type PlaylistLikeResult,
+} from '../api/playlistsRepository';
 import { tracksRepository } from '@/features/tracks/api/tracksRepository';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import type {
@@ -21,6 +24,10 @@ export const PLAYLISTS_QUERY_KEY = ['playlists'] as const;
 
 function playlistKeys(id: string) {
   return [...PLAYLISTS_QUERY_KEY, id] as const;
+}
+
+interface PlaylistEngagementState {
+  likedIds: Set<string>;
 }
 
 function getImageUrl(value: any): string {
@@ -71,6 +78,58 @@ function getTrackLookup(track: any): string {
     : track?.permalink || track?._id || track?.id || '';
 }
 
+function getPlaylistId(value: any): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  return value._id || value.id || value.targetId || value.playlistId || '';
+}
+
+function getCurrentUserId(): string {
+  const user = useAuthStore.getState().user as any;
+  return user?._id || user?.id || '';
+}
+
+function extractInteractionItems(payload: any, keys: string[]): any[] {
+  const candidates = [
+    ...keys.map((key) => payload?.data?.[key]),
+    payload?.data?.data,
+    payload?.data,
+    ...keys.map((key) => payload?.[key]),
+    payload,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+}
+
+async function getCurrentUserPlaylistEngagement(): Promise<PlaylistEngagementState> {
+  const userId = getCurrentUserId();
+  if (!userId) return { likedIds: new Set() };
+
+  const likesResult = await Promise.resolve(
+    apiClient.get(`/profile/${userId}/likes`, { withCredentials: true }),
+  ).then(
+    (value) => ({ status: 'fulfilled' as const, value }),
+    () => ({ status: 'rejected' as const }),
+  );
+
+  const likedIds = new Set<string>();
+
+  if (likesResult.status === 'fulfilled') {
+    const likes = extractInteractionItems(likesResult.value?.data, ['likes', 'likedTracks']);
+    for (const item of likes) {
+      if ((item?.targetModel || item?.model) !== 'Playlist') continue;
+      const id = getPlaylistId(item.target || item.playlist || item);
+      if (id) likedIds.add(id);
+    }
+  }
+
+  return { likedIds };
+}
+
 function isMissingTrack(track: any): boolean {
   return !track || track.__missing === true;
 }
@@ -116,13 +175,14 @@ async function resolveCreator(creator: Playlist['creator']): Promise<Playlist['c
   return creator;
 }
 
-async function normalizePlaylist(raw: Playlist): Promise<Playlist> {
+async function normalizePlaylist(raw: Playlist, engagement?: PlaylistEngagementState): Promise<Playlist> {
   const hasTracksArray = Array.isArray(raw.tracks);
   const tracks = hasTracksArray
     ? (raw.tracks || []).filter((track) => !isMissingTrack(track))
     : [];
   const rawTrackCount = raw.trackCount ?? (raw as any).track_count ?? 0;
   const creator = await resolveCreator(raw.creator);
+  const id = raw._id || (raw as any).id;
 
   return {
     ...raw,
@@ -134,6 +194,14 @@ async function normalizePlaylist(raw: Playlist): Promise<Playlist> {
     totalDuration: raw.totalDuration ?? (raw as any).total_duration ?? 0,
     likeCount: raw.likeCount ?? (raw as any).like_count ?? 0,
     repostCount: raw.repostCount ?? (raw as any).repost_count ?? 0,
+    isLiked: Boolean(
+      raw.isLiked ||
+      (raw as any).is_liked ||
+      (raw as any).liked ||
+      (raw as any).hasLiked ||
+      (raw as any).likedByMe ||
+      (id ? engagement?.likedIds.has(id) : false),
+    ),
   };
 }
 
@@ -208,6 +276,25 @@ function patchPlaylistQueryData(previous: unknown, playlistId: string, trackIds:
   return previous;
 }
 
+function patchPlaylistData(previous: unknown, playlistId: string, updater: (p: Playlist) => Playlist): unknown {
+  if (!previous) return previous;
+
+  if (Array.isArray(previous)) {
+    return previous.map((item) => {
+      if (item && typeof item === 'object' && (item as Playlist)._id === playlistId) {
+        return updater(item as Playlist);
+      }
+      return item;
+    });
+  }
+
+  if (typeof previous === 'object' && (previous as Playlist)._id === playlistId) {
+    return updater(previous as Playlist);
+  }
+
+  return previous;
+}
+
 // ─── Queries ─────────────────────────────────────────────────────────────────
 
 /**
@@ -222,8 +309,11 @@ export function usePlaylists(params?: {
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, 'list', params ?? {}],
     queryFn: async () => {
-      const playlists = await playlistsRepository.getPlaylists(params);
-      return Promise.all(playlists.map(normalizePlaylist));
+      const [playlists, engagement] = await Promise.all([
+        playlistsRepository.getPlaylists(params),
+        getCurrentUserPlaylistEngagement(),
+      ]);
+      return Promise.all(playlists.map((playlist) => normalizePlaylist(playlist, engagement)));
     },
     enabled: isInitialized,
     staleTime: 30_000,
@@ -240,12 +330,15 @@ export function useUserPlaylists(userId?: string, releaseType?: string) {
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, 'user', userId, releaseType],
     queryFn: async () => {
-      const playlists = await playlistsRepository.getPlaylists({
-        creator: userId,
-        releaseType,
-      });
+      const [playlists, engagement] = await Promise.all([
+        playlistsRepository.getPlaylists({
+          creator: userId,
+          releaseType,
+        }),
+        getCurrentUserPlaylistEngagement(),
+      ]);
       return Promise.all(playlists.map(async (playlist) => {
-        const normalized = await normalizePlaylist(playlist);
+        const normalized = await normalizePlaylist(playlist, engagement);
 
         if ((normalized.trackCount || 0) <= 0 && normalized.tracks.length === 0) {
           return normalized;
@@ -253,7 +346,7 @@ export function useUserPlaylists(userId?: string, releaseType?: string) {
 
         try {
           const fullPlaylist = await playlistsRepository.getPlaylistById(normalized._id);
-          return verifyPlaylistTracks(await normalizePlaylist(fullPlaylist), queryClient);
+          return verifyPlaylistTracks(await normalizePlaylist(fullPlaylist, engagement), queryClient);
         } catch (err) {
           console.warn(`[useUserPlaylists] Failed to verify playlist ${normalized._id}:`, err);
           return normalized;
@@ -314,11 +407,14 @@ export function usePlaylist(id?: string, secretToken?: string) {
   return useQuery({
     queryKey: [...PLAYLISTS_QUERY_KEY, id, secretToken],
     queryFn: async () => {
-      const raw = await playlistsRepository.getPlaylistById(id!, secretToken);
+      const [raw, engagement] = await Promise.all([
+        playlistsRepository.getPlaylistById(id!, secretToken),
+        getCurrentUserPlaylistEngagement(),
+      ]);
       
       if (!raw) return null;
 
-      let playlist = await normalizePlaylist(raw);
+      let playlist = await normalizePlaylist(raw, engagement);
 
       if (!playlist.tracks) return playlist;
 
@@ -491,16 +587,48 @@ export function useUploadPlaylistArtwork(
  * Like a playlist.
  */
 export function useLikePlaylist(
-  options?: UseMutationOptions<void, Error, string>,
+  options?: UseMutationOptions<PlaylistLikeResult, Error, string, { previousQueries: [readonly unknown[], unknown][] }>,
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => playlistsRepository.likePlaylist(id),
     ...options,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      const previousQueries = queryClient.getQueriesData({ queryKey: PLAYLISTS_QUERY_KEY });
+
+      queryClient.setQueriesData({ queryKey: PLAYLISTS_QUERY_KEY }, (previous) =>
+        patchPlaylistData(previous, id, (p) => ({
+          ...p,
+          isLiked: true,
+          likeCount: (p.likeCount || 0) + 1
+        }))
+      );
+
+      return { previousQueries };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
     onSuccess: (data, id, onMutateResult, context) => {
-      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      queryClient.setQueriesData({ queryKey: PLAYLISTS_QUERY_KEY }, (previous) =>
+        patchPlaylistData(previous, id, (p) => ({
+          ...p,
+          isLiked: data.liked,
+          likeCount: data.newLikeCount ?? p.likeCount,
+        })),
+      );
       options?.onSuccess?.(data, id, onMutateResult, context);
+    },
+    onSettled: (data, err, id, onMutateResult, context) => {
+      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      options?.onSettled?.(data, err, id, onMutateResult, context);
     },
   });
 }
@@ -509,52 +637,48 @@ export function useLikePlaylist(
  * Unlike a playlist.
  */
 export function useUnlikePlaylist(
-  options?: UseMutationOptions<void, Error, string>,
+  options?: UseMutationOptions<PlaylistLikeResult, Error, string, { previousQueries: [readonly unknown[], unknown][] }>,
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => playlistsRepository.unlikePlaylist(id),
     ...options,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      const previousQueries = queryClient.getQueriesData({ queryKey: PLAYLISTS_QUERY_KEY });
+
+      queryClient.setQueriesData({ queryKey: PLAYLISTS_QUERY_KEY }, (previous) =>
+        patchPlaylistData(previous, id, (p) => ({
+          ...p,
+          isLiked: false,
+          likeCount: Math.max(0, (p.likeCount || 0) - 1)
+        }))
+      );
+
+      return { previousQueries };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
     onSuccess: (data, id, onMutateResult, context) => {
-      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
+      queryClient.setQueriesData({ queryKey: PLAYLISTS_QUERY_KEY }, (previous) =>
+        patchPlaylistData(previous, id, (p) => ({
+          ...p,
+          isLiked: data.liked,
+          likeCount: data.newLikeCount ?? p.likeCount,
+        })),
+      );
       options?.onSuccess?.(data, id, onMutateResult, context);
     },
-  });
-}
-
-/**
- * Repost a playlist.
- */
-export function useRepostPlaylist(
-  options?: UseMutationOptions<void, Error, string>,
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => playlistsRepository.repostPlaylist(id),
-    ...options,
-    onSuccess: (data, id, onMutateResult, context) => {
+    onSettled: (data, err, id, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
-      options?.onSuccess?.(data, id, onMutateResult, context);
-    },
-  });
-}
-
-/**
- * Unrepost a playlist.
- */
-export function useUnrepostPlaylist(
-  options?: UseMutationOptions<void, Error, string>,
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => playlistsRepository.unrepostPlaylist(id),
-    ...options,
-    onSuccess: (data, id, onMutateResult, context) => {
-      queryClient.invalidateQueries({ queryKey: playlistKeys(id) });
-      options?.onSuccess?.(data, id, onMutateResult, context);
+      queryClient.invalidateQueries({ queryKey: PLAYLISTS_QUERY_KEY });
+      options?.onSettled?.(data, err, id, onMutateResult, context);
     },
   });
 }

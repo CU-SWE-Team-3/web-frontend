@@ -61,6 +61,44 @@ function getImageUrl(value: any): string {
   );
 }
 
+function mapPlaylistTrackToPlayerTrack(track: TrackSummary | string) {
+  if (typeof track === 'string') {
+    return {
+      id: track,
+      title: 'Loading...',
+      artist: '',
+      artworkUrl: '',
+      duration: 0,
+      streamUrl: '',
+      hlsUrl: '',
+    };
+  }
+
+  const t = track as any;
+  const hls = t.hlsUrl || t.hls_url || t.audioUrl || t.audio_url || '';
+  const stream = t.streamUrl || t.stream_url || hls || '';
+  const artwork = getImageUrl(t.artworkUrl || t.artwork_url || t.artwork || t.coverUrl || t.cover_url || t.imageUrl || t.image_url || t.thumbnailUrl || t.thumbnail_url);
+  const artistObj = t.artist;
+  let artistName = 'Unknown Artist';
+  if (typeof artistObj === 'string') {
+    artistName = artistObj;
+  } else if (artistObj) {
+    artistName = artistObj.displayName || artistObj.permalink || artistObj.username || 'Unknown Artist';
+  }
+
+  const trackId = t._id || t.id || '';
+
+  return {
+    id: trackId,
+    title: t.title || 'Untitled',
+    artist: artistName,
+    artworkUrl: artwork,
+    duration: t.duration || 0,
+    streamUrl: stream,
+    hlsUrl: hls,
+  };
+}
+
 function isOwnerOfPlaylist(playlist: Playlist, userId?: string): boolean {
   if (!userId) return false;
   const creatorId = typeof playlist.creator === 'string'
@@ -94,6 +132,7 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
   const updateTracks = useUpdatePlaylistTracks();
   const uploadArtwork = useUploadPlaylistArtwork();
   const playContext = usePlayerStore((s) => s.playContext);
+  const addToQueue = usePlayerStore((s) => s.addToQueue);
 
   // Modal state
   const [editOpen, setEditOpen] = useState(false);
@@ -206,50 +245,23 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
     },
     [playlist, uploadArtwork],
   );
+
+  const handleAddToNextUp = useCallback(() => {
+    if (!playlist || playlist.tracks.length === 0) {
+      showToast('This playlist has no tracks to add', 'info');
+      return;
+    }
+
+    const resolvedTracks = playlist.tracks.map(mapPlaylistTrackToPlayerTrack);
+    resolvedTracks.forEach(addToQueue);
+    showToast(`Added ${resolvedTracks.length} track${resolvedTracks.length > 1 ? 's' : ''} to Next up`);
+  }, [playlist, addToQueue]);
   
   const handleTrackPlay = useCallback(
     (index: number) => {
       if (!playlist || playlist.tracks.length === 0) return;
-      
-      const resolvedTracks = playlist.tracks.map((t: any) => {
-        if (typeof t === 'string') {
-          return {
-            id: t,
-            title: 'Loading...',
-            artist: '',
-            artworkUrl: '',
-            duration: 0,
-            streamUrl: '',
-            hlsUrl: '',
-          };
-        }
-        
-        // Robust mapping for playback URLs
-        const hls = t.hlsUrl || t.hls_url || t.audioUrl || t.audio_url || '';
-        const stream = t.streamUrl || t.stream_url || hls || '';
-        
-        // Robust mapping for Metadata
-        const artwork = getImageUrl(t.artworkUrl || t.artwork_url || t.artwork || t.coverUrl || t.cover_url || t.imageUrl || t.image_url || t.thumbnailUrl || t.thumbnail_url);
-        const artistObj = t.artist;
-        let artistName = 'Unknown Artist';
-        if (typeof artistObj === 'string') {
-          artistName = artistObj;
-        } else if (artistObj) {
-          artistName = artistObj.displayName || artistObj.permalink || artistObj.username || 'Unknown Artist';
-        }
 
-        const trackId = t._id || t.id || (typeof t === 'string' ? t : '');
-
-        return {
-          id: trackId,
-          title: t.title || 'Untitled',
-          artist: artistName,
-          artworkUrl: artwork,
-          duration: t.duration || 0,
-          streamUrl: stream,
-          hlsUrl: hls,
-        };
-      });
+      const resolvedTracks = playlist.tracks.map(mapPlaylistTrackToPlayerTrack);
 
       console.log(`[PlaylistPage] Starting playback for index ${index}`, resolvedTracks[index]);
 
@@ -337,6 +349,8 @@ function PlaylistPageContent({ params }: { params: { id: string } }) {
           onShare={() => setShareOpen(true)}
           onArtworkUpload={handleArtworkUpload}
           onPlay={() => handleTrackPlay(0)}
+          onAddToNext={handleAddToNextUp}
+          onFeedback={(message) => showToast(message)}
           isUploadingArtwork={uploadArtwork.isPending}
         />
 

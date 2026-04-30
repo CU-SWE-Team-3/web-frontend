@@ -76,10 +76,20 @@ export const MessageDropdown: React.FC<MessageDropdownProps> = ({
                 onClick={() => setIsOpen(false)}
                 data-testid={`msg-dropdown-item-${conv._id}`}
               >
-                <div className={s.msgDropdownAvatar}>
-                  {conv.participant.avatarUrl ? (
-                    <img src={conv.participant.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : null}
+                {/* Avatar with unread dot */}
+                <div className={s.msgDropdownAvatarWrapper}>
+                  {conv.unreadCount > 0 && (
+                    <div className={s.msgDropdownUnreadDot} data-testid={`dropdown-unread-dot-${conv._id}`} />
+                  )}
+                  <div className={s.msgDropdownAvatar}>
+                    {conv.participant.avatarUrl ? (
+                      <img src={conv.participant.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                    ) : (
+                      <span className={s.msgDropdownAvatarInitial}>
+                        {conv.participant.displayName.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className={s.msgDropdownInfo}>
                   <div className={s.msgDropdownName}>{conv.participant.displayName}</div>

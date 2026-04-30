@@ -1,19 +1,20 @@
 'use client';
 
-import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { SharedTrackPreview } from '../model/types';
-import { useTrack, useUpdateTrack } from '@/features/tracks/model/trackQueries';
-import { usePlayerStore } from '@/features/player/model/playerStore';
-import { useLikeTrack } from '@/features/track-engagement/model/useLikeTrack';
-import { useUnlikeTrack } from '@/features/track-engagement/model/useUnlikeTrack';
-import { TrackShareModal } from '@/shared/ui/TrackShareModal/TrackShareModal';
-import EditTrackModal from '@/features/tracks/ui/EditTrackModal';
+import type { SharedPlaylistPreview } from '../model/types';
+import { 
+  usePlaylist, 
+  useUpdatePlaylist, 
+  useUpdatePlaylistTracks, 
+  useUploadPlaylistArtwork,
+  useLikePlaylist,
+  useUnlikePlaylist
+} from '@/features/playlists/model/playlistQueries';
+import { EditPlaylistModal } from '@/features/playlists/ui/EditPlaylistModal';
 
-const WaveformPlayer = lazy(() => import('@/features/tracks/ui/WaveformPlayer'));
-
-interface TrackPreviewCardProps {
-  track: SharedTrackPreview;
+interface PlaylistPreviewCardProps {
+  playlist: SharedPlaylistPreview;
 }
 
 function formatCount(n: number): string {
@@ -46,87 +47,84 @@ const btnIconOnly: React.CSSProperties = {
   minWidth: 28,
 };
 
-export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previewTrack }) => {
-  const { data: fullTrack, isLoading } = useTrack(previewTrack.trackId);
+export const PlaylistPreviewCard: React.FC<PlaylistPreviewCardProps> = ({ playlist: previewPlaylist }) => {
+  const { data: fullPlaylist, isLoading } = usePlaylist(previewPlaylist.playlistId);
   
-  const play = usePlayerStore((s) => s.play);
-  const likeMutation = useLikeTrack();
-  const unlikeMutation = useUnlikeTrack();
-  const updateTrackMutation = useUpdateTrack();
+  const updatePlaylist = useUpdatePlaylist();
+  const updateTracks = useUpdatePlaylistTracks();
+  const uploadArtwork = useUploadPlaylistArtwork();
+  const likeMutation = useLikePlaylist();
+  const unlikeMutation = useUnlikePlaylist();
 
   const [liked, setLiked] = useState(false);
   const [likeCountLocal, setLikeCountLocal] = useState(0);
-  const [shareOpen, setShareOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
 
   useEffect(() => {
-    if (fullTrack) {
-      setLikeCountLocal((fullTrack as any).likeCount || 0);
+    if (fullPlaylist) {
+      setLikeCountLocal(fullPlaylist.likeCount || 0);
     }
-  }, [fullTrack]);
+  }, [fullPlaylist]);
 
-  const handlePlay = () => {
-    if (!fullTrack) return;
-    play({
-      id: fullTrack.id,
-      title: fullTrack.title,
-      artist: fullTrack.artist || previewTrack.artist,
-      artworkUrl: fullTrack.artworkUrl || previewTrack.artworkUrl || '/placeholder.png',
-      hlsUrl: fullTrack.streamUrl || fullTrack.hlsUrl,
-    });
-  };
-
-  const handleLikeToggle = useCallback(() => {
-    if (!fullTrack) return;
+  const handleLikeToggle = () => {
+    if (!fullPlaylist) return;
     if (liked) {
       setLiked(false);
       setLikeCountLocal((c) => Math.max(0, c - 1));
-      unlikeMutation.mutate(fullTrack.id);
+      unlikeMutation.mutate(fullPlaylist._id);
     } else {
       setLiked(true);
       setLikeCountLocal((c) => c + 1);
-      likeMutation.mutate(fullTrack.id);
+      likeMutation.mutate(fullPlaylist._id);
     }
-  }, [liked, unlikeMutation, likeMutation, fullTrack]);
-
-  const handleSaveEdit = async (updates: any) => {
-    if (!fullTrack) return;
-    await updateTrackMutation.mutateAsync({ id: fullTrack.id, input: updates });
-    setEditOpen(false);
   };
 
-  // Fallback while loading
-  if (isLoading || !fullTrack) {
+  const handleSaveEdit = async (input: any) => {
+    if (!fullPlaylist) return;
+    await updatePlaylist.mutateAsync({ id: fullPlaylist._id, input });
+    // Note: Modal handleSave also triggers onTracksChange, but we handle it via onTracksChange prop below
+  };
+
+  const handleTracksChange = async (trackIds: string[]) => {
+    if (!fullPlaylist) return;
+    await updateTracks.mutateAsync({ id: fullPlaylist._id, trackIds });
+  };
+
+  const handleArtworkUpload = async (file: File) => {
+    if (!fullPlaylist) return;
+    await uploadArtwork.mutateAsync({ id: fullPlaylist._id, file });
+  };
+
+  if (isLoading || !fullPlaylist) {
     return (
       <div style={{ padding: 12, background: '#111', borderRadius: 4, border: '1px solid #333', marginTop: 8 }}>
-        <div style={{ color: '#999', fontSize: 13 }}>Loading track preview...</div>
+        <div style={{ color: '#999', fontSize: 13 }}>Loading playlist preview...</div>
       </div>
     );
   }
 
-  const durationSec = typeof fullTrack.duration === 'string' 
-    ? fullTrack.duration.split(':').reduce((acc: number, time: string) => (60 * acc) + +time, 0) 
-    : fullTrack.duration;
-
-  const artworkUrl = fullTrack.artworkUrl || previewTrack.artworkUrl;
+  const artworkUrl = fullPlaylist.artworkUrl || previewPlaylist.artworkUrl;
+  const creatorName = typeof fullPlaylist.creator === 'string' 
+    ? previewPlaylist.artist 
+    : fullPlaylist.creator?.displayName || previewPlaylist.artist;
 
   return (
-    <div data-testid={`track-preview-${fullTrack.id}`} style={{ background: '#181818', padding: 16, borderRadius: 8, border: '1px solid #333', marginTop: 12, marginBottom: 12 }}>
+    <div data-testid={`playlist-preview-${fullPlaylist._id}`} style={{ background: '#181818', padding: 16, borderRadius: 8, border: '1px solid #333', marginTop: 12, marginBottom: 12 }}>
       <div style={{ display: 'flex', gap: 16 }}>
         {/* Cover Art */}
         <div style={{ width: 120, height: 120, flexShrink: 0, background: '#222', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
-          <Link href={`/tracks/${fullTrack.id}`} style={{ position: 'absolute', inset: 0, zIndex: 10 }} />
+          <Link href={`/playlists/${fullPlaylist._id}`} style={{ position: 'absolute', inset: 0, zIndex: 10 }} />
           {artworkUrl ? (
             <img 
               src={artworkUrl} 
-              alt={fullTrack.title} 
+              alt={fullPlaylist.title} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#999" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-            </svg>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333' }}>
+               <svg width="40" height="40" viewBox="0 0 24 24" fill="#666"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
           )}
         </div>
 
@@ -134,32 +132,31 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <button 
-              onClick={handlePlay} 
               style={{ width: 36, height: 36, background: '#f50', color: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-              data-testid="track-preview-play-btn"
+              data-testid="playlist-preview-play-btn"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
               </svg>
             </button>
             <div style={{ minWidth: 0 }}>
-              <div style={{ color: '#999', fontSize: 12, marginBottom: 2 }}>{previewTrack.artist}</div>
-              <div style={{ color: '#fff', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fullTrack.title}</div>
+              <div style={{ color: '#999', fontSize: 12, marginBottom: 2 }}>{creatorName}</div>
+              <div style={{ color: '#fff', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fullPlaylist.title}</div>
+              <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>Playlist • {fullPlaylist.trackCount} tracks</div>
             </div>
           </div>
-
-          <div style={{ flex: 1, minHeight: 50, position: 'relative', marginTop: 12 }}>
-            <Suspense fallback={<div style={{ height: '100%', width: '100%', background: '#111' }} />}>
-              <WaveformPlayer
-                waveform={fullTrack.waveform}
-                audioUrl={fullTrack.streamUrl || fullTrack.hlsUrl}
-                durationSeconds={durationSec}
-                comments={[]}
-                onTimeUpdate={() => {}}
-                trackMeta={{ id: fullTrack.id, title: fullTrack.title, artist: previewTrack.artist, artworkUrl: artworkUrl || undefined, hlsUrl: fullTrack.streamUrl || fullTrack.hlsUrl }}
-                hidePlayButton
-              />
-            </Suspense>
+          
+          {/* Simple Track List Preview */}
+          <div style={{ marginTop: 12, borderTop: '1px solid #333', paddingTop: 8 }}>
+             {(fullPlaylist.tracks || []).slice(0, 3).map((t: any, i: number) => (
+               <div key={t.id || t._id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: 11, color: '#ccc' }}>
+                 <span style={{ color: '#666', width: 14 }}>{i + 1}</span>
+                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title || 'Untitled Track'}</span>
+               </div>
+             ))}
+             {(fullPlaylist.trackCount || 0) > 3 && (
+               <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>+ {(fullPlaylist.trackCount || 0) - 3} more tracks</div>
+             )}
           </div>
         </div>
       </div>
@@ -168,11 +165,10 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
-            onClick={() => setShareOpen(true)}
             style={btnIconOnly}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#555'; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#333'; }}
-            data-testid="track-preview-share-btn"
+            title="Share"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
@@ -182,7 +178,7 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
           <button
             style={btnIconOnly}
             onClick={() => {
-              const url = `${window.location.origin}/tracks/${fullTrack.id}`;
+              const url = `${window.location.origin}/playlists/${fullPlaylist._id}`;
               navigator.clipboard.writeText(url);
               setCopyToastVisible(true);
               setTimeout(() => setCopyToastVisible(false), 3000);
@@ -212,7 +208,7 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
           <button
             onClick={handleLikeToggle}
             style={{ ...btnIconOnly, color: liked ? '#ff5500' : '#ccc', borderColor: liked ? '#ff5500' : '#333' }}
-            data-testid="track-preview-like-btn"
+            data-testid="playlist-preview-like-btn"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? '#ff5500' : 'none'} stroke={liked ? 'none' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
@@ -242,28 +238,21 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
           )}
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            {formatCount((fullTrack as any).playCount || 0)}
+            {formatCount(fullPlaylist.repostCount || 0)}
           </span>
         </div>
       </div>
 
-      <TrackShareModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        trackTitle={fullTrack.title}
-        trackArtist={previewTrack.artist}
-        trackArtworkUrl={artworkUrl || null}
-        trackUrl={`/tracks/${fullTrack.id}`}
-        trackGenre={fullTrack.genre}
-      />
-
       {editOpen && (
-        <EditTrackModal
-          track={fullTrack as any}
+        <EditPlaylistModal
           open={editOpen}
           onClose={() => setEditOpen(false)}
+          playlist={fullPlaylist}
           onSave={handleSaveEdit}
-          isSaving={updateTrackMutation.isPending}
+          onTracksChange={handleTracksChange}
+          onArtworkUpload={handleArtworkUpload}
+          isSaving={updatePlaylist.isPending || updateTracks.isPending}
+          isUploadingArtwork={uploadArtwork.isPending}
         />
       )}
 
