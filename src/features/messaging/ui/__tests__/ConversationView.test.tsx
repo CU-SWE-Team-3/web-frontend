@@ -77,6 +77,8 @@ describe('ConversationView', () => {
     vi.mocked(socketHooks.useSocket).mockReturnValue({
       emitMarkAsRead: mockEmitMarkAsRead,
       emitStopTyping: mockEmitStopTyping,
+      emitJoinChat: vi.fn(),
+      emitLeaveChat: vi.fn(),
       typingUsers: new Set(),
     } as any);
 
@@ -128,7 +130,7 @@ describe('ConversationView', () => {
       conversationId: 'conv-1',
       receiverId: 'user-2',
       content: 'Hello',
-      sharedTrack: undefined,
+      attachment: undefined,
     });
   });
 
@@ -146,7 +148,7 @@ describe('ConversationView', () => {
       conversationId: 'conv-1',
       receiverId: 'user-2',
       content: '',
-      sharedTrack: { trackId: 't1' },
+      attachment: { type: 'track', id: 't1' },
     });
   });
 
@@ -154,6 +156,8 @@ describe('ConversationView', () => {
     vi.mocked(socketHooks.useSocket).mockReturnValue({
       emitMarkAsRead: mockEmitMarkAsRead,
       emitStopTyping: mockEmitStopTyping,
+      emitJoinChat: vi.fn(),
+      emitLeaveChat: vi.fn(),
       typingUsers: new Set(['user-2']),
     } as any);
 
