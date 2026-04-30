@@ -118,7 +118,18 @@ function LibraryContent() {
         </div>
 
         {/* ─── Tab Content ─── */}
-        {activeTab === 'overview' && <OverviewTab />}
+        {activeTab === 'overview' && (
+          <OverviewTab
+            recentlyPlayed={recentlyPlayed}
+            likedTracks={likedTracks ?? []}
+            likesLoading={likesLoading}
+            userId={userId}
+            followingUsers={followingList ?? []}
+            followingLoading={followingLoading}
+            onPlay={handlePlay}
+            onSwitchTab={switchTab}
+          />
+        )}
         {activeTab === 'likes' && (
           <LikesTab
             tracks={filteredLikes}
@@ -153,11 +164,194 @@ function LibraryContent() {
 /* ═══════════════════════════════════════════════════════
    Overview Tab
    ═══════════════════════════════════════════════════════ */
-function OverviewTab() {
+interface OverviewTabProps {
+  recentlyPlayed: Track[];
+  likedTracks: import('@/features/track-engagement/model/types').TrackNode[];
+  likesLoading: boolean;
+  userId: string;
+  followingUsers: FollowNode[];
+  followingLoading: boolean;
+  onPlay: (track: Track) => void;
+  onSwitchTab: (key: TabKey) => void;
+}
+
+function OverviewTab({
+  recentlyPlayed,
+  likedTracks,
+  likesLoading,
+  userId,
+  followingUsers,
+  followingLoading,
+  onPlay,
+  onSwitchTab,
+}: OverviewTabProps) {
+  const { data: playlists, isLoading: playlistsLoading } = useUserPlaylists(userId, 'playlist');
+  const { data: albums, isLoading: albumsLoading } = useUserPlaylists(userId, 'album');
+
+  const renderLoadingTiles = (count = 6) => (
+    <div className={s.overviewGrid}>
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index} className={s.overviewSkeleton} />
+      ))}
+    </div>
+  );
+
+  const renderEmpty = (message: string) => (
+    <div className={s.overviewEmpty}>{message}</div>
+  );
+
+  const formatCount = (n: number) => {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toString();
+  };
+
   return (
-    <div className={s.placeholderTab}>
-      <h3>Your Library</h3>
-      <p>Browse your likes, playlists, and listening history using the tabs above.</p>
+    <div className={s.overview} data-testid="library-overview">
+      <section className={s.overviewSection} data-testid="library-overview-recent">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Recently played</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('history')}>
+            View history
+          </button>
+        </div>
+        {recentlyPlayed.length === 0 ? (
+          renderEmpty('Tracks you play will appear here.')
+        ) : (
+          <div className={s.overviewGrid}>
+            {recentlyPlayed.slice(0, 6).map((track) => (
+              <SquareTrackCard
+                key={track.id}
+                id={track.id}
+                title={track.title}
+                artist={track.artist || 'Unknown Artist'}
+                artworkUrl={track.artworkUrl}
+                onPlay={() => onPlay(track)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={s.overviewSection} data-testid="library-overview-likes">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Likes</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('likes')}>
+            View likes
+          </button>
+        </div>
+        {likesLoading ? (
+          renderLoadingTiles()
+        ) : likedTracks.length === 0 ? (
+          renderEmpty('Tracks you like will appear here.')
+        ) : (
+          <div className={s.overviewGrid}>
+            {likedTracks.slice(0, 6).map((track) => (
+              <SquareTrackCard
+                key={track.id}
+                id={track.id}
+                title={track.title}
+                artist={track.artist || 'Unknown Artist'}
+                artworkUrl={track.artworkUrl}
+                onPlay={() =>
+                  onPlay({
+                    id: track.id,
+                    title: track.title,
+                    artist: track.artist || 'Unknown Artist',
+                    artworkUrl: track.artworkUrl || '/placeholder.png',
+                    hlsUrl: (track as any).streamUrl || (track as any).hlsUrl,
+                  })
+                }
+                titlePrefixNode={<Heart size={14} className="fill-[#999] text-[#999]" />}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={s.overviewSection} data-testid="library-overview-playlists">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Playlists</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('playlists')}>
+            View playlists
+          </button>
+        </div>
+        {playlistsLoading ? (
+          renderLoadingTiles()
+        ) : !playlists || playlists.length === 0 ? (
+          renderEmpty('Playlists you create will appear here.')
+        ) : (
+          <div className={s.overviewGrid}>
+            {playlists.slice(0, 6).map((playlist: Playlist) => (
+              <PlaylistGridCard key={playlist._id} playlist={playlist} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={s.overviewSection} data-testid="library-overview-albums">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Albums</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('albums')}>
+            View albums
+          </button>
+        </div>
+        {albumsLoading ? (
+          renderLoadingTiles()
+        ) : !albums || albums.length === 0 ? (
+          renderEmpty('Albums you create will appear here.')
+        ) : (
+          <div className={s.overviewGrid}>
+            {albums.slice(0, 6).map((album: Playlist) => (
+              <PlaylistGridCard key={album._id} playlist={album} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={s.overviewSection} data-testid="library-overview-stations">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Liked stations</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('stations')}>
+            View stations
+          </button>
+        </div>
+        {renderEmpty('Stations you like will appear here.')}
+      </section>
+
+      <section className={s.overviewSection} data-testid="library-overview-following">
+        <div className={s.overviewHeader}>
+          <h2 className={s.sectionTitle}>Following</h2>
+          <button type="button" className={s.overviewLink} onClick={() => onSwitchTab('following')}>
+            View following
+          </button>
+        </div>
+        {followingLoading ? (
+          renderLoadingTiles()
+        ) : followingUsers.length === 0 ? (
+          renderEmpty('Artists you follow will appear here.')
+        ) : (
+          <div className={s.followingOverviewGrid}>
+            {followingUsers.slice(0, 6).map((user) => (
+              <Link
+                key={user.id}
+                href={ROUTES.PROFILE(user.username || user.id)}
+                className={s.followingOverviewCard}
+              >
+                <div className={s.followingOverviewAvatar}>
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.displayName} />
+                  ) : (
+                    <span>{(user.displayName || user.username || '?')[0].toUpperCase()}</span>
+                  )}
+                </div>
+                <span className={s.followingOverviewName}>{user.displayName || user.username}</span>
+                <span className={s.followingOverviewMeta}>{formatCount(user.followerCount)} followers</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

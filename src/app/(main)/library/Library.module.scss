@@ -589,3 +589,136 @@
     font-size: var(--sc-font-size-sm);
   }
 }
+
+/* Overview */
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  padding-bottom: 32px;
+}
+
+.overviewSection {
+  width: 100%;
+}
+
+.overviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.overviewLink {
+  background: none;
+  border: none;
+  color: var(--sc-gray-500);
+  cursor: pointer;
+  font-family: var(--sc-font-family);
+  font-size: var(--sc-font-size-xs);
+  font-weight: var(--sc-font-weight-semibold);
+  padding: 4px 0;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--sc-white);
+  }
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+.overviewSkeleton {
+  width: 160px;
+  aspect-ratio: 1;
+  border-radius: var(--sc-radius-md);
+  background: var(--sc-bg-dark-elevated);
+  animation: overviewPulse 1.4s ease-in-out infinite;
+}
+
+.overviewEmpty {
+  width: 100%;
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-sm);
+  border-top: 1px solid var(--sc-bg-dark-elevated);
+}
+
+.followingOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
+  gap: 24px;
+}
+
+.followingOverviewCard {
+  width: 160px;
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+
+.followingOverviewAvatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--sc-bg-dark-elevated);
+  margin-bottom: 10px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  span {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sc-primary);
+    color: var(--sc-white);
+    font-size: 48px;
+    font-weight: var(--sc-font-weight-bold);
+  }
+}
+
+.followingOverviewName {
+  display: block;
+  color: var(--sc-white);
+  font-size: var(--sc-font-size-sm);
+  font-weight: var(--sc-font-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.followingOverviewMeta {
+  display: block;
+  color: var(--sc-gray-500);
+  font-size: var(--sc-font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes overviewPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
