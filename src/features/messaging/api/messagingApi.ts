@@ -82,16 +82,16 @@ export const getMessages = async (
 export const sendMessage = async (
   receiverId: string,
   content: string,
-  sharedTrack?: any
+  attachment?: { type: 'track' | 'playlist'; id: string }
 ): Promise<Message> => {
   const payload: SendMessagePayload = {
     receiverId,
     content,
   };
 
-  if (sharedTrack) {
-    payload.attachmentType = 'track';
-    payload.attachmentId = sharedTrack.trackId;
+  if (attachment) {
+    payload.attachmentType = attachment.type;
+    payload.attachmentId = attachment.id;
   }
 
   const { data: res } = await apiClient.post<{ success: boolean; data: { message: Message } }>(
@@ -185,10 +185,10 @@ export const editMessage = async (
   return res.data.message;
 };
 
-/** DELETE /messages/{messageId}/everyone — unsend */
+/** DELETE /messages/{messageId} — unsend */
 export const deleteMessageForEveryone = async (messageId: string): Promise<Message> => {
   const { data: res } = await apiClient.delete<{ success: boolean; data: { message: Message } }>(
-    `/messages/${messageId}/everyone`
+    `/messages/${messageId}`
   );
   return res.data.message;
 };

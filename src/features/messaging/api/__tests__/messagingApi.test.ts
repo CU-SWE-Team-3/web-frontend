@@ -237,7 +237,7 @@ describe('messagingApi', () => {
 
       const result = await api.deleteMessageForEveryone('msg-1');
 
-      expect(mockedClient.delete).toHaveBeenCalledWith('/messages/msg-1/everyone');
+      expect(mockedClient.delete).toHaveBeenCalledWith('/messages/msg-1');
       expect(result.isDeleted).toBe(true);
     });
   });

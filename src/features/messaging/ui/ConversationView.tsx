@@ -1,13 +1,17 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import type { Conversation } from '../model/types';
+import type { Conversation, Message } from '../model/types';
 import { useMessages } from '../model/useMessages';
 import { useSendMessage } from '../model/useSendMessage';
 import { useBlockUser, useUnblockUser } from '../model/useBlockUser';
 import { useMarkAsRead } from '../model/useMarkAsRead';
 import { useDeleteConversation } from '../model/useDeleteConversation';
 import { useSocket } from '../model/useSocket';
+import { useAuthStore } from '@/features/auth/model/useAuthStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { CONVERSATIONS_QUERY_KEY } from '../model/useConversations';
+import { UNREAD_COUNT_QUERY_KEY } from '../model/useUnreadCount';
 import { MessageBubble } from './MessageBubble';
 import { MessageComposer } from './MessageComposer';
 import { BlockUserModal } from './BlockUserModal';
@@ -30,7 +34,8 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   const unblockMutation = useUnblockUser();
   const markAsReadMutation = useMarkAsRead();
   const deleteMutation = useDeleteConversation();
-  const { typingUsers, emitMarkAsRead, emitTyping, emitStopTyping } = useSocket();
+  const { typingUsers, emitMarkAsRead, emitTyping, emitStopTyping, emitJoinChat, emitLeaveChat } = useSocket();
+  const queryClient = useQueryClient();
   const threadRef = useRef<HTMLDivElement>(null);
   const deleteBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -39,18 +44,24 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
   const [showDeletePopover, setShowDeletePopover] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Get current user id for identifying own messages
-  const getCurrentUserId = useCallback(() => {
-    if (typeof window === 'undefined') return '';
-    try {
-      const raw = localStorage.getItem('user');
-      if (raw) {
-        const u = JSON.parse(raw);
-        return u._id || u.id || '';
+  // ── Mark as unread/read toggle ──
+  const [isMarkedUnread, setIsMarkedUnread] = useState(false);
+
+  // Reset unread state when conversation changes
+  useEffect(() => {
+    setIsMarkedUnread(false);
+  }, [conversation._id]);
+
+  // Get current user from auth store (replaces localStorage approach)
+  const authUser = useAuthStore((state) => state.user);
+  const currentUserId = (authUser as any)?._id || authUser?.id || '';
+  const currentUser = authUser
+    ? {
+        _id: (authUser as any)?._id || authUser?.id || '',
+        displayName: authUser?.displayName || authUser?.username || 'Me',
+        avatarUrl: authUser?.avatarUrl || null,
       }
-    } catch { /* noop */ }
-    return '';
-  }, []);
+    : null;
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -61,10 +72,15 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
 
   // Mark as read when opening (REST + Socket)
   useEffect(() => {
-    if (conversation.unreadCount > 0) {
+    if (conversation.unreadCount > 0 && !isMarkedUnread) {
       markAsReadMutation.mutate(conversation._id);
     }
+    emitJoinChat(conversation._id);
     emitMarkAsRead(conversation._id);
+
+    return () => {
+      emitLeaveChat(conversation._id);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversation._id]);
 
@@ -74,7 +90,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
       conversationId: conversation._id,
       receiverId: conversation.participant._id,
       content,
-      sharedTrack: attachment?.type === 'track' ? { trackId: attachment.id } as any : undefined,
+      attachment: attachment || undefined,
     });
   };
 
@@ -115,7 +131,47 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     setShowDeletePopover(false);
   };
 
-  const currentUserId = getCurrentUserId();
+  // ── Mark as unread/read toggle handler ──
+  const handleToggleUnread = () => {
+    if (isMarkedUnread) {
+      // Mark as read
+      setIsMarkedUnread(false);
+      markAsReadMutation.mutate(conversation._id);
+      emitMarkAsRead(conversation._id);
+
+      // Optimistically update conversation cache
+      queryClient.setQueryData<Conversation[]>(
+        [...CONVERSATIONS_QUERY_KEY],
+        (old) =>
+          old?.map((c) =>
+            c._id === conversation._id ? { ...c, unreadCount: 0 } : c
+          ) ?? []
+      );
+      // Decrement total unread
+      queryClient.setQueryData<number>(
+        [...UNREAD_COUNT_QUERY_KEY],
+        (old) => Math.max(0, (old ?? 0) - 1)
+      );
+    } else {
+      // Mark as unread
+      setIsMarkedUnread(true);
+
+      // Optimistically update conversation cache
+      queryClient.setQueryData<Conversation[]>(
+        [...CONVERSATIONS_QUERY_KEY],
+        (old) =>
+          old?.map((c) =>
+            c._id === conversation._id ? { ...c, unreadCount: Math.max(1, c.unreadCount) } : c
+          ) ?? []
+      );
+      // Increment total unread
+      queryClient.setQueryData<number>(
+        [...UNREAD_COUNT_QUERY_KEY],
+        (old) => (old ?? 0) + 1
+      );
+    }
+  };
+
   const isOtherTyping = typingUsers.has(conversation.participant._id);
 
   const filteredMessages = conversation.isBlocked
@@ -162,9 +218,10 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         <div className={s.chatActionRight}>
           <button
             className={s.markUnreadBtn}
+            onClick={handleToggleUnread}
             data-testid="mark-unread-button"
           >
-            Mark as unread
+            {isMarkedUnread ? 'Mark as read' : 'Mark as unread'}
           </button>
           <div className={s.deleteBtnWrapper}>
             <button
@@ -211,6 +268,8 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
               key={msg._id}
               message={msg}
               isOwnMessage={msg.senderId === currentUserId}
+              participants={conversation.participants}
+              currentUser={currentUser}
             />
           ))
         )}

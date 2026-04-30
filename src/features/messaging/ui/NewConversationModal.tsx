@@ -165,7 +165,13 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
             </label>
             {selectedUser ? (
               <div className={s.selectedUser}>
-                <div className={s.userResultAvatar} />
+                <div className={s.userResultAvatar}>
+                  {selectedUser.avatarUrl ? (
+                    <img src={selectedUser.avatarUrl} alt="" className={s.userResultAvatarImg} />
+                  ) : (
+                    <span className={s.userResultAvatarInitial}>{selectedUser.displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
                 <span className={s.selectedUserName}>
                   {selectedUser.displayName}
                 </span>
@@ -211,7 +217,13 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
                           onClick={() => handleSelectUser(user)}
                           data-testid={`user-result-${user._id}`}
                         >
-                          <div className={s.userResultAvatar} />
+                          <div className={s.userResultAvatar}>
+                            {user.avatarUrl ? (
+                              <img src={user.avatarUrl} alt="" className={s.userResultAvatarImg} />
+                            ) : (
+                              <span className={s.userResultAvatarInitial}>{user.displayName.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
                           <span className={s.userResultName}>
                             {user.displayName}
                           </span>
