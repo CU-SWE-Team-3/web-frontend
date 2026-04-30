@@ -1,15 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { NavBar } from '@/shared/ui/NavBar/NavBar';
+import { AppToast } from '@/shared/ui/AppToast';
 import { ROUTES } from '@/shared/constants/routes';
 import apiClient from '@/shared/api/client';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { usePlayerStore, type Track } from '@/features/player/model/playerStore';
 import { useEditorial, useGenreStation, useMixedForYou, useMoreOfWhatYouLike, useSuggestedArtists } from '@/features/trending/model/trendingQueries';
 import { matchesStationId } from '@/features/trending/lib/stationLinks';
+import { PlaylistShareModal } from '@/features/playlists/ui/PlaylistShareModal';
+import type { Playlist } from '@/features/playlists/model/playlist';
 
 function fmt(n?: number): string {
   const value = Number(n || 0);
@@ -92,6 +95,23 @@ async function getStreamUrl(track: any): Promise<string> {
   }
 }
 
+async function copyTextToClipboard(text: string): Promise<void> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  textarea.parentNode?.removeChild(textarea);
+}
+
 function buildHeroGradient(seed: string): string {
   const palettes = [
     'linear-gradient(135deg, #8b7d8f 0%, #7e8e98 55%, #4f6570 100%)',
@@ -109,6 +129,10 @@ export default function DiscoverSetPage() {
   const setId = params?.setId || '';
   const user = useAuthStore((state) => state.user);
   const playContext = usePlayerStore((state) => state.playContext);
+  const addToQueue = usePlayerStore((state) => state.addToQueue);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'error' } | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { data: mixedData, isLoading: isMixedLoading } = useMixedForYou();
   const { data: curatedBuckets, isLoading: isCuratedLoading } = useEditorial();
@@ -195,6 +219,37 @@ export default function DiscoverSetPage() {
   const title = station?.title || 'Your Mix';
   const coverArt = getImageUrl(station?.artworkUrl || station?.artwork || station?.coverUrl) || getImageUrl(tracks[0]?.artworkUrl);
   const totalDuration = tracks.reduce((sum: number, track: any) => sum + Number(track?.duration || 0), 0);
+  const stationShareItem = useMemo<Playlist>(() => ({
+    _id: setId,
+    title,
+    permalink: setId,
+    creator: {
+      _id: 'biobeats',
+      displayName: 'BioBeats',
+      permalink: 'biobeats',
+      avatarUrl: null,
+    },
+    description: station?.description || '',
+    releaseType: 'playlist',
+    tags: [],
+    genre: station?.genre || '',
+    releaseDate: '',
+    labelName: '',
+    buyLink: '',
+    buyTitle: '',
+    upc: '',
+    tracks: [],
+    artworkUrl: coverArt,
+    isPrivate: false,
+    secretToken: '',
+    trackCount: tracks.length,
+    totalDuration,
+    playCount: 0,
+    likeCount: 0,
+    repostCount: 0,
+    createdAt: '',
+    updatedAt: '',
+  }), [coverArt, setId, station?.description, station?.genre, title, totalDuration, tracks.length]);
 
   const featuredArtists = useMemo(() => {
     const seen = new Set<string>();
@@ -227,6 +282,46 @@ export default function DiscoverSetPage() {
       id: setId,
       title,
     });
+  };
+
+  const showToast = (message: string, variant: 'success' | 'info' | 'error' = 'success') => {
+    setToast({ message, variant });
+  };
+
+  const getStationUrl = () => {
+    if (typeof window === 'undefined') return `/discover/sets/${encodeURIComponent(setId)}`;
+    return `${window.location.origin}/discover/sets/${encodeURIComponent(setId)}`;
+  };
+
+  const handleStationLike = () => {
+    showToast('Station likes are not supported by the backend yet', 'info');
+  };
+
+  const handleShareStation = () => {
+    setShareOpen(true);
+  };
+
+  const handleCopyStationLink = async () => {
+    try {
+      await copyTextToClipboard(getStationUrl());
+      showToast('Link copied');
+    } catch {
+      showToast('Could not copy link', 'error');
+    }
+    setMoreOpen(false);
+  };
+
+  const handleAddStationToNextUp = async () => {
+    if (!tracks.length) {
+      showToast('This station has no tracks to add', 'info');
+      return;
+    }
+
+    const playerTracks = await Promise.all(
+      tracks.map(async (track: any) => toPlayerTrack(track, await getStreamUrl(track))),
+    );
+    playerTracks.forEach(addToQueue);
+    showToast(`Added ${playerTracks.length} track${playerTracks.length > 1 ? 's' : ''} to Next up`);
   };
 
   if (isLoading) {
@@ -320,21 +415,56 @@ export default function DiscoverSetPage() {
         </section>
 
         <div className="flex items-center gap-2 py-4 border-b border-[#242424]">
-          <button className="h-8 rounded-sm border border-white/15 px-3 text-[12px] font-bold text-[#d7d7d7] hover:border-white/35 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleStationLike}
+            className="h-8 w-8 rounded-sm border border-white/15 text-[#d7d7d7] hover:border-white/35 flex items-center justify-center"
+            aria-label="Like station"
+            title="Like"
+          >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
-            Like
           </button>
-          <button className="h-8 rounded-sm border border-white/15 px-3 text-[12px] font-bold text-[#d7d7d7] hover:border-white/35 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShareStation}
+            className="h-8 w-8 rounded-sm border border-white/15 text-[#d7d7d7] hover:border-white/35 flex items-center justify-center"
+            aria-label="Share station"
+            title="Share"
+          >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><path d="M16 6l-4-4-4 4" /><path d="M12 2v13" /></svg>
-            Share
           </button>
-          <button className="h-8 rounded-sm border border-white/15 px-3 text-[12px] font-bold text-[#d7d7d7] hover:border-white/35 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAddStationToNextUp}
+            className="h-8 w-8 rounded-sm border border-white/15 text-[#d7d7d7] hover:border-white/35 flex items-center justify-center"
+            aria-label="Add station to Next up"
+            title="Add to Next up"
+          >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18" /><path d="M3 12h12" /><path d="M3 18h18" /></svg>
-            Add to Next up
           </button>
-          <button className="h-8 rounded-sm border border-white/15 px-3 text-[12px] font-bold text-[#d7d7d7] hover:border-white/35">
-            More
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMoreOpen((open) => !open)}
+              className="h-8 w-8 rounded-sm border border-white/15 text-[#d7d7d7] hover:border-white/35 flex items-center justify-center"
+              aria-label="More station actions"
+              aria-expanded={moreOpen}
+              title="More"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg>
+            </button>
+            {moreOpen && (
+              <div className="absolute left-0 top-10 z-20 min-w-[150px] rounded-sm border border-white/10 bg-[#191919] py-1 shadow-xl">
+                <button
+                  type="button"
+                  onClick={handleCopyStationLink}
+                  className="block w-full px-3 py-2 text-left text-[12px] font-semibold text-[#d7d7d7] hover:bg-white/10"
+                >
+                  Copy link
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-10 pt-6">
@@ -395,6 +525,23 @@ export default function DiscoverSetPage() {
           </aside>
         </div>
       </main>
+      {toast && (
+        <AppToast
+          message={toast.message}
+          variant={toast.variant}
+          open={true}
+          duration={2400}
+          onClose={() => setToast(null)}
+        />
+      )}
+      <PlaylistShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        playlist={stationShareItem}
+        shareUrl={getStationUrl()}
+        entityLabel="Station"
+        embedEnabled={false}
+      />
     </div>
   );
 }

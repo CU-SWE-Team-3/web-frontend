@@ -5,6 +5,11 @@ import type {
   UpdatePlaylistInput,
 } from '../model/playlist';
 
+export interface PlaylistLikeResult {
+  liked: boolean;
+  newLikeCount?: number;
+}
+
 /**
  * Repository layer for Playlist API operations.
  * UI components never call these directly — they go through React Query hooks.
@@ -129,32 +134,34 @@ export const playlistsRepository = {
   /**
    * Interaction: LIKE
    */
-  async likePlaylist(id: string): Promise<void> {
-    await apiClient.post(`/tracks/${id}/like`, { targetModel: 'Playlist' });
+  async likePlaylist(id: string): Promise<PlaylistLikeResult> {
+    try {
+      const response = await apiClient.post(`/tracks/${id}/like`, { targetModel: 'Playlist' });
+      return response.data?.data || { liked: true };
+    } catch (err: any) {
+      const message = err?.response?.data?.message || '';
+      if (err?.response?.status === 400 && /already liked/i.test(message)) {
+        return { liked: true };
+      }
+      throw err;
+    }
   },
 
   /**
    * Interaction: UNLIKE
    */
-  async unlikePlaylist(id: string): Promise<void> {
-    await apiClient.delete(`/tracks/${id}/like`, { 
-      data: { targetModel: 'Playlist' } 
-    });
-  },
-
-  /**
-   * Interaction: REPOST
-   */
-  async repostPlaylist(id: string): Promise<void> {
-    await apiClient.post(`/tracks/${id}/repost`, { targetModel: 'Playlist' });
-  },
-
-  /**
-   * Interaction: UNREPOST
-   */
-  async unrepostPlaylist(id: string): Promise<void> {
-    await apiClient.delete(`/tracks/${id}/repost`, { 
-      data: { targetModel: 'Playlist' } 
-    });
+  async unlikePlaylist(id: string): Promise<PlaylistLikeResult> {
+    try {
+      const response = await apiClient.delete(`/tracks/${id}/like`, {
+        data: { targetModel: 'Playlist' }
+      });
+      return response.data?.data || { liked: false };
+    } catch (err: any) {
+      const message = err?.response?.data?.message || '';
+      if (err?.response?.status === 400 && /not liked|have not liked/i.test(message)) {
+        return { liked: false };
+      }
+      throw err;
+    }
   },
 };

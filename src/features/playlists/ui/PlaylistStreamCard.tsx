@@ -6,6 +6,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { usePlayerStore } from '@/features/player/model/playerStore';
 import { playlistsRepository } from '../api/playlistsRepository';
 import { useTrack } from '@/features/tracks/model/trackQueries';
+import { AppToast } from '@/shared/ui/AppToast';
 import type { Playlist, TrackSummary } from '../model/playlist';
 import s from './PlaylistStreamCard.module.scss';
 import { useLikePlaylist, useUnlikePlaylist } from '../model/playlistQueries';
@@ -84,6 +85,8 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
   className,
 }) => {
   const [showAllTracks, setShowAllTracks] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const playContext = usePlayerStore(s => s.playContext);
 
   const tracks = (playlist.tracks || []) as TrackOrId[];
@@ -155,15 +158,34 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
 
   const likeMutation = useLikePlaylist();
   const unlikeMutation = useUnlikePlaylist();
+  const isLikePending = likeMutation.isPending || unlikeMutation.isPending;
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isLikePending) return;
     if (playlist.isLiked) {
-      unlikeMutation.mutate(playlist._id);
+      unlikeMutation.mutate(playlist._id, {
+        onSuccess: () => setToastMessage('Playlist unliked'),
+      });
     } else {
-      likeMutation.mutate(playlist._id);
+      likeMutation.mutate(playlist._id, {
+        onSuccess: () => setToastMessage('Playlist liked'),
+      });
     }
+  };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = typeof window !== 'undefined'
+      ? `${window.location.origin}/playlist/${playlist._id}${playlist.isPrivate && playlist.secretToken ? `?secretToken=${playlist.secretToken}` : ''}`
+      : '';
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      setToastMessage('Link copied');
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
   };
 
   return (
@@ -255,11 +277,22 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
             </svg>
           </button>
         )}
-        <button className={s.actionBtn} aria-label="Copy link">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-          </svg>
+        <button
+          className={s.actionBtn}
+          aria-label="Copy link"
+          onClick={handleCopyLink}
+          style={linkCopied ? { color: '#ff5500' } : {}}
+        >
+          {linkCopied ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            </svg>
+          )}
         </button>
         {isOwner && onEdit && (
           <button className={s.actionBtn} onClick={onEdit} aria-label="Edit">
@@ -272,7 +305,9 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
         <button 
           className={`${s.actionBtn} ${playlist.isLiked ? s.actionBtnActive : ''}`} 
           onClick={handleLike} 
-          aria-label="Like"
+          aria-label={playlist.isLiked ? 'Unlike playlist' : 'Like playlist'}
+          aria-pressed={Boolean(playlist.isLiked)}
+          disabled={isLikePending}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill={playlist.isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
@@ -284,6 +319,13 @@ export const PlaylistStreamCard: FC<PlaylistStreamCardProps> = ({
           </svg>
         </button>
       </div>
+      <AppToast
+        message={toastMessage}
+        variant="success"
+        open={Boolean(toastMessage)}
+        duration={1800}
+        onClose={() => setToastMessage('')}
+      />
     </div>
   );
 };

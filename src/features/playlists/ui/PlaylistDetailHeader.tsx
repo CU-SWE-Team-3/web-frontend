@@ -5,12 +5,7 @@ import Link from 'next/link';
 import type { Playlist } from '../model/playlist';
 import s from './PlaylistDetailHeader.module.scss';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  useLikePlaylist, 
-  useUnlikePlaylist, 
-  useRepostPlaylist, 
-  useUnrepostPlaylist 
-} from '../model/playlistQueries';
+import { useLikePlaylist, useUnlikePlaylist } from '../model/playlistQueries';
 
 interface PlaylistDetailHeaderProps {
   playlist: Playlist;
@@ -20,6 +15,8 @@ interface PlaylistDetailHeaderProps {
   onShare: () => void;
   onArtworkUpload: (file: File) => void;
   onPlay: () => void;
+  onAddToNext: () => void;
+  onFeedback?: (message: string) => void;
   isUploadingArtwork?: boolean;
 }
 
@@ -58,39 +55,41 @@ export const PlaylistDetailHeader: FC<PlaylistDetailHeaderProps> = ({
   onShare,
   onArtworkUpload,
   onPlay,
+  onAddToNext,
+  onFeedback,
   isUploadingArtwork,
 }) => {
   const [secretCopied, setSecretCopied] = useState(false);
 
   const likeMutation = useLikePlaylist();
   const unlikeMutation = useUnlikePlaylist();
-  const repostMutation = useRepostPlaylist();
-  const unrepostMutation = useUnrepostPlaylist();
+  const isLikePending = likeMutation.isPending || unlikeMutation.isPending;
 
   const handleLike = useCallback(() => {
+    if (isLikePending) return;
     if (playlist.isLiked) {
-      unlikeMutation.mutate(playlist._id);
+      unlikeMutation.mutate(playlist._id, {
+        onSuccess: () => onFeedback?.('Playlist unliked'),
+      });
     } else {
-      likeMutation.mutate(playlist._id);
+      likeMutation.mutate(playlist._id, {
+        onSuccess: () => onFeedback?.('Playlist liked'),
+      });
     }
-  }, [playlist._id, playlist.isLiked, likeMutation, unlikeMutation]);
-
-  const handleRepost = useCallback(() => {
-    if (playlist.isReposted) {
-      unrepostMutation.mutate(playlist._id);
-    } else {
-      repostMutation.mutate(playlist._id);
-    }
-  }, [playlist._id, playlist.isReposted, repostMutation, unrepostMutation]);
+  }, [playlist._id, playlist.isLiked, isLikePending, likeMutation, unlikeMutation, onFeedback]);
 
   const handleCopySecretLink = useCallback(() => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const link = `${baseUrl}/playlist/${playlist._id}?secretToken=${playlist.secretToken}`;
+    const secretQuery = playlist.isPrivate && playlist.secretToken
+      ? `?secretToken=${playlist.secretToken}`
+      : '';
+    const link = `${baseUrl}/playlist/${playlist._id}${secretQuery}`;
     navigator.clipboard.writeText(link).then(() => {
       setSecretCopied(true);
+      onFeedback?.('Link copied');
       setTimeout(() => setSecretCopied(false), 2000);
     });
-  }, [playlist._id, playlist.secretToken]);
+  }, [playlist._id, playlist.isPrivate, playlist.secretToken, onFeedback]);
 
   const handleArtworkClick = () => {
     if (!isOwner) return;
@@ -202,59 +201,92 @@ export const PlaylistDetailHeader: FC<PlaylistDetailHeaderProps> = ({
         {/* Action Buttons Row */}
         <div className={s.actionRow}>
           <div className={s.mainActions}>
-            <button 
-              className={`${s.actionBtn} ${playlist.isLiked ? s.actionBtnActive : ''}`} 
+            <button
+              type="button"
+              className={`${s.actionBtn} ${playlist.isLiked ? s.actionBtnActive : ''}`}
               onClick={handleLike}
               data-testid="playlist-like-btn"
+              disabled={isLikePending}
+              aria-pressed={Boolean(playlist.isLiked)}
+              aria-label={playlist.isLiked ? 'Unlike playlist' : 'Like playlist'}
+              title={playlist.isLiked ? 'Unlike' : 'Like'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill={playlist.isLiked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
               </svg>
-              {playlist.isLiked ? 'Liked' : 'Like'}
             </button>
 
-            <button 
-              className={`${s.actionBtn} ${playlist.isReposted ? s.actionBtnActive : ''}`} 
-              onClick={handleRepost}
-              data-testid="playlist-repost-btn"
+            <button
+              type="button"
+              className={s.actionBtn}
+              onClick={onAddToNext}
+              data-testid="playlist-add-to-next-btn"
+              aria-label="Add playlist to Next up"
+              title="Add to Next up"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 1l4 4-4 4" /><path d="M3 11V9a4 4 0 014-4h14" /><path d="M7 23l-4-4 4-4" /><path d="M21 13v2a4 4 0 01-4 4H3" />
+                <path d="M3 6h12" />
+                <path d="M3 12h10" />
+                <path d="M3 18h8" />
+                <path d="M17 14v6" />
+                <path d="M14 17h6" />
               </svg>
-              {playlist.isReposted ? 'Reposted' : 'Repost'}
             </button>
 
-            <button className={s.actionBtn} onClick={onShare} data-testid="playlist-share-btn">
+            <button
+              type="button"
+              className={s.actionBtn}
+              onClick={onShare}
+              data-testid="playlist-share-btn"
+              aria-label="Share playlist"
+              title="Share"
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
                 <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
               </svg>
-              Share
             </button>
-            <button className={s.actionBtn} onClick={handleCopySecretLink}>
+            <button
+              type="button"
+              className={s.actionBtn}
+              onClick={handleCopySecretLink}
+              aria-label="Copy playlist link"
+              title={secretCopied ? 'Copied' : 'Copy link'}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path>
                 <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>
               </svg>
-              {secretCopied ? 'Copied!' : 'Copy Link'}
             </button>
 
             {isOwner && (
               <>
-                <button className={s.actionBtn} onClick={onEdit} data-testid="playlist-edit-btn">
+                <button
+                  type="button"
+                  className={s.actionBtn}
+                  onClick={onEdit}
+                  data-testid="playlist-edit-btn"
+                  aria-label="Edit playlist"
+                  title="Edit"
+                >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
-                  Edit
                 </button>
-                <button className={s.actionBtn} onClick={onDelete} data-testid="playlist-delete-btn">
+                <button
+                  type="button"
+                  className={s.actionBtn}
+                  onClick={onDelete}
+                  data-testid="playlist-delete-btn"
+                  aria-label="Delete playlist"
+                  title="Delete"
+                >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6l-2 14H7L5 6" />
                     <path d="M10 11v6" /><path d="M14 11v6" />
                   </svg>
-                  Delete
                 </button>
               </>
             )}
