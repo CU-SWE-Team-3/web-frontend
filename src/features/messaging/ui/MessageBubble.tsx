@@ -3,6 +3,7 @@
 import React from 'react';
 import type { Message, MessageStatus, MessageUser } from '../model/types';
 import { TrackPreviewCard } from './TrackPreviewCard';
+import { PlaylistPreviewCard } from './PlaylistPreviewCard';
 import { formatRelativeTime } from './utils';
 import s from './MessagesPage.module.scss';
 
@@ -76,12 +77,23 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     message, isOwnMessage, participants, currentUser
   );
 
-  // Build a track preview if attachment exists
-  const trackPreview = message.sharedTrack
-    ? message.sharedTrack
-    : message.attachment?.type === 'track'
-      ? { trackId: message.attachment.referenceId, title: '', artist: '', artworkUrl: null, duration: 0, trackUrl: '' }
-      : null;
+  // Extract attachment info
+  const attachment = message.attachment;
+  const sharedTrack = message.sharedTrack;
+
+  let trackPreview = null;
+  let playlistPreview = null;
+
+  if (sharedTrack) {
+    trackPreview = sharedTrack;
+  } else if (attachment) {
+    const referenceId = attachment.referenceId || (attachment as any).id || (attachment as any).attachmentId;
+    if (attachment.type === 'track') {
+      trackPreview = { trackId: referenceId, title: '', artist: '', artworkUrl: null, duration: 0, trackUrl: '' };
+    } else if (attachment.type === 'playlist') {
+      playlistPreview = { playlistId: referenceId, title: '', artist: '', artworkUrl: null, trackCount: 0 };
+    }
+  }
 
   // Deleted message
   if (message.isDeleted) {
@@ -135,6 +147,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}
         {trackPreview && (
           <TrackPreviewCard track={trackPreview} />
+        )}
+        {playlistPreview && (
+          <PlaylistPreviewCard playlist={playlistPreview} />
         )}
         {/* Status ticks for own messages */}
         {isOwnMessage && message.status && (

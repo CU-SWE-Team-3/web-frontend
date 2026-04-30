@@ -17,19 +17,19 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 }) => {
   const [text, setText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedTrack, setSelectedTrack] = useState<any>(null);
+  const [attachment, setAttachment] = useState<{ item: any; type: 'track' | 'playlist' } | null>(null);
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed && !selectedTrack) return;
+    if (!trimmed && !attachment) return;
     
     onSend(
       trimmed, 
-      selectedTrack ? { type: 'track', id: selectedTrack.id } : undefined
+      attachment ? { type: attachment.type, id: attachment.item.id || attachment.item._id } : undefined
     );
     
     setText('');
-    setSelectedTrack(null);
+    setAttachment(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -49,34 +49,45 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
       <label className={s.composerLabel}>
         Write your message and add tracks or playlists<span>*</span>
       </label>
-      
-      {/* Attachment Chip */}
-      {selectedTrack && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: '#111', borderRadius: '4px 4px 0 0', border: '1px solid #333', borderBottom: 'none' }}>
-          <div style={{ width: 28, height: 28, borderRadius: 3, background: '#333', overflow: 'hidden', flexShrink: 0 }}>
-            {selectedTrack.artworkUrl && <img src={selectedTrack.artworkUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+      <div style={{ position: 'relative' }}>
+        <textarea
+          className={s.textarea}
+          value={text}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Write a message..."
+          disabled={disabled}
+          data-testid="message-textarea"
+        />
+        
+        {attachment && (
+          <div style={{ 
+            position: 'absolute', bottom: 8, left: 12, right: 12, 
+            background: '#1a1a1a', border: '1px solid #f50', borderRadius: 4, 
+            padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+          }}>
+            <div style={{ width: 32, height: 32, borderRadius: 2, background: '#333', overflow: 'hidden', flexShrink: 0 }}>
+              {(attachment.item.artworkUrl || attachment.item.artwork_url) && (
+                <img src={attachment.item.artworkUrl || attachment.item.artwork_url} alt={attachment.item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+               <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{attachment.item.title}</div>
+               <div style={{ fontSize: 10, color: '#999' }}>{attachment.type === 'track' ? 'Track' : 'Playlist'} selected</div>
+            </div>
+            <button 
+              onClick={() => setAttachment(null)}
+              style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', padding: 4 }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#999')}
+            >
+              ✕
+            </button>
           </div>
-          <span style={{ color: '#999', fontSize: 13, flex: 1 }}>
-            {(typeof selectedTrack.artist === 'object' ? selectedTrack.artist?.displayName : selectedTrack.artist) || 'Unknown'}  ·  {selectedTrack.title}
-          </span>
-          <button
-            onClick={() => setSelectedTrack(null)}
-            style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}
-            title="Remove track"
-          >×</button>
-        </div>
-      )}
+        )}
+      </div>
 
-      <textarea
-        className={s.composerTextarea}
-        style={selectedTrack ? { borderRadius: '0 0 4px 4px' } : undefined}
-        value={text}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        data-testid="message-composer-input"
-      />
-      
       <div className={s.composerActions} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
         <button
           onClick={() => setShowAddModal(true)}
@@ -90,7 +101,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
         <button
           className={s.sendBtn}
           onClick={handleSend}
-          disabled={disabled || (!text.trim() && !selectedTrack)}
+          disabled={disabled || (!text.trim() && !attachment)}
           data-testid="message-send-button"
         >
           Send
@@ -100,7 +111,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
       <AddAttachmentModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSelectTrack={(track) => setSelectedTrack(track)}
+        onSelectTrack={(item, type) => setAttachment({ item, type })}
       />
     </div>
   );
