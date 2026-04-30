@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/features/tracks/model/trackQueries', () => ({
   useTrack: vi.fn(),
+  useUpdateTrack: vi.fn(),
 }));
 
 vi.mock('@/features/player/model/playerStore', () => ({
@@ -35,10 +36,22 @@ vi.mock('@/shared/ui/TrackShareModal/TrackShareModal', () => ({
   },
 }));
 
+vi.mock('@/features/tracks/ui/EditTrackModal', () => ({
+  default: ({ open, onClose }: any) => {
+    if (!open) return null;
+    return (
+      <div data-testid="mock-edit-modal">
+        <button onClick={onClose} data-testid="mock-edit-close">Close Edit</button>
+      </div>
+    );
+  },
+}));
+
 describe('TrackPreviewCard', () => {
   const mockPlayTrack = vi.fn();
   const mockLikeTrack = vi.fn();
   const mockUnlikeTrack = vi.fn();
+  const mockUpdateTrack = vi.fn();
 
   const createWrapper = () => {
     const queryClient = new QueryClient({
@@ -63,6 +76,7 @@ describe('TrackPreviewCard', () => {
 
     vi.mocked(likeHooks.useLikeTrack).mockReturnValue({ mutate: mockLikeTrack } as any);
     vi.mocked(unlikeHooks.useUnlikeTrack).mockReturnValue({ mutate: mockUnlikeTrack } as any);
+    vi.mocked(trackQueries.useUpdateTrack).mockReturnValue({ mutateAsync: mockUpdateTrack, isPending: false } as any);
   });
 
   const mockTrack = { 
@@ -168,6 +182,29 @@ describe('TrackPreviewCard', () => {
     fireEvent.click(screen.getByTestId('mock-share-close'));
     await waitFor(() => {
       expect(screen.queryByTestId('mock-share-modal')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should open edit modal when edit button is clicked', async () => {
+    vi.mocked(trackQueries.useTrack).mockReturnValue({
+      data: {
+        id: 't1',
+        title: 'Mock Track',
+        artist: 'Mock Artist',
+      },
+      isLoading: false,
+    } as any);
+
+    render(<TrackPreviewCard track={mockTrack} />, { wrapper: createWrapper() });
+    
+    const editBtn = screen.getByTitle('Edit');
+    fireEvent.click(editBtn);
+    
+    expect(screen.getByTestId('mock-edit-modal')).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByTestId('mock-edit-close'));
+    await waitFor(() => {
+      expect(screen.queryByTestId('mock-edit-modal')).not.toBeInTheDocument();
     });
   });
 });

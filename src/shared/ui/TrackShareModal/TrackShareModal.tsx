@@ -68,7 +68,7 @@ export const TrackShareModal: React.FC<TrackShareModalProps> = ({
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const { data } = await apiClient.get(`/users/search?q=${encodeURIComponent(messageTo)}`);
+        const { data } = await apiClient.get(`/tracks/search?q=${encodeURIComponent(messageTo)}&type=users`);
         setSearchResults(data.data?.users || []);
       } catch (err) {
         console.error('Failed to search users', err);

@@ -23,7 +23,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [searchResults, setSearchResults] = useState<MessageUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<MessageUser | null>(null);
   const [messageText, setMessageText] = useState('');
-  const [selectedTrack, setSelectedTrack] = useState<any | null>(null);
+  const [attachment, setAttachment] = useState<{ item: any; type: 'track' | 'playlist' } | null>(null);
   const [searching, setSearching] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -67,7 +67,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
       { 
         userId, 
         content,
-        attachment: selectedTrack ? { type: 'track', id: selectedTrack.id } : undefined
+        attachment: attachment ? { type: attachment.type, id: attachment.item.id || attachment.item._id } : undefined
       },
       {
         onSuccess: (conversation) => {
@@ -98,24 +98,13 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
     } else {
       // Fallback: User typed a name but didn't select from the dropdown.
       setResolving(true);
-      let resolvedId = await resolveUserByPermalink(searchQuery.trim());
-      
-      // If permalink resolution fails (e.g. name with spaces), fallback to search
-      if (!resolvedId) {
-        try {
-          const results = await searchUsers(searchQuery.trim());
-          if (results && results.length > 0) {
-            resolvedId = results[0]._id;
-          }
-        } catch {}
-      }
-      
-      setResolving(false);
-
-      if (resolvedId) {
-        executeSend(resolvedId, messageText.trim());
-      } else {
-        setRecipientError("User not found. Please select from the dropdown or try a different name.");
+      try {
+        const resolved = await resolveUserByPermalink(searchQuery.trim());
+        executeSend(resolved._id, messageText.trim());
+      } catch {
+        setRecipientError('Could not find this user.');
+      } finally {
+        setResolving(false);
       }
     }
   };
@@ -125,157 +114,124 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
     setSearchResults([]);
     setSelectedUser(null);
     setMessageText('');
-    setSelectedTrack(null);
+    setAttachment(null);
     setRecipientError(null);
     setMessageError(null);
     onClose();
   };
 
-  if (!open) return null;
-
   const isSending = startConversationMutation.isPending || resolving;
 
+  if (!open) return null;
+
   return (
-    <div
-      className={s.modalOverlay}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleReset();
-      }}
+    <div 
+      className={s.modalOverlay} 
+      onClick={(e) => { if (e.target === e.currentTarget) handleReset(); }}
       data-testid="new-conversation-modal"
     >
-      <div className={s.modalContent}>
+      <div className={s.newConvModal}>
         {/* Header */}
         <div className={s.modalHeader}>
           <h2 className={s.modalTitle}>New message</h2>
-          <button
-            className={s.modalClose}
-            onClick={handleReset}
-            data-testid="new-conv-close"
-          >
-            <CloseIcon size={18} />
+          <button onClick={handleReset} className={s.closeBtn}>
+            <CloseIcon size={20} />
           </button>
         </div>
 
-        {/* Body */}
+        {/* Form Body */}
         <div className={s.modalBody}>
-          {/* To field */}
-          <div className={s.modalField}>
-            <label className={s.modalLabel}>
-              To<span style={{ color: '#ff1f44' }}>*</span>
-            </label>
-            {selectedUser ? (
-              <div className={s.selectedUser}>
-                <div className={s.userResultAvatar}>
-                  {selectedUser.avatarUrl ? (
-                    <img src={selectedUser.avatarUrl} alt="" className={s.userResultAvatarImg} />
-                  ) : (
-                    <span className={s.userResultAvatarInitial}>{selectedUser.displayName.charAt(0).toUpperCase()}</span>
-                  )}
+          {/* Recipient Search */}
+          <div className={s.searchField}>
+            <label className={s.fieldLabel}>To:</label>
+            <div className={s.searchContainer}>
+              {selectedUser ? (
+                <div className={s.selectedUserChip}>
+                  <span>{selectedUser.displayName}</span>
+                  <button onClick={() => setSelectedUser(null)}>✕</button>
                 </div>
-                <span className={s.selectedUserName}>
-                  {selectedUser.displayName}
-                </span>
-                <button
-                  className={s.selectedUserRemove}
-                  onClick={() => setSelectedUser(null)}
-                >
-                  ×
-                </button>
-              </div>
-            ) : (
-              <>
+              ) : (
                 <input
-                  className={s.modalInput}
-                  style={recipientError ? { borderColor: '#ff1f44' } : undefined}
+                  type="text"
+                  className={s.searchInput}
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  data-testid="user-search-input"
+                  placeholder="Enter a name or permalink"
+                  autoFocus
+                  data-testid="recipient-search-input"
                 />
-                {recipientError && (
-                  <div style={{ color: '#ff1f44', fontSize: 12, marginTop: 4 }}>
-                    {recipientError}
+              )}
+            </div>
+            {recipientError && <div className={s.errorText}>{recipientError}</div>}
+            
+            {/* Dropdown Results */}
+            {searchResults.length > 0 && (
+              <div className={s.searchResultsDropdown}>
+                {searchResults.map(user => (
+                  <div 
+                    key={user._id} 
+                    className={s.searchResultItem}
+                    onClick={() => handleSelectUser(user)}
+                    data-testid={`search-result-${user._id}`}
+                  >
+                    <div className={s.searchResultAvatar}>
+                      {user.avatarUrl && <img src={user.avatarUrl} alt="" />}
+                    </div>
+                    <div className={s.searchResultInfo}>
+                      <span className={s.searchResultName}>{user.displayName}</span>
+                      <span className={s.searchResultPermalink}>@{user.permalink}</span>
+                    </div>
                   </div>
-                )}
-                {(searchResults.length > 0 || searching) && !recipientError && (
-                  <div className={s.userResults}>
-                    {searching ? (
-                      <div
-                        style={{
-                          padding: 12,
-                          textAlign: 'center',
-                          color: 'var(--sc-text-secondary)',
-                          fontSize: 13,
-                        }}
-                      >
-                        Searching...
-                      </div>
-                    ) : (
-                      searchResults.map((user) => (
-                        <button
-                          key={user._id}
-                          className={s.userResultItem}
-                          onClick={() => handleSelectUser(user)}
-                          data-testid={`user-result-${user._id}`}
-                        >
-                          <div className={s.userResultAvatar}>
-                            {user.avatarUrl ? (
-                              <img src={user.avatarUrl} alt="" className={s.userResultAvatarImg} />
-                            ) : (
-                              <span className={s.userResultAvatarInitial}>{user.displayName.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <span className={s.userResultName}>
-                            {user.displayName}
-                          </span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </>
+                ))}
+              </div>
             )}
+            {searching && <div className={s.searchingIndicator}>Searching...</div>}
           </div>
 
-          {/* Message field */}
-          <div className={s.modalField}>
-            <label className={s.modalLabel}>
-              Write your message and add tracks or playlists<span style={{ color: '#ff1f44' }}>*</span>
-            </label>
-            <textarea
-              className={s.modalTextarea}
-              style={messageError ? { borderColor: '#ff1f44' } : undefined}
-              value={messageText}
-              onChange={(e) => {
-                setMessageText(e.target.value);
-                setMessageError(null);
-              }}
-              data-testid="new-conv-message-input"
-            />
-            {messageError && (
-              <div style={{ color: '#ff1f44', fontSize: 12, marginTop: 4 }}>
-                {messageError}
-              </div>
-            )}
+          {/* Message Area */}
+          <div className={s.messageField}>
+            <label className={s.fieldLabel}>Message:</label>
+            <div style={{ position: 'relative' }}>
+              <textarea
+                className={s.messageTextarea}
+                value={messageText}
+                onChange={(e) => {
+                  setMessageText(e.target.value);
+                  setMessageError(null);
+                }}
+                placeholder="Write something..."
+                data-testid="new-conv-message-input"
+              />
 
-            {/* Attached track preview */}
-            {selectedTrack && (
-              <div style={{ 
-                marginTop: 12, padding: '8px 12px', background: '#111', borderRadius: 4, 
-                border: '1px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'space-between' 
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 32, height: 32, background: '#333', borderRadius: 2, overflow: 'hidden' }}>
-                    {selectedTrack.artworkUrl && <img src={selectedTrack.artworkUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              {attachment && (
+                <div style={{ 
+                  position: 'absolute', bottom: 8, left: 12, right: 12, 
+                  background: '#1a1a1a', border: '1px solid #f50', borderRadius: 4, 
+                  padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 2, background: '#333', overflow: 'hidden', flexShrink: 0 }}>
+                    {(attachment.item.artworkUrl || attachment.item.artwork_url) && (
+                      <img src={attachment.item.artworkUrl || attachment.item.artwork_url} alt={attachment.item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{selectedTrack.title}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{attachment.item.title}</div>
+                    <div style={{ fontSize: 10, color: '#999' }}>{attachment.type === 'track' ? 'Track' : 'Playlist'} selected</div>
+                  </div>
+                  <button 
+                    onClick={() => setAttachment(null)}
+                    style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', padding: 4 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#999')}
+                  >
+                    ✕
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setSelectedTrack(null)}
-                  style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: 18 }}
-                >×</button>
-              </div>
-            )}
-
+              )}
+            </div>
+            {messageError && <div className={s.errorText}>{messageError}</div>}
+            
             <div style={{ marginTop: 12 }}>
               <button
                 type="button"
@@ -308,7 +264,7 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
         <AddAttachmentModal
           open={showAddModal}
           onClose={() => setShowAddModal(false)}
-          onSelectTrack={setSelectedTrack}
+          onSelectTrack={(item, type) => setAttachment({ item, type })}
         />
       </div>
     </div>
