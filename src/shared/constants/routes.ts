@@ -1,6 +1,6 @@
 export const ROUTES = {
   HOME: '/',
-  DASHBOARD: '/home',
+  DASHBOARD: '/discover',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
@@ -9,6 +9,7 @@ export const ROUTES = {
   FEED: '/feed',
   SETTINGS: '/settings',
   FOR_ARTISTS: '/for-artists',
+  ARTIST_STUDIO: '/artists',
   PROFILE: (username: string) => `/profile/${username}`,
   FOLLOWERS: (username: string) => `/profile/${username}/followers`,
   FOLLOWING: (username: string) => `/profile/${username}/following`,
@@ -30,4 +31,9 @@ export const ROUTES = {
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
   STATIONS: '/stations',
+  GO_PLUS: '/go-plus',
+  ARTIST_PRO: '/artist-pro',
+  PAYMENT: '/payment',
+  SUBSCRIPTION: '/subscription',
+  OFFLINE: '/offline',
 } as const

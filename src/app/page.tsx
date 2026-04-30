@@ -16,8 +16,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Use the profile route directly with the dev mock username
-      router.push(ROUTES.PROFILE('Local Dev'))
+      router.replace(ROUTES.DASHBOARD)
     }
   }, [isAuthenticated, router])
 

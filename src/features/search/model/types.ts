@@ -8,12 +8,15 @@ export interface TrackResult {
   permalink: string
   artworkUrl?: string
   hlsUrl?: string
+  streamUrl?: string
   duration?: number
   genre?: string
   playCount: number
   likeCount: number
   repostCount?: number
   commentCount?: number
+  waveform?: number[]
+  durationSeconds?: number
   artist: {
     _id: string
     displayName: string

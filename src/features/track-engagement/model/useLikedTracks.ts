@@ -10,9 +10,8 @@ export const LIKED_TRACKS_QUERY_KEY = ["liked-tracks"] as const;
  * The backend may return `_id`, nested `artist` objects, etc.
  */
 function mapLikedTrack(rawItem: any): TrackNode {
-  // Backends often return likes as an array of { track: { ... }, likedAt: "..." }
-  // or it might just be the track directly. This handles both.
-  const t = rawItem.track || rawItem;
+  // Backend YAML: likedTracks is an array of { likeDate, target: TrackSummary, targetModel }
+  const t = rawItem.target || rawItem.track || rawItem;
 
   return {
     id: t._id || t.id,
@@ -25,7 +24,7 @@ function mapLikedTrack(rawItem: any): TrackNode {
       (typeof t.artist === "string" ? t.artist : "") ||
       "Unknown Artist",
     artworkUrl: t.artworkUrl || t.coverUrl || t.imageUrl || null,
-    createdAt: t.createdAt || t.likedAt || "",
+    createdAt: t.createdAt || rawItem.likeDate || "",
     durationFormatted:
       typeof t.duration === "number"
         ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60)
@@ -36,12 +35,13 @@ function mapLikedTrack(rawItem: any): TrackNode {
     likeCount: t.likeCount ?? 0,
     repostCount: t.repostCount ?? 0,
     commentCount: t.commentCount ?? 0,
-    isLiked: true, // If it's in the liked list, it's liked
+    isLiked: true,
     isReposted: t.isReposted ?? false,
     streamUrl: t.streamUrl || t.hlsUrl || t.audioUrl || "",
     hlsUrl: t.hlsUrl || t.streamUrl || t.audioUrl || "",
     audioFileName: t.audioFileName || "",
     duration: typeof t.duration === "number" ? t.duration : 0,
+    permalink: t.permalink || t._id || t.id,
   };
 }
 

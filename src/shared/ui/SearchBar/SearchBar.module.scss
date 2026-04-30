@@ -50,3 +50,59 @@
 
   &:hover { color: var(--sc-white); }
 }
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #ccc;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: #222;
+    color: #fff;
+  }
+}
+
+.suggestionThumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 2px;
+  object-fit: cover;
+  background: #333;
+}
+
+.suggestionType {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #666;
+  margin-left: auto;
+}
+
+.suggestionTitle {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

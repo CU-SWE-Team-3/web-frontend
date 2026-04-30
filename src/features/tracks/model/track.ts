@@ -18,6 +18,7 @@ export interface Track {
   artworkUrl: string;
   waveform: number[];
   duration: string;
+  durationSeconds?: number;
   createdAt: string;
   updatedAt?: string;
   hlsUrl?: string;
@@ -29,10 +30,13 @@ export interface Track {
   buyLink?: string;
   allowComments?: boolean;
   // Engagement counts
-  playCount: number;
-  likeCount: number;
-  repostCount: number;
-  commentCount: number;
+  playCount?: number;
+  likeCount?: number;
+  repostCount?: number;
+  commentCount?: number;
+  downloadCount?: number;
+  enableDirectDownloads?: boolean;
+  displayStatsPublicly?: boolean;
 }
 
 export interface UploadTrackInput {

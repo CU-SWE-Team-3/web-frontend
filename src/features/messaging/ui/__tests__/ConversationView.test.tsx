@@ -92,7 +92,7 @@ describe('ConversationView', () => {
       isLoading: false,
     } as any);
 
-    render(<ConversationView conversation={mockConversation} />, { wrapper: createWrapper() });
+    render(<ConversationView conversation={mockConversation} onDeleted={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('No messages yet')).toBeInTheDocument();
   });
 
@@ -107,7 +107,7 @@ describe('ConversationView', () => {
       isLoading: false,
     } as any);
 
-    render(<ConversationView conversation={mockConversation} />, { wrapper: createWrapper() });
+    render(<ConversationView conversation={mockConversation} onDeleted={vi.fn()} />, { wrapper: createWrapper() });
     
     expect(screen.getByTestId('message-m1')).toHaveTextContent('Msg 1');
     expect(screen.getByTestId('message-m2')).toHaveTextContent('Msg 2');
@@ -121,7 +121,7 @@ describe('ConversationView', () => {
       isLoading: false,
     } as any);
 
-    render(<ConversationView conversation={mockConversation} />, { wrapper: createWrapper() });
+    render(<ConversationView conversation={mockConversation} onDeleted={vi.fn()} />, { wrapper: createWrapper() });
     
     fireEvent.click(screen.getByTestId('mock-send-text'));
     
@@ -140,7 +140,7 @@ describe('ConversationView', () => {
       isLoading: false,
     } as any);
 
-    render(<ConversationView conversation={mockConversation} />, { wrapper: createWrapper() });
+    render(<ConversationView conversation={mockConversation} onDeleted={vi.fn()} />, { wrapper: createWrapper() });
     
     fireEvent.click(screen.getByTestId('mock-send-track'));
     
@@ -166,7 +166,7 @@ describe('ConversationView', () => {
       isLoading: false,
     } as any);
 
-    render(<ConversationView conversation={mockConversation} />, { wrapper: createWrapper() });
+    render(<ConversationView conversation={mockConversation} onDeleted={vi.fn()} />, { wrapper: createWrapper() });
     
     expect(screen.getByText('User 2 is typing...')).toBeInTheDocument();
   });

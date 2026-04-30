@@ -70,6 +70,15 @@ function getImageUrl(value: any): string {
   );
 }
 
+function getNumber(value: any): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
 function mapApiTrack(t: any, fallbackArtist?: string): Track {
   const durationValue = typeof t.duration === "number"
     ? `${Math.floor(t.duration / 60)}:${Math.floor(t.duration % 60).toString().padStart(2, "0")}`
@@ -103,15 +112,50 @@ function mapApiTrack(t: any, fallbackArtist?: string): Track {
     artworkUrl: artwork,
     waveform: t.waveform || makeWaveform(),
     duration: durationValue,
+    durationSeconds: t.duration || 0,
     createdAt: t.createdAt || t.created_at || "",
     updatedAt: t.updatedAt || t.updated_at || "",
     streamUrl: stream,
     hlsUrl: hls,
-    playCount: t.playCount || t.play_count || 0,
-    likeCount: t.likeCount || t.like_count || 0,
-    repostCount: t.repostCount || t.repost_count || 0,
-    commentCount: t.commentCount || t.comment_count || 0,
+    playCount: getNumber(t.playCount ?? t.play_count),
+    likeCount: getNumber(t.likeCount ?? t.like_count),
+    repostCount: getNumber(t.repostCount ?? t.repost_count),
+    commentCount: getNumber(t.commentCount ?? t.comment_count),
+    downloadCount: getNumber(t.downloadCount ?? t.download_count ?? t.downloads),
+    enableDirectDownloads: Boolean(t.enableDirectDownloads ?? t.enable_direct_downloads),
+    displayStatsPublicly: t.displayStatsPublicly ?? t.display_stats_publicly,
   };
+}
+
+function extractTrackArray(payload: any): any[] {
+  const candidates = [
+    payload?.data?.data?.tracks,
+    payload?.data?.tracks,
+    payload?.data?.items,
+    payload?.data?.results,
+    payload?.tracks,
+    payload?.items,
+    payload?.results,
+    payload?.data,
+    payload,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+}
+
+function extractTrackObject(payload: any): any {
+  return (
+    payload?.data?.data?.track ||
+    payload?.data?.track ||
+    payload?.track ||
+    payload?.data?.data ||
+    payload?.data ||
+    payload
+  );
 }
 
 export const tracksRepository = {
@@ -271,14 +315,17 @@ export const tracksRepository = {
   },
 
   /**
-   * Fetch ALL tracks visible to the current user from the backend.
+   * Fetch ALL tracks owned by the authenticated user from the backend.
+   * GET /tracks/my-tracks
+   * v1.10 envelope: { success, count, data: Track[] }  ← array is at data.data
    * Used by the My Tracks / Track Management page.
    */
   async getTracks(): Promise<Track[]> {
     try {
       console.log('[tracksRepository] getTracks: fetching from API via /tracks/my-tracks');
       const response = await apiClient.get('/tracks/my-tracks');
-      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+      // v1.10: envelope is { success, count, data: Track[] } — array lives directly in data.data
+      const apiTracks = extractTrackArray(response.data);
 
       if (Array.isArray(apiTracks)) {
         return apiTracks.map((t: any) => mapApiTrack(t));
@@ -287,76 +334,83 @@ export const tracksRepository = {
       console.warn('[tracksRepository] /tracks/my-tracks failed, falling back:', err);
     }
 
+    // Fallback: /profile/{userId}/tracks (v1.10 spec — replaces /users/{username}/tracks)
     try {
       const { user } = useAuthStore.getState();
-      const username = user?.permalink || user?.username || (user as any)?._id || user?.id;
+      const userId = (user as any)?._id || user?.id;
 
-      if (username) {
-        console.log('[tracksRepository] getTracks: fallback via /users/' + username + '/tracks');
-        const response = await apiClient.get(`/users/${username}/tracks`);
-        const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+      if (userId) {
+        console.log('[tracksRepository] getTracks: fallback via /profile/' + userId + '/tracks');
+        const response = await apiClient.get(`/profile/${userId}/tracks`);
+        // v1.10 envelope: { success, data: { total, page, totalPages, tracks: Track[] } }
+        const apiTracks = extractTrackArray(response.data);
 
         if (Array.isArray(apiTracks)) {
-          return apiTracks.map((t: any) => mapApiTrack(t, username));
+          return apiTracks.map((t: any) => mapApiTrack(t));
         }
       }
     } catch (err) {
-      console.warn('[tracksRepository] getTracks user fallback failed:', err);
+      console.warn('[tracksRepository] getTracks profile fallback failed:', err);
     }
 
-    try {
-      console.log('[tracksRepository] getTracks: trying generic /tracks endpoint');
-      const response = await apiClient.get('/tracks');
-      const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
-      if (Array.isArray(apiTracks)) {
-        return apiTracks.map((t: any) => mapApiTrack(t));
-      }
-      return [];
-    } catch (err) {
-      console.warn('[tracksRepository] getTracks API failed:', err);
-      return [];
-    }
+    return [];
   },
 
+  /**
+   * Fetch tracks for a specific artist/user.
+   * Uses GET /tracks/my-tracks for the current user or GET /profile/{userId}/tracks for others.
+   * v1.10: /profile/{userId}/tracks requires a MongoDB ObjectId.
+   * Falls back through permalink resolution if needed.
+   */
   async getTracksByArtist(username: string): Promise<Track[]> {
     const resolvedUsername = resolveUsername(username);
 
     try {
+      // Own tracks — use the dedicated endpoint
       if (isCurrentUserIdentifier(username) || isCurrentUserIdentifier(resolvedUsername)) {
         console.log('[tracksRepository] Fetching own tracks from API:', '/tracks/my-tracks');
         const response = await apiClient.get('/tracks/my-tracks');
-        const apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+        // v1.10 envelope: { success, count, data: Track[] }
+        const apiTracks = extractTrackArray(response.data);
 
         if (Array.isArray(apiTracks)) {
           return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
         }
       }
 
-      let apiTracks: any[] = [];
+      // Other users — resolve to ObjectId first, then use /profile/{userId}/tracks
+      // v1.10 spec: only /profile/{userId}/tracks exists (no /users/{username}/tracks)
+      let resolvedId = resolvedUsername;
+      if (resolvedUsername.length !== 24) {
+        try {
+          const profRes = await apiClient.get(`/profile/${resolvedUsername}`);
+          resolvedId = profRes.data?.data?.user?._id || profRes.data?.data?._id || resolvedUsername;
+        } catch {
+          // Keep resolvedUsername as fallback
+        }
+      }
+
       const endpointsToTry = [
-        `/users/${resolvedUsername}/tracks?limit=100`,
-        `/profile/${resolvedUsername}/tracks?limit=100`, // Added fallback for backend strict routing
-        `/tracks/user/${resolvedUsername}?limit=100`
+        `/profile/${resolvedId}/tracks?limit=100`,
+        // Legacy fallback in case the backend still supports the old route
+        `/profile/${resolvedUsername}/tracks?limit=100`,
       ];
 
       for (const endpoint of endpointsToTry) {
         try {
           console.log('[tracksRepository] Attempting to fetch tracks from API:', endpoint);
           const response = await apiClient.get(endpoint);
-          apiTracks = response.data?.data || response.data?.tracks || response.data || [];
+          // v1.10 envelope: { success, data: { total, page, totalPages, tracks: Track[] } }
+          const apiTracks = extractTrackArray(response.data);
           if (Array.isArray(apiTracks) && apiTracks.length > 0) {
             console.log(`[tracksRepository] API returned ${apiTracks.length} tracks using endpoint: ${endpoint}`);
-            break; // Stop trying if we successfully found tracks!
+            return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
           }
         } catch (err: any) {
           if (err.response?.status !== 404) {
             console.warn(`[tracksRepository] API endpoint ${endpoint} failed with non-404:`, err.message);
           }
         }
-      }
-
-      if (Array.isArray(apiTracks) && apiTracks.length > 0) {
-        return apiTracks.map((t: any) => mapApiTrack(t, resolvedUsername));
       }
 
       return [];
@@ -371,7 +425,7 @@ export const tracksRepository = {
     try {
       console.log('[tracksRepository] Fetching track from API by permalink:', identifier);
       const response = await apiClient.get(`/tracks/${identifier}`);
-      const t = response.data?.data?.track || response.data?.data || response.data;
+      const t = extractTrackObject(response.data);
       if (t) {
         return mapApiTrack(t);
       }
@@ -382,7 +436,7 @@ export const tracksRepository = {
     // ── Fallback 1: check the logged-in user's own tracks ──
     try {
       const fallbackResponse = await apiClient.get('/tracks/my-tracks');
-      const apiTracks = fallbackResponse.data?.data || fallbackResponse.data?.tracks || fallbackResponse.data || [];
+      const apiTracks = extractTrackArray(fallbackResponse.data);
       if (Array.isArray(apiTracks)) {
         const foundTrack = apiTracks.find((t: any) =>
           (t.permalink || t._id || t.id) === identifier ||
@@ -405,7 +459,7 @@ export const tracksRepository = {
     for (const endpoint of altEndpoints) {
       try {
         const res = await apiClient.get(endpoint);
-        const t = res.data?.data?.track || res.data?.data || res.data;
+        const t = extractTrackObject(res.data);
         if (t && (t._id || t.id)) {
           console.log(`[tracksRepository] Track found via ${endpoint}`);
           return mapApiTrack(t);
@@ -425,7 +479,7 @@ export const tracksRepository = {
     for (const endpoint of userTrackEndpoints) {
       try {
         const res = await apiClient.get(endpoint);
-        const list = res.data?.data || res.data?.tracks || res.data || [];
+        const list = extractTrackArray(res.data);
         if (Array.isArray(list)) {
           const found = list.find((t: any) =>
             (t.permalink || t._id || t.id) === identifier ||
@@ -480,13 +534,51 @@ export const tracksRepository = {
       throw err;
     }
   },
+  /**
+   * Upload custom artwork for a track.
+   * PATCH /tracks/{id}/artwork (multipart/form-data with "artwork" field)
+   * v1.10: 200 → { success, message, data: { artworkUrl: string } }
+   * Requires authentication. Only the track owner may call this.
+   */
+  async uploadTrackArtwork(trackId: string, file: File): Promise<{ artworkUrl: string }> {
+    const formData = new FormData();
+    formData.append('artwork', file);
+
+    const response = await apiClient.patch(
+      `/tracks/${trackId}/artwork`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
+      }
+    );
+
+    return response.data?.data ?? { artworkUrl: '' };
+  },
+
+  async downloadTrack(id: string): Promise<{ blob: Blob; filename: string }> {
+    const response = await apiClient.get(`/tracks/${id}/download`, {
+      responseType: "blob",
+      withCredentials: true,
+    });
+
+    const disposition = response.headers["content-disposition"] || "";
+    const filenameMatch =
+      disposition.match(/filename\*=UTF-8''([^;]+)/i) ||
+      disposition.match(/filename="?([^"]+)"?/i);
+
+    return {
+      blob: response.data,
+      filename: filenameMatch?.[1] ? decodeURIComponent(filenameMatch[1]) : "track-download.mp3",
+    };
+  },
   
   async searchTracks(query: string): Promise<Track[]> {
     try {
       const response = await apiClient.get('/tracks/search', {
         params: { q: query, type: 'tracks' }
       });
-      const apiTracks = response.data?.data?.tracks || [];
+      const apiTracks = extractTrackArray(response.data);
       return apiTracks.map((t: any) => mapApiTrack(t));
     } catch (err) {
       console.warn('[tracksRepository] searchTracks failed:', err);

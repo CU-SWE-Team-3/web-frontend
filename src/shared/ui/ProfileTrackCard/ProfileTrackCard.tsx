@@ -171,7 +171,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       {/* Track Header */}
       <div className="flex gap-4">
         {/* Cover Art */}
-        <div className="w-[160px] h-[160px] shrink-0 bg-[#222] rounded overflow-hidden relative group cursor-pointer">
+        <div className="shrink-0 bg-[#222] rounded overflow-hidden relative group cursor-pointer" style={{ width: 'clamp(88px, 15vw, 160px)', height: 'clamp(88px, 15vw, 160px)' }}>
           <Link href={`/tracks/${track.id}`} className="absolute inset-0 z-10" aria-label={`Go to ${track.title}`} />
           {track.artworkUrl && track.artworkUrl !== 'undefined' && track.artworkUrl !== 'null' ? (
             <img 
@@ -247,9 +247,9 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
       </div>
 
       {/* ── Action Bar (SoundCloud style) ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
         {/* Left: interactive buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {/* Like button */}
           <button
             data-testid="track-card-like-button"

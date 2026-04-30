@@ -82,10 +82,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   addNotification: (notification) => {
     const existing = get().notifications
-    if (existing.some(n => n._id === notification._id)) return
+    
+    // Allow multiple notifications even if the backend reuses the same ID (e.g. for comments on the same track).
     set({
       notifications: [notification, ...existing],
-      unreadCount: get().unreadCount + 1,
+      unreadCount: !notification.isRead ? get().unreadCount + 1 : get().unreadCount,
     })
   },
 

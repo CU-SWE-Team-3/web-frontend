@@ -1,8 +1,10 @@
 'use client'
 
-import { type FC, useCallback, useState } from 'react'
+import { type FC, useCallback, useState, useEffect } from 'react'
+import Link from 'next/link'
 import type { Notification } from '@/shared/types'
 import { useNotificationStore } from '../model/useNotificationStore'
+import { useFollowStore } from '@/features/social-graph/model/useFollowStore'
 import s from './NotificationDropdown.module.scss'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
@@ -49,26 +51,40 @@ function formatRelativeTime(dateString: string): string {
 
 // ─── Follow Button (inline, uses apiClient directly) ────────────────────────────
 
+import { useFollowing } from '@/features/social-graph/model/useFollowing'
+import { useAuthStore } from '@/features/auth/model/useAuthStore'
+
 interface FollowBtnProps {
   userId: string
+  initialFollowing?: boolean
 }
 
-const FollowBtn: FC<FollowBtnProps> = ({ userId }) => {
-  const [following, setFollowing] = useState(false)
+const FollowBtn: FC<FollowBtnProps> = ({ userId, initialFollowing = false }) => {
+  const followStore = useFollowStore()
+  const authUser = useAuthStore(s => s.user)
+  const myId = (authUser as any)?._id || authUser?.id
+  const { data: followingList } = useFollowing(myId || '')
+  
+  const isActuallyFollowing = followingList?.some(u => u.id === userId || (u as any)._id === userId)
+  const globalFollowing = followStore.followingMap[userId]
+  
+  const isFollowing = globalFollowing ?? isActuallyFollowing ?? initialFollowing
+
   const [hovered, setHovered] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
     setLoading(true)
     try {
       const apiClient = (await import('@/shared/api/client')).default
-      if (following) {
+      if (isFollowing) {
         await apiClient.delete(`/network/${userId}/follow`, { withCredentials: true })
-        setFollowing(false)
+        followStore.setFollowing(userId, false)
       } else {
         await apiClient.post(`/network/${userId}/follow`, {}, { withCredentials: true })
-        setFollowing(true)
+        followStore.setFollowing(userId, true)
       }
     } catch {
       /* ignore */
@@ -77,11 +93,11 @@ const FollowBtn: FC<FollowBtnProps> = ({ userId }) => {
     }
   }
 
-  const label = following ? (hovered ? 'Unfollow' : 'Following') : 'Follow back'
+  const label = isFollowing ? (hovered ? 'Unfollow' : 'Following') : 'Follow back'
 
   return (
     <button
-      className={`${s.followBtn} ${following ? s.followBtnFollowing : ''} ${following && hovered ? s.followBtnUnfollow : ''}`}
+      className={`${s.followBtn} ${isFollowing ? s.followBtnFollowing : ''} ${isFollowing && hovered ? s.followBtnUnfollow : ''}`}
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -112,6 +128,16 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
   const text = buildNotificationText(notification)
   const timeAgo = formatRelativeTime(notification.updatedAt)
 
+  // Resolve the actor's profile URL (prefer permalink, fallback to _id)
+  const actorProfileHref = actor
+    ? `/profile/${actor.permalink || actor._id}`
+    : null
+
+  // Resolve target link for LIKE / REPOST / COMMENT / NEW_TRACK / NEW_PLAYLIST
+  const targetHref = notification.target?.permalink
+    ? `/tracks/${notification.target.permalink}`
+    : notification.actionLink || null
+
   return (
     <div
       className={`${s.item} ${!notification.isRead ? s.itemUnread : ''}`}
@@ -123,18 +149,29 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
       {/* Unread dot */}
       {!notification.isRead && <div className={s.unreadDot} />}
 
-      {/* Actor avatar */}
-      <div className={s.avatar} data-testid={`notification-item-avatar-${notification._id}`}>
-        {actor?.avatarUrl ? (
-          <img src={actor.avatarUrl} alt={actor.displayName} className={s.avatarImg} />
-        ) : (
-          <div className={s.avatarPlaceholder}>
-            {(actor?.displayName?.[0] ?? '?').toUpperCase()}
-          </div>
-        )}
-      </div>
+      {/* Actor avatar — clickable to profile */}
+      {actorProfileHref ? (
+        <Link
+          href={actorProfileHref}
+          onClick={(e) => e.stopPropagation()}
+          className={s.avatar}
+          data-testid={`notification-item-avatar-${notification._id}`}
+        >
+          {actor?.avatarUrl ? (
+            <img src={actor.avatarUrl} alt={actor.displayName} className={s.avatarImg} />
+          ) : (
+            <div className={s.avatarPlaceholder}>
+              {(actor?.displayName?.[0] ?? '?').toUpperCase()}
+            </div>
+          )}
+        </Link>
+      ) : (
+        <div className={s.avatar} data-testid={`notification-item-avatar-${notification._id}`}>
+          <div className={s.avatarPlaceholder}>?</div>
+        </div>
+      )}
 
-      {/* Text content */}
+      {/* Text content — actor name is a clickable link */}
       <div className={s.body}>
         <div className={s.text} data-testid={`notification-item-text-${notification._id}`}>
           {text}
@@ -142,9 +179,21 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
         <div className={s.time}>{timeAgo}</div>
       </div>
 
-      {/* Follow button for FOLLOW type, or artwork for other types */}
-      {notification.type === 'FOLLOW' && actor ? (
-        <FollowBtn userId={actor._id} />
+      {/* Follow button shown only for FOLLOW notifications; artwork shown for track/playlist ones */}
+      {actor && notification.type === 'FOLLOW' ? (
+        <FollowBtn userId={actor._id} initialFollowing={actor.isFollowing} />
+      ) : notification.target?.artworkUrl && targetHref ? (
+        <Link
+          href={targetHref}
+          onClick={(e) => e.stopPropagation()}
+          className={s.artwork}
+        >
+          <img
+            src={notification.target.artworkUrl}
+            alt={notification.target.title}
+            className={s.artworkImg}
+          />
+        </Link>
       ) : notification.target?.artworkUrl ? (
         <div className={s.artwork}>
           <img

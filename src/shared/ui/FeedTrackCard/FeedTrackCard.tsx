@@ -54,7 +54,7 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
       {(reposterName || actionType) && (
         <div className={s.headerRow}>
           <div className={s.reposterInfo}>
-            <Link href={`/${reposterPermalink || '#'}`} className={s.reposterAvatarWrap}>
+            <Link href={`/profile/${reposterPermalink || '#'}`} className={s.reposterAvatarWrap}>
               <img 
                 src={reposterAvatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop'} 
                 alt={reposterName} 
@@ -62,7 +62,7 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
               />
             </Link>
             <span className={s.headerText}>
-              <Link href={`/${reposterPermalink || '#'}`} className={s.reposterName}>{reposterName || artist}</Link>
+              <Link href={`/profile/${reposterPermalink || '#'}`} className={s.reposterName}>{reposterName || artist}</Link>
               {' '}
               <span className={s.actionType}>{actionType}</span>
               {' '}
@@ -93,8 +93,8 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
               <span className={s.playTriangle} />
             </button>
             <div className={s.titleInfo}>
-              <Link href={`/${artistPermalink || '#'}`} className={s.artistName}>{artist}</Link>
-              <Link href={`/${trackPermalink || '#'}`} data-testid="track-card-title" className={s.trackTitle}>{title}</Link>
+              <Link href={`/profile/${artistPermalink || '#'}`} className={s.artistName}>{artist}</Link>
+              <Link href={`/tracks/${trackPermalink || '#'}`} data-testid="track-card-title" className={s.trackTitle}>{title}</Link>
             </div>
             {/* Genre tag if exists could go here */}
           </div>

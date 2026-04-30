@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (token && typeof window !== 'undefined') {
       localStorage.setItem('accessToken', token)
     }
-    set({ user, isAuthenticated: true })
+    set({ user, isAuthenticated: true, isInitialized: true })
   },
 
   // Called on logout — call API to clear cookies, then clear local state + token
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken')
     }
-    set({ user: null, isAuthenticated: false })
+    set({ user: null, isAuthenticated: false, isInitialized: true })
   },
 
   // Update profile data without re-logging in
@@ -71,27 +71,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.removeItem('accessToken')
         set({ isInitialized: true })
       }
-    } catch {
-      // DEV BYPASS: Allow frontend development without a real backend
-      console.warn('Backend unavailable: Using local Dev Mock User')
-      set({ 
-        user: { 
-          id: "dev-mock-user", 
-          _id: "dev-mock-user",
-          username: "Local Dev", 
-          displayName: "Local Developer",
-          permalink: "local-dev",
-          email: "dev@biobeats.local", 
-          avatarUrl: undefined,
-          role: "Artist",
-          isPremium: true,
-          followerCount: 0,
-          followingCount: 0,
-          createdAt: new Date().toISOString()
-        } as User, 
-        isAuthenticated: true, 
-        isInitialized: true 
-      })
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        localStorage.removeItem('accessToken')
+      }
+      set({ user: null, isAuthenticated: false, isInitialized: true })
     }
   },
 }))

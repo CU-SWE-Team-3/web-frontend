@@ -25,7 +25,7 @@ describe('useLikeTrack', () => {
   );
 
   it('should call likeTrack and invalidate queries on success', async () => {
-    vi.mocked(likeTrack).mockResolvedValueOnce(undefined);
+    vi.mocked(likeTrack).mockResolvedValueOnce({ liked: true, newLikeCount: 1 });
     
     // Spy on invalidateQueries
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');

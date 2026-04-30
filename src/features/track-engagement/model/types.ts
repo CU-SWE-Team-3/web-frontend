@@ -14,5 +14,6 @@ export interface TrackNode {
   streamUrl?: string;
   hlsUrl?: string;
   audioFileName?: string;
+  permalink?: string;
   duration?: number;
 }

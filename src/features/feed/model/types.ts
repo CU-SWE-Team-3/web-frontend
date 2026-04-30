@@ -15,6 +15,7 @@ export interface FeedTrack {
   permalink: string
   artworkUrl?: string
   hlsUrl?: string
+  streamUrl?: string
   waveform?: number[]
   duration?: number
   genre?: string
@@ -26,6 +27,14 @@ export interface FeedTrack {
   artist: FeedArtist
 }
 
+export interface FeedActivity {
+  activityType: 'TRACK_UPLOAD' | 'LIKE' | 'REPOST' | 'PROMOTED'
+  activityDate: string
+  actors: FeedArtist[]
+  target: FeedTrack
+  targetModel: 'Track' | 'Playlist'
+}
+
 // ─── Suggested Artist ─────────────────────────────────────────────────────────
 // Shape returned by GET /network/suggested
 export interface SuggestedArtist {
@@ -35,4 +44,5 @@ export interface SuggestedArtist {
   avatarUrl?: string
   followerCount?: number
   followingCount?: number
+  trackCount?: number
 }

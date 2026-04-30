@@ -65,7 +65,14 @@ describe('TrackPreviewCard', () => {
     vi.mocked(unlikeHooks.useUnlikeTrack).mockReturnValue({ mutate: mockUnlikeTrack } as any);
   });
 
-  const mockTrack = { trackId: 't1', artist: 'Mock Artist', title: 'Mock Track' };
+  const mockTrack = { 
+    trackId: 't1', 
+    artist: 'Mock Artist', 
+    title: 'Mock Track',
+    artworkUrl: null,
+    duration: 180,
+    trackUrl: '/tracks/t1'
+  };
 
   it('should render loading state when fetching track', () => {
     vi.mocked(trackQueries.useTrack).mockReturnValue({ data: null, isLoading: true } as any);
