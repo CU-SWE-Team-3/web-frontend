@@ -17,6 +17,7 @@ export interface FeedTrackCardProps {
   reposts?: number;
   comments?: number;
   liked?: boolean;
+  isCurrentlyPlaying?: boolean;
   waveformSlot?: ReactNode;
   actionsSlot?: ReactNode;
   onPlay?: () => void;
@@ -43,7 +44,7 @@ function fmt(n?: number): string {
 
 export const FeedTrackCard: FC<FeedTrackCardProps> = ({
   title, artist, artistPermalink, trackPermalink, coverUrl, plays, likes, reposts, comments,
-  waveformSlot, actionsSlot, onPlay, className,
+  isCurrentlyPlaying, waveformSlot, actionsSlot, onPlay, className,
   reposterName, reposterAvatarUrl, reposterPermalink, actionType = 'posted a track', repostTime,
   currentUserAvatarUrl
 }) => {
@@ -89,8 +90,14 @@ export const FeedTrackCard: FC<FeedTrackCardProps> = ({
           
           {/* Top: Play Button + Titles */}
           <div className={s.titleRow}>
-            <button className={s.playBtn} onClick={onPlay} aria-label="Play">
-              <span className={s.playTriangle} />
+            <button className={`${s.playBtn}${isCurrentlyPlaying ? ` ${s.playing}` : ''}`} onClick={onPlay} aria-label={isCurrentlyPlaying ? 'Pause' : 'Play'}>
+              {isCurrentlyPlaying ? (
+                <span className={s.pauseIcon}>
+                  <span /><span />
+                </span>
+              ) : (
+                <span className={s.playTriangle} />
+              )}
             </button>
             <div className={s.titleInfo}>
               <Link href={`/profile/${artistPermalink || '#'}`} className={s.artistName}>{artist}</Link>

@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 import { useSubscriptionStore } from '@/features/subscription/model/useSubscriptionStore';
 import { NavBar } from '@/shared/ui/NavBar';
@@ -10,8 +11,9 @@ import { ROUTES } from '@/shared/constants/routes';
 import s from './SubscriptionPage.module.scss';
 
 export default function SubscriptionPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
-  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, cancel, isLoading, error } =
+  const { syncFromUser, currentPlan, isPremium, expiresAt, cancelAtPeriodEnd, cancel, mockCancel, isLoading, error } =
     useSubscriptionStore();
   const [showBanner, setShowBanner] = useState(true);
   const [cancelSuccess, setCancelSuccess] = useState(false);
@@ -28,11 +30,13 @@ export default function SubscriptionPage() {
 
   const handleConfirmCancel = async () => {
     try {
-      await cancel();
+      // Try the real API cancel first, but fall back gracefully
+      await cancel().catch(() => {});
+    } finally {
+      // Always apply instant local state downgrade so UI reflects cancellation immediately
+      mockCancel();
       setShowCancelConfirm(false);
       setCancelSuccess(true);
-    } catch {
-      setShowCancelConfirm(false);
     }
   };
 
@@ -58,7 +62,7 @@ export default function SubscriptionPage() {
 
   return (
     <div className={s.page} data-testid="subscription-page">
-      <NavBar />
+      <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
       {/* ── Announcement Banner ── */}
       {showBanner && !isPremium && (

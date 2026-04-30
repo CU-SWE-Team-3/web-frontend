@@ -28,6 +28,7 @@ import apiClient from '@/shared/api/client';
 // ─── Types ────────────────────────────────────────────────────────────────────
 import type { SuggestedArtist, FeedActivity, FeedTrack } from '@/features/feed';
 import { useUserReposts } from '@/features/track-engagement/model/useUserReposts';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function fmt(n?: number): string {
@@ -324,6 +325,9 @@ export default function FeedPage() {
   const listeningHistory = useHistoryStore((st) => st.listeningHistory);
   const clearRecent = useHistoryStore((st) => st.clearRecent);
   const play = usePlayerStore((st) => st.play);
+  const pause = usePlayerStore((st) => st.pause);
+  const playerCurrentTrack = usePlayerStore((st) => st.currentTrack);
+  const playerIsPlaying = usePlayerStore((st) => st.isPlaying);
 
   // ── Like / Unlike Mutations ──────────────────────────────────────────────────
   const { mutate: likeTrack } = useLikeTrack();
@@ -503,6 +507,11 @@ export default function FeedPage() {
                         />
                       }
                       onPlay={async () => {
+                        // Toggle: if this track is already playing, pause it
+                        if (playerCurrentTrack?.id === track._id && playerIsPlaying) {
+                          pause();
+                          return;
+                        }
                         // Feed targets are TrackSummary — no hlsUrl in the response.
                         // Must call /player/{id}/stream to get the actual HLS URL.
                         let streamUrl = track.hlsUrl ?? (track as any).streamUrl ?? '';
@@ -523,6 +532,7 @@ export default function FeedPage() {
                           waveform: track.waveform ?? [],
                         } as any);
                       }}
+                      isCurrentlyPlaying={playerCurrentTrack?.id === track._id && playerIsPlaying}
                       actionsSlot={
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button
@@ -571,6 +581,14 @@ export default function FeedPage() {
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                             Copy Link
                           </button>
+
+                          <OfflineDownloadButton
+                            trackId={track._id}
+                            title={track.title}
+                            artist={track.artist?.displayName ?? 'Unknown Artist'}
+                            artworkUrl={track.artworkUrl}
+                            duration={track.duration}
+                          />
                         </div>
                       }
                     />
@@ -640,7 +658,10 @@ export default function FeedPage() {
                   <span className="text-[10px] text-[#999] group-hover:text-[#ccc]">Master</span>
                 </div>
               </div>
-              <button className="w-full bg-[#352554] hover:bg-[#432d69] text-[#e5d9f2] text-[13px] font-medium py-2.5 rounded-sm flex items-center justify-center gap-2 transition-colors">
+              <button
+                className="w-full bg-[#352554] hover:bg-[#432d69] text-[#e5d9f2] text-[13px] font-medium py-2.5 rounded-sm flex items-center justify-center gap-2 transition-colors"
+                onClick={() => router.push(ROUTES.ARTIST_PRO)}
+              >
                 Unlock Artist tools from EGP 29.99/mo.
               </button>
             </div>

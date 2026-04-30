@@ -23,6 +23,7 @@ import { useUserPlaylists } from '@/features/playlists/model/playlistQueries';
 import { PlaylistGridCard } from '@/features/playlists/ui/PlaylistGridCard';
 import { CreatePlaylistModal } from '@/features/playlists/ui/CreatePlaylistModal';
 import type { Playlist } from '@/features/playlists/model/playlist';
+import { OfflineDownloadButton } from '@/features/subscription/ui/OfflineDownloadButton';
 import s from './Library.module.scss';
 
 const TABS = [
@@ -538,6 +539,14 @@ function HistoryTab({
                         </svg>
                         Remove
                       </button>
+
+                      <OfflineDownloadButton
+                        trackId={entry.track.id}
+                        title={entry.track.title}
+                        artist={entry.track.artist || 'Unknown Artist'}
+                        artworkUrl={entry.track.artworkUrl}
+                        duration={(entry.track as any).duration}
+                      />
                     </div>
                   }
                 />
