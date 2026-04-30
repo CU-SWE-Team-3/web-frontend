@@ -19,7 +19,7 @@ export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, logout } = useAuthStore();
-  const { mockCheckout } = useSubscriptionStore();
+  const { checkout, mockCheckout } = useSubscriptionStore();
 
   // Profile dropdown
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -86,28 +86,31 @@ export default function PaymentPage() {
   };
 
   const handleBuySubscription = useCallback(async () => {
-    if (paymentMethod === 'stripe' && !isStripeFormValid()) {
+    if (selectedPlan === 'Artist' && paymentMethod === 'stripe' && !isStripeFormValid()) {
       setError('Please fill in all card details correctly.');
       return;
     }
     setStatus('processing');
     setError(null);
     try {
-      await new Promise((res) => setTimeout(res, 2000));
-      if (isGoPlus) {
-        mockCheckout('Go+', 'monthly');
+      if (selectedPlan === 'Artist') {
+        // The current backend contract only supports Pro and Go+ checkout.
+        // Keep Artist as a local demo tier until the API exposes it.
+        await new Promise((res) => setTimeout(res, 800));
+        mockCheckout('Artist', billingCycle);
+        setStatus('success');
+        await new Promise((res) => setTimeout(res, 800));
+        router.push(ROUTES.SUBSCRIPTION);
       } else {
-        mockCheckout(selectedPlan === 'Artist' ? 'Artist' : 'Pro', billingCycle);
+        const checkoutUrl = await checkout(isGoPlus ? 'Go+' : 'Pro');
+        window.location.assign(checkoutUrl);
       }
-      setStatus('success');
-      await new Promise((res) => setTimeout(res, 1500));
-      router.push(ROUTES.SUBSCRIPTION);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Payment failed. Please try again.';
       setError(message);
       setStatus('error');
     }
-  }, [paymentMethod, selectedPlan, billingCycle, mockCheckout, router, isGoPlus, cardNumber, cardExpiry, cardCvc, cardName]);
+  }, [paymentMethod, selectedPlan, billingCycle, checkout, mockCheckout, router, isGoPlus, cardNumber, cardExpiry, cardCvc, cardName]);
 
   const getBuyBtnLabel = () => {
     if (status === 'processing') return 'Processing payment...';

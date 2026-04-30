@@ -92,7 +92,7 @@ export const TrackPreviewCard: React.FC<TrackPreviewCardProps> = ({ track: previ
 
   const handleSaveEdit = async (updates: any) => {
     if (!fullTrack) return;
-    await updateTrackMutation.mutateAsync({ id: fullTrack.id, input: updates });
+    await updateTrackMutation.mutateAsync({ id: fullTrack.id, updates });
     setEditOpen(false);
   };
 

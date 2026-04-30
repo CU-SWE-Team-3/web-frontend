@@ -99,8 +99,21 @@ export const NewConversationModal: React.FC<NewConversationModalProps> = ({
       // Fallback: User typed a name but didn't select from the dropdown.
       setResolving(true);
       try {
-        const resolved = await resolveUserByPermalink(searchQuery.trim());
-        executeSend(resolved._id, messageText.trim());
+        const query = searchQuery.trim();
+        const resolvedUserId = await resolveUserByPermalink(query);
+        if (resolvedUserId) {
+          executeSend(resolvedUserId, messageText.trim());
+          return;
+        }
+
+        const users = await searchUsers(query);
+        const firstUser = users[0];
+        if (firstUser) {
+          executeSend(firstUser._id, messageText.trim());
+          return;
+        }
+
+        setRecipientError('Could not find this user.');
       } catch {
         setRecipientError('Could not find this user.');
       } finally {
