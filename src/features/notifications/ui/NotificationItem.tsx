@@ -202,6 +202,7 @@ export const NotificationItem: FC<NotificationItemProps> = ({ notification }) =>
           href={targetHref}
           onClick={(e) => e.stopPropagation()}
           className={s.artwork}
+          data-testid={`notification-item-artwork-${notification._id}`}
         >
           <img
             src={notification.target.artworkUrl}
