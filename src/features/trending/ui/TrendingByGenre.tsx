@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEditorial } from '../model/trendingQueries';
 import { ROUTES } from '@/shared/constants/routes';
 import { getStationHref } from '../lib/stationLinks';
+import { HorizontalScroll } from '@/shared/ui/HorizontalScroll/HorizontalScroll';
 
 export const TrendingByGenre: React.FC = () => {
   const { data: buckets = [], isLoading } = useEditorial();
@@ -49,7 +50,7 @@ export const TrendingByGenre: React.FC = () => {
           No trending playlists available right now. Please check your backend data.
         </div>
       ) : (
-        <div className="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
+        <HorizontalScroll className="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
           {genreBuckets.map((bucket, index) => {
             // Find the first track to use as artwork if the bucket itself doesn't have one
             const firstTrack = bucket.tracks?.[0];
@@ -91,7 +92,7 @@ export const TrendingByGenre: React.FC = () => {
               </Link>
             );
           })}
-        </div>
+        </HorizontalScroll>
       )}
 
       <style jsx>{`
