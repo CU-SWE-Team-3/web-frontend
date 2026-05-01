@@ -178,7 +178,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
   return (
     <div data-testid="track-card" className="mb-8 font-inter">
       {/* Track Header */}
-      <div className="flex gap-4">
+      <div className="flex min-w-0 gap-3 sm:gap-4">
         {/* Cover Art */}
         <div className="shrink-0 bg-[#222] rounded overflow-hidden relative group cursor-pointer" style={{ width: 'clamp(88px, 15vw, 160px)', height: 'clamp(88px, 15vw, 160px)' }}>
           <Link href={`/tracks/${track.id}`} className="absolute inset-0 z-10" aria-label={`Go to ${track.title}`} />
@@ -194,9 +194,9 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
         </div>
 
         {/* Info Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="mb-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2">
               <button data-testid="track-card-play-button" onClick={handlePlay} className="w-9 h-9 bg-[#f50] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#d44000] focus:outline-none transition-colors">
                 {currentTrack?.id === track.id && isPlaying ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -209,7 +209,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                   </svg>
                 )}
               </button>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 {/* Artist name — with repost indicator inline if reposted */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   {repostedBy && (
@@ -219,17 +219,17 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                       </svg>
                     </span>
                   )}
-                  <Link href={`/${username}`} className="text-[#999] text-[12px] hover:text-[#ccc] truncate">
+                  <Link href={`/${username}`} className="min-w-0 truncate text-[#999] text-[12px] hover:text-[#ccc]">
                     {userFullName}
                   </Link>
                 </div>
-                <Link data-testid="track-card-title" href={`/tracks/${track.id}`} className="text-white text-[15px] hover:text-white block truncate leading-tight">
+                <Link data-testid="track-card-title" href={`/tracks/${track.id}`} className="block min-w-0 truncate text-[15px] leading-tight text-white hover:text-white">
                   {track.title}
                 </Link>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
               <span className="text-[#999] text-[11px] hover:text-[#ccc] cursor-pointer">1 hour ago</span>
               <span className="px-2 py-0.5 bg-[#151515] text-[#ccc] text-[11px] rounded-full border border-[#333] cursor-pointer hover:border-[#666]">
                 # {track.genre || 'Hip-hop & Rap'}

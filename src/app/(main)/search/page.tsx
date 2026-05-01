@@ -145,21 +145,21 @@ export default function SearchPage() {
     <div className="min-h-screen bg-[#111111] text-white font-inter">
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} searchValue={query} />
 
-      <main data-testid="search-page" className="max-w-[1240px] mx-auto px-6 py-8 flex gap-10">
+      <main data-testid="search-page" className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:flex-row lg:gap-10">
         
         {/* Sidebar */}
-        <aside className="w-[220px] flex-shrink-0">
+        <aside className="w-full min-w-0 flex-shrink-0 lg:w-[220px]">
           <div className="mb-6">
-            <h1 className="text-[24px] font-bold text-white mb-6">
+            <h1 className="mb-4 break-words text-[20px] font-bold text-white sm:mb-6 sm:text-[24px]">
               Search results for "{query}"
             </h1>
-            <nav data-testid="search-sidebar" className="flex flex-col gap-1">
+            <nav data-testid="search-sidebar" className="no-scrollbar flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
                   data-testid={`search-tab-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`text-left px-4 py-2.5 rounded text-[14px] font-bold transition-all ${
+                  className={`shrink-0 rounded px-4 py-2.5 text-left text-[14px] font-bold transition-all lg:w-full ${
                     activeTab === tab.id 
                       ? 'bg-white text-black' 
                       : 'text-[#ccc] hover:bg-white/10 hover:text-white'
@@ -171,14 +171,14 @@ export default function SearchPage() {
             </nav>
           </div>
 
-          <div className="mt-10 pt-4 border-t border-white/10 text-[11px] text-[#777] leading-tight flex flex-col gap-2">
+          <div className="mt-6 hidden flex-col gap-2 border-t border-white/10 pt-4 text-[11px] leading-tight text-[#777] lg:flex">
             <p>Legal - Privacy - Cookie Policy - Cookie Manager - Imprint - Artist Resources - Newsroom - Charts - Transparency Reports</p>
             <p className="mt-2 text-[#aaa]">Language: <span className="text-[#3399ff]">English (US)</span></p>
           </div>
         </aside>
 
         {/* Results Area */}
-        <section className="flex-1 min-w-0 pt-[72px]">
+        <section className="min-w-0 flex-1 lg:pt-[72px]">
           <div className="mb-8 border-b border-white/10 pb-4">
             {!isLoading && query && (
               <p className="text-[#999] text-[13px] font-medium">
@@ -215,12 +215,12 @@ export default function SearchPage() {
               
               {/* TOP RESULT: People */}
               {(activeTab === 'people' || activeTab === 'everything') && users.length > 0 && (
-                <div className="flex items-center gap-8 pb-8 border-b border-white/5">
-                  <div className="w-[200px] h-[200px] rounded-full overflow-hidden flex-shrink-0 border-4 border-[#333]">
+                <div className="flex flex-col gap-4 border-b border-white/5 pb-8 sm:flex-row sm:items-center sm:gap-6 lg:gap-8">
+                  <div className="h-[120px] w-[120px] flex-shrink-0 overflow-hidden rounded-full border-4 border-[#333] sm:h-[160px] sm:w-[160px] lg:h-[200px] lg:w-[200px]">
                     <img src={users[0].avatarUrl} alt={users[0].displayName} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-[20px] font-bold flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="flex items-center gap-2 break-words text-[20px] font-bold">
                       <Link href={`/profile/${users[0].permalink || users[0]._id}`} className="hover:underline">{users[0].displayName}</Link>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="#3399ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                     </h2>
@@ -231,7 +231,7 @@ export default function SearchPage() {
                        {fmt(users[0].followerCount)} followers
                     </p>
                   </div>
-                  <div>
+                  <div className="shrink-0">
                     <button className="px-4 py-1.5 bg-white text-black font-bold text-[13px] rounded hover:bg-gray-200">
                       Follow
                     </button>
@@ -331,9 +331,9 @@ export default function SearchPage() {
               
               {/* PLAYLIST RESULTS */}
               {(activeTab === 'playlists') && playlists.map(p => (
-                <div key={p._id} className="flex gap-4 py-4 border-b border-white/5">
-                  <img src={p.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=160&h=160&fit=crop'} className="w-[160px] h-[160px] rounded object-cover" />
-                  <div className="flex-1">
+                <div key={p._id} className="flex gap-4 border-b border-white/5 py-4">
+                  <img src={p.artworkUrl || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=160&h=160&fit=crop'} className="h-[96px] w-[96px] shrink-0 rounded object-cover sm:h-[160px] sm:w-[160px]" />
+                  <div className="min-w-0 flex-1">
                      <p className="text-[13px] text-[#999]">{p.owner.displayName}</p>
                      <h3 className="text-[18px] font-bold hover:text-[#ccc] cursor-pointer">{p.title}</h3>
                   </div>
