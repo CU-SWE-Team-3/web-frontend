@@ -603,6 +603,12 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.7);
+
+  @media (max-width: 640px) {
+    align-items: flex-end;
+    justify-content: center;
+    padding-top: 46px;
+  }
 }
 
 .modalContent {
@@ -648,6 +654,10 @@
 
 .modalBody {
   padding: 20px;
+
+  @media (max-width: 640px) {
+    padding: 18px 16px;
+  }
 }
 
 .modalField {
@@ -785,6 +795,198 @@
   justify-content: flex-end;
   padding: 16px 20px;
   border-top: 1px solid var(--sc-border, #333);
+
+  @media (max-width: 640px) {
+    padding: 14px 16px max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+.newConvModal {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+  background: var(--sc-bg-base, #111);
+  border: 1px solid var(--sc-border, #333);
+  border-radius: var(--sc-radius-lg, 8px);
+  color: var(--sc-text-primary, #fff);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  font-family: var(--sc-font-family);
+
+  @media (max-width: 640px) {
+    width: 100vw;
+    max-height: calc(100dvh - 46px);
+    height: calc(100dvh - 46px);
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    margin-top: auto;
+  }
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sc-text-primary, #fff);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.searchField,
+.messageField {
+  margin-bottom: 18px;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--sc-text-primary, #fff);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.searchContainer {
+  position: relative;
+}
+
+.searchInput,
+.messageTextarea {
+  width: 100%;
+  border: 1px solid var(--sc-border, #333);
+  border-radius: var(--sc-radius-md, 4px);
+  background: var(--sc-bg-dark-surface, #1a1a1a);
+  color: var(--sc-text-primary, #fff);
+  font-family: var(--sc-font-family);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+
+  &::placeholder {
+    color: var(--sc-text-secondary, #999);
+  }
+
+  &:focus {
+    border-color: var(--sc-primary, #ff5500);
+    background: #151515;
+  }
+}
+
+.searchInput {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.messageTextarea {
+  min-height: 108px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.selectedUserChip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--sc-border, #333);
+  border-radius: 999px;
+  background: var(--sc-bg-elevated, #222);
+  padding: 8px 10px 8px 12px;
+  color: var(--sc-text-primary, #fff);
+  font-size: 13px;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    border: 0;
+    background: transparent;
+    color: var(--sc-text-secondary, #999);
+    cursor: pointer;
+  }
+}
+
+.searchResultsDropdown {
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--sc-border, #333);
+  border-radius: var(--sc-radius-md, 4px);
+  background: var(--sc-bg-dark, #111);
+}
+
+.searchResultItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.searchResultAvatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--sc-gray-700, #333);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.searchResultInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchResultName,
+.searchResultPermalink {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchResultName {
+  color: var(--sc-text-primary, #fff);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.searchResultPermalink,
+.searchingIndicator,
+.errorText {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.searchResultPermalink,
+.searchingIndicator {
+  color: var(--sc-text-secondary, #999);
+}
+
+.errorText {
+  color: #ff6b6b;
 }
 
 /* ── Unread badge (NavBar) ── */

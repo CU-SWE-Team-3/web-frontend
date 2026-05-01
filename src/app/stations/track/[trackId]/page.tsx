@@ -64,18 +64,18 @@ export default function StationPage() {
     <div className="min-h-screen bg-[#111] text-white flex flex-col font-sans">
       <NavBar />
       
-      <div className="flex-1 max-w-[1240px] w-full mx-auto" style={{ padding: '0', background: '#111' }}>
+      <div className="mx-auto w-full max-w-[1240px] flex-1 bg-[#111]">
         
         {/* HERO BANNER */}
-        <div className="relative w-full h-[320px] bg-gradient-to-r from-[#91818B] to-[#738C91] mt-[50px] flex p-6 justify-between overflow-hidden">
+        <div className="relative mt-4 flex min-h-[520px] w-full flex-col justify-between gap-6 overflow-hidden bg-gradient-to-r from-[#91818B] to-[#738C91] p-5 sm:mt-6 sm:min-h-[420px] sm:p-6 lg:mt-[50px] lg:h-[320px] lg:min-h-0 lg:flex-row">
           {/* Left Side Info */}
-          <div className="flex flex-col h-full justify-between z-10">
-            <div className="flex gap-4">
-              <button className="w-16 h-16 bg-[#111] text-[#f50] rounded-full flex items-center justify-center hover:bg-[#333] transition-colors border-2 border-transparent hover:border-[#f50]">
+          <div className="z-10 flex flex-1 flex-col justify-between gap-6 lg:h-full">
+            <div className="flex gap-3 sm:gap-4">
+              <button className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-transparent bg-[#111] text-[#f50] transition-colors hover:border-[#f50] hover:bg-[#333] sm:h-16 sm:w-16">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               </button>
               <div className="flex flex-col items-start gap-1">
-                <h1 className="bg-[#111] text-white px-3 py-1 text-2xl font-bold rounded-sm inline-block leading-none m-0 pt-2 pb-2">
+                <h1 className="m-0 inline-block max-w-full rounded-sm bg-[#111] px-3 py-2 text-xl font-bold leading-tight text-white sm:text-2xl">
                   {title}
                 </h1>
                 <span className="bg-[#111] text-[#999] px-2 py-1 text-[11px] font-semibold rounded-sm inline-flex items-center gap-1 leading-none mt-1">
@@ -85,7 +85,7 @@ export default function StationPage() {
               </div>
             </div>
 
-            <div className="w-[100px] h-[100px] bg-[#111] mt-auto rounded-full flex flex-col items-center justify-center text-white shadow-lg overflow-hidden relative">
+            <div className="relative mt-auto flex h-[92px] w-[92px] flex-col items-center justify-center overflow-hidden rounded-full bg-[#111] text-white shadow-lg sm:h-[100px] sm:w-[100px]">
               <span className="text-[26px] font-bold leading-none mb-1">50</span>
               <span className="text-[10px] tracking-wider text-[#999] font-bold">TRACKS</span>
               <span className="text-[10px] text-[#999] mt-2 border-t border-[#333] pt-1 w-1/2 text-center">3:01:04</span>
@@ -93,7 +93,7 @@ export default function StationPage() {
           </div>
 
           {/* Right Side Cover Art Collage */}
-          <div className="w-[300px] h-[300px] relative z-10 bg-[#7B959A] shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col justify-end">
+          <div className="relative z-10 flex aspect-square w-full max-w-[300px] flex-col justify-end overflow-hidden bg-[#7B959A] shadow-[0_0_20px_rgba(0,0,0,0.5)]">
              {/* Fake Collage Background Circles */}
              <div className="absolute inset-0 z-0 bg-cover bg-center opacity-30 mix-blend-multiply" style={{ backgroundImage: `url(${artwork})` }}></div>
              <div className="absolute w-[200px] h-[200px] rounded-full top-[-40px] left-[-40px] border-4 border-[#111] bg-cover bg-center opacity-90 shadow-lg" style={{ backgroundImage: `url(${artwork})` }}></div>
@@ -110,13 +110,13 @@ export default function StationPage() {
         </div>
 
         {/* MAIN TWO COLUMN LAYOUT */}
-        <div className="flex bg-[#111] pt-6 px-6 pb-20">
+        <div className="flex flex-col gap-8 bg-[#111] px-4 pb-28 pt-6 sm:px-6 lg:flex-row lg:gap-0 lg:pb-20">
           
           {/* Left Column - Tracklist */}
-          <div className="flex-1 pr-8 border-r border-[#222]">
+          <div className="min-w-0 flex-1 lg:border-r lg:border-[#222] lg:pr-8">
             
             {/* Action Bar */}
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-[#222]">
+            <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-[#222] pb-4">
                <button data-testid="station-like-btn" onClick={toggleMainLike} style={{ ...btnBase, color: liked ? '#ff5500' : '#ccc', borderColor: liked ? '#ff5500' : '#333' }} className="hover:border-[#555]">
                  <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke={liked ? 'none' : 'currentColor'} strokeWidth="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Like
                </button>
@@ -152,7 +152,7 @@ export default function StationPage() {
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className="w-[320px] ml-8 flex flex-col pt-2">
+          <div className="flex w-full flex-col pt-2 lg:ml-8 lg:w-[320px]">
             <h3 className="text-[12px] font-bold text-[#999] border-b border-[#222] pb-2 mb-4 tracking-wider">Based on 3 - {title}</h3>
             
             <div className="mt-2 mb-8">

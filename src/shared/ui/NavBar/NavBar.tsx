@@ -138,7 +138,7 @@ export const NavBar: FC<NavBarProps> = ({
   <nav data-testid="navbar" className={[s.navbar, className].filter(Boolean).join(' ')}>
     {/* Left: Logo + Nav Links */}
     <div className={s.leftSection}>
-      <Link href="/home" className={s.logoLink} data-testid="navbar-logo">
+      <Link href={ROUTES.DASHBOARD} className={s.logoLink} data-testid="navbar-logo">
         <BioBeatsLogo iconSize={28} textSize={18} />
       </Link>
       <Link href={ROUTES.DASHBOARD} className={`${s.navLink} ${pathname === ROUTES.DASHBOARD ? s.navLinkActive : ''}`} data-testid="navbar-home-link">Home</Link>
@@ -318,6 +318,10 @@ export const NavBar: FC<NavBarProps> = ({
                 <Link href={ROUTES.LIBRARY} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Library</Link>
                 <div className={s.mobileDivider} />
                 <Link href={ROUTES.ARTIST_STUDIO} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Artist Studio</Link>
+                {!isPremium && (
+                  <Link href={ROUTES.ARTIST_PRO} className={s.mobileMenuItemPrimary} onClick={() => setMobileMenuOpen(false)}>Try Artist Pro</Link>
+                )}
+                <Link href={ROUTES.SUBSCRIPTION} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Subscription</Link>
                 <button className={s.mobileMenuItem} onClick={() => { setMobileMenuOpen(false); onUpload?.(); }}>Upload</button>
                 <Link href={user ? ROUTES.PROFILE((user as any).permalink || user.id) : '/'} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>Profile</Link>
                 <Link href={ROUTES.MY_TRACKS} className={s.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>My Tracks</Link>
