@@ -50,6 +50,28 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [hoveredComment, setHoveredComment] = useState<WaveformComment | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [isCompact, setIsCompact] = useState(false);
+  const [canHoverMarkers, setCanHoverMarkers] = useState(true);
+
+  useEffect(() => {
+    const compactQuery = window.matchMedia("(max-width: 640px)");
+    const hoverQuery = window.matchMedia("(hover: hover)");
+
+    const updateViewportState = () => {
+      setIsCompact(compactQuery.matches);
+      setCanHoverMarkers(hoverQuery.matches);
+      if (!hoverQuery.matches) setHoveredComment(null);
+    };
+
+    updateViewportState();
+    compactQuery.addEventListener("change", updateViewportState);
+    hoverQuery.addEventListener("change", updateViewportState);
+
+    return () => {
+      compactQuery.removeEventListener("change", updateViewportState);
+      hoverQuery.removeEventListener("change", updateViewportState);
+    };
+  }, []);
 
   // ── WaveSurfer init ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -59,7 +81,8 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     const ctx = canvas.getContext("2d")!;
 
     // Grey gradient for unplayed portion
-    const waveGradient = ctx.createLinearGradient(0, 0, 0, 80);
+    const waveformHeight = isCompact ? 64 : 80;
+    const waveGradient = ctx.createLinearGradient(0, 0, 0, waveformHeight);
     waveGradient.addColorStop(0, '#999999');
     waveGradient.addColorStop(0.65, '#999999');
     waveGradient.addColorStop(0.65, 'transparent');
@@ -67,7 +90,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     waveGradient.addColorStop(1, 'rgba(153, 153, 153, 0.4)');
 
     // Orange gradient for played portion
-    const progGradient = ctx.createLinearGradient(0, 0, 0, 80);
+    const progGradient = ctx.createLinearGradient(0, 0, 0, waveformHeight);
     progGradient.addColorStop(0, '#f97316');
     progGradient.addColorStop(0.65, '#f97316');
     progGradient.addColorStop(0.65, 'transparent');
@@ -86,7 +109,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       barWidth: 1.5, // denser bars
       barRadius: 1,
       barGap: 1, // closer bars like SC
-      height: 80,
+      height: waveformHeight,
       normalize: true,
       dragToSeek: true,   // ← enables click-AND-drag seeking on the waveform
     });
@@ -206,7 +229,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
     return () => {
       try { ws.destroy(); } catch (_) { /* ignore */ }
     };
-  }, [audioUrl, waveform]);
+  }, [audioUrl, waveform, isCompact]);
 
   // ── 1. Sync Play/Pause + global scrubbing → waveform visual ───────────────
   useEffect(() => {
@@ -289,6 +312,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
           position: Math.min((c.timestampSeconds / duration) * 100, 100),
         }))
       : [];
+  const markerSize = isCompact ? 16 : 20;
 
   return (
     <div data-testid="waveform-player" className="w-full">
@@ -327,6 +351,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
                     zIndex: 10,
                   }}
                   onMouseEnter={(e) => {
+                    if (!canHoverMarkers) return;
                     const rect = e.currentTarget.getBoundingClientRect();
                     setTooltipPos({ x: rect.left + rect.width / 2, y: rect.top });
                     setHoveredComment(marker);
@@ -335,16 +360,17 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
                 >
                   <div
                     style={{
-                      width: 20,
-                      height: 20,
+                      width: markerSize,
+                      height: markerSize,
                       borderRadius: "50%",
                       background: marker.avatarUrl
                         ? `url(${marker.avatarUrl}) center/cover`
                         : "linear-gradient(135deg, #f97316, #8b5cf6)",
-                      border: "2px solid rgba(255,255,255,0.3)",
+                      border: `${isCompact ? 1 : 2}px solid rgba(255,255,255,0.35)`,
                       transition: "transform 150ms ease, box-shadow 150ms ease",
                     }}
                     onMouseEnter={(e) => {
+                      if (!canHoverMarkers) return;
                       e.currentTarget.style.transform = "scale(1.3)";
                       e.currentTarget.style.boxShadow = "0 0 6px rgba(255,85,0,0.6)";
                     }}
@@ -358,7 +384,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
             </div>
           )}
 
-          {commentMarkers.length > 0 && (
+          {commentMarkers.length > 0 && !isCompact && (
             <div
               style={{
                 position: "absolute",
@@ -377,7 +403,7 @@ const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
             </div>
           )}
 
-          {hoveredComment && (
+          {hoveredComment && canHoverMarkers && (
             <div
               data-testid="comment-tooltip"
               style={{
