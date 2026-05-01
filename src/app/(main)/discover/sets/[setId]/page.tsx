@@ -398,7 +398,7 @@ export default function DiscoverSetPage() {
           className="flex min-h-[520px] flex-col justify-between gap-6 overflow-hidden p-5 sm:min-h-[420px] sm:p-6 lg:h-[340px] lg:min-h-0 lg:flex-row lg:items-start lg:p-8"
           style={{ background: buildHeroGradient(title) }}
         >
-          <div className="flex min-w-0 flex-1 flex-col justify-between gap-6 lg:h-full">
+          <div className="flex min-w-0 w-full lg:w-auto lg:flex-1 flex-col justify-between gap-6 lg:h-full">
             <div className="flex items-start gap-3 sm:gap-4">
               <button
                 type="button"
@@ -506,7 +506,7 @@ export default function DiscoverSetPage() {
         </div>
 
         <div className="flex flex-col gap-8 pt-6 lg:flex-row lg:gap-10">
-          <section className="min-w-0 flex-1">
+          <section className="min-w-0 w-full lg:w-auto lg:flex-1">
             {tracks.length ? (
               <div className="flex flex-col">
                 {tracks.map((track: any, index: number) => (
