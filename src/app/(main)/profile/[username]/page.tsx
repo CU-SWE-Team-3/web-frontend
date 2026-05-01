@@ -64,6 +64,11 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   const [profile, setProfile] = useState<ProfileData>({ ...defaultProfile, displayName: username, permalink: username });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
@@ -240,7 +245,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
           repostCount: track.repostCount ?? 0,
           commentCount: track.commentCount ?? 0,
         }}
-        userFullName={track.artist?.displayName || track.artist || displayName}
+        userFullName={String(track.artist?.displayName || track.artist || displayName || '')}
         username={track.artist?.permalink || username}
         userAvatarUrl={track.artist?.avatarUrl || effectiveAvatarUrl || undefined}
         isOwner={false}
@@ -428,7 +433,7 @@ const ProfilePage: FC<{ params: { username: string } }> = ({ params }) => {
         onEditClick={() => setEditOpen(true)}
         onShareClick={() => setShareOpen(true)}
         isOwnProfile={!!isOwnProfile}
-        targetUserId={isOwnProfile ? undefined : profile?._id || profile?.id || username}
+        targetUserId={(!hasMounted || isOwnProfile) ? undefined : profile?._id || profile?.id || username}
         profile={profile}
         onTabChange={setActiveTab}
       />

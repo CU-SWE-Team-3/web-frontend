@@ -31,8 +31,12 @@ export const ProfileCover: FC<ProfileCoverProps> = ({
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const [cropFile, setCropFile] = useState<{ field: 'avatar' | 'cover', file: File } | null>(null);
-  const [cacheBuster, setCacheBuster] = useState(Date.now());
+  const [cacheBuster, setCacheBuster] = useState(0);
   const [localPreviews, setLocalPreviews] = useState<{ avatar?: string; cover?: string }>({});
+
+  useEffect(() => {
+    setCacheBuster(Date.now());
+  }, []);
 
   // Dropdown state
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);

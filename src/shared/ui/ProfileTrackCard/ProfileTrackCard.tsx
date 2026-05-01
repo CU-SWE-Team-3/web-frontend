@@ -220,7 +220,7 @@ export const ProfileTrackCard: FC<ProfileTrackCardProps> = ({
                     </span>
                   )}
                   <Link href={`/${username}`} className="min-w-0 truncate text-[#999] text-[12px] hover:text-[#ccc]">
-                    {userFullName}
+                    {String(userFullName)}
                   </Link>
                 </div>
                 <Link data-testid="track-card-title" href={`/tracks/${track.id}`} className="block min-w-0 truncate text-[15px] leading-tight text-white hover:text-white">
