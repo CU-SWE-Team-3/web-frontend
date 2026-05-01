@@ -60,11 +60,15 @@ export const EngagementListModal = ({
           </div>
         ) : (
           <div data-testid="engagement-list-items" className={s.list}>
-            {users.map((user: any) => (
-              <div data-testid={`engagement-item-${user.id}`} key={user.id}>
+            {users.map((user: any, index: number) => {
+              const userKey = user.id || user._id || user.permalink || `engagement-user-${index}`;
+
+              return (
+              <div data-testid={`engagement-item-${userKey}`} key={userKey}>
                 <EngagementUserItem user={user} />
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

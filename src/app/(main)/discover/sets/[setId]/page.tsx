@@ -362,7 +362,7 @@ export default function DiscoverSetPage() {
     return (
       <div className="min-h-screen bg-[#0f0f0f] text-white">
         <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
-        <main className="max-w-[1240px] mx-auto px-6 py-8">
+        <main className="mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-6 sm:py-8">
           <div className="h-[300px] bg-[#191919] animate-pulse mb-8" />
           <div className="space-y-3">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -378,7 +378,7 @@ export default function DiscoverSetPage() {
     return (
       <div className="min-h-screen bg-[#0f0f0f] text-white">
         <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
-        <main className="max-w-[900px] mx-auto px-6 py-20 text-center">
+        <main className="mx-auto w-full max-w-[900px] px-4 py-16 text-center sm:px-6 sm:py-20">
           <h1 className="text-2xl font-bold mb-3">This mix could not be found</h1>
           <p className="text-[#aaa] mb-6">The station is no longer available or the link is invalid.</p>
           <Link href={ROUTES.DASHBOARD} className="inline-flex h-9 items-center rounded-sm bg-[#ff5500] px-4 text-sm font-bold text-white">
@@ -393,24 +393,24 @@ export default function DiscoverSetPage() {
     <div className="min-h-screen bg-[#0f0f0f] text-white font-[var(--sc-font-family)]">
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main className="max-w-[1240px] mx-auto px-6 pb-16">
+      <main className="mx-auto w-full max-w-[1240px] px-4 pb-28 sm:px-6 lg:pb-16">
         <section
-          className="h-[340px] flex items-start justify-between p-8"
+          className="flex min-h-[520px] flex-col justify-between gap-6 overflow-hidden p-5 sm:min-h-[420px] sm:p-6 lg:h-[340px] lg:min-h-0 lg:flex-row lg:items-start lg:p-8"
           style={{ background: buildHeroGradient(title) }}
         >
-          <div className="h-full flex flex-col justify-between min-w-0">
-            <div className="flex items-start gap-4">
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-6 lg:h-full">
+            <div className="flex items-start gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => handlePlayTrack(tracks[0], 0)}
-                className="w-[58px] h-[58px] rounded-full bg-[#ff5500] hover:bg-[#ff6a1a] flex items-center justify-center shrink-0"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#ff5500] hover:bg-[#ff6a1a] sm:h-[58px] sm:w-[58px]"
                 aria-label={`Play ${title}`}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" className="ml-1"><polygon points="6,4 20,12 6,20" /></svg>
               </button>
 
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 bg-black px-2 py-1 text-[26px] font-bold leading-tight max-w-full">
+                <div className="inline-flex max-w-full items-center gap-2 bg-black px-2 py-1 text-[20px] font-bold leading-tight sm:text-[26px]">
                   <span className="truncate">{title}</span>
                   {stationEntry?.source === 'mix' && (
                     <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-bold uppercase text-[#bbb]">
@@ -424,21 +424,21 @@ export default function DiscoverSetPage() {
               </div>
             </div>
 
-            <div className="w-[112px] h-[112px] rounded-full bg-black/90 flex flex-col items-center justify-center">
+            <div className="flex h-[96px] w-[96px] flex-col items-center justify-center rounded-full bg-black/90 sm:h-[112px] sm:w-[112px]">
               <span className="text-[24px] font-bold leading-none">{tracks.length}</span>
               <span className="text-[10px] font-black tracking-widest text-[#ccc] mt-1">TRACKS</span>
               <span className="text-[10px] text-[#888] mt-1">{formatDuration(totalDuration)}</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-6">
-            <div className="pt-2 text-right">
+          <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start sm:gap-6 lg:flex-row">
+            <div className="pt-0 text-left sm:pt-2 sm:text-right">
               <p className="text-[13px] text-white/80 mb-3">Updated today</p>
               <span className="rounded-full border border-white/20 bg-black/30 px-3 py-1 text-[12px]">
                 #{station?.genre || 'Mix'}
               </span>
             </div>
-            <div className="w-[284px] h-[284px] bg-[#222] shadow-[0_10px_30px_rgba(0,0,0,0.35)] overflow-hidden">
+            <div className="aspect-square w-full max-w-[284px] overflow-hidden bg-[#222] shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
               {coverArt ? (
                 <img src={coverArt} alt={title} className="w-full h-full object-cover" />
               ) : (
@@ -448,7 +448,7 @@ export default function DiscoverSetPage() {
           </div>
         </section>
 
-        <div className="flex items-center gap-2 py-4 border-b border-[#242424]">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#242424] py-4">
           <button
             type="button"
             onClick={handleStationLike}
@@ -505,8 +505,8 @@ export default function DiscoverSetPage() {
           </div>
         </div>
 
-        <div className="flex gap-10 pt-6">
-          <section className="flex-1 min-w-0">
+        <div className="flex flex-col gap-8 pt-6 lg:flex-row lg:gap-10">
+          <section className="min-w-0 flex-1">
             {tracks.length ? (
               <div className="flex flex-col">
                 {tracks.map((track: any, index: number) => (
@@ -523,9 +523,9 @@ export default function DiscoverSetPage() {
             )}
           </section>
 
-          <aside className="w-[300px] shrink-0">
+          <aside className="w-full shrink-0 lg:w-[300px]">
             <div className="mb-7">
-              {coverArt && <img src={coverArt} alt={title} className="w-[220px] h-[220px] object-cover mb-4" />}
+              {coverArt && <img src={coverArt} alt={title} className="mb-4 aspect-square w-full max-w-[220px] object-cover" />}
               <h2 className="text-[15px] font-bold text-white leading-snug mb-2">{title}</h2>
               <p className="text-[12px] text-[#aaa] leading-relaxed">
                 {station?.description || `A personalized set of ${tracks.length} tracks selected from your listening activity.`}
@@ -589,7 +589,7 @@ function TrackRow({ track, index, onPlay }: { track: any, index: number, onPlay:
   const trackId = getTrackId(track);
 
   return (
-    <div className="group flex items-center gap-3 min-h-[42px] px-1 py-1 hover:bg-white/[0.04]">
+    <div className="group flex min-h-[50px] items-center gap-3 px-1 py-2 hover:bg-white/[0.04] sm:min-h-[42px] sm:py-1">
       <button
         type="button"
         onClick={onPlay}
@@ -604,12 +604,12 @@ function TrackRow({ track, index, onPlay }: { track: any, index: number, onPlay:
       <div className="w-[34px] h-[34px] bg-[#2a2a2a] overflow-hidden shrink-0">
         {artwork && <img src={artwork} alt={track?.title || 'Track artwork'} className="w-full h-full object-cover" />}
       </div>
-      <div className="flex-1 min-w-0 flex items-center gap-2">
-        <Link href={getArtistHref(track)} className="text-[13px] text-[#999] hover:underline truncate max-w-[220px]">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+        <Link href={getArtistHref(track)} className="max-w-full truncate text-[12px] text-[#999] hover:underline sm:max-w-[220px] sm:text-[13px]">
           {getArtistName(track)}
         </Link>
-        <span className="text-[#555]">-</span>
-        <Link href={ROUTES.TRACK(track?.permalink || trackId)} className="text-[13px] font-bold text-white hover:text-[#ff5500] truncate">
+        <span className="hidden text-[#555] sm:inline">-</span>
+        <Link href={ROUTES.TRACK(track?.permalink || trackId)} className="truncate text-[13px] font-bold text-white hover:text-[#ff5500]">
           {track?.title || 'Untitled'}
         </Link>
       </div>

@@ -91,7 +91,7 @@ export default function HomePage() {
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
 
-      <main data-testid="home-page" className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
+      <main data-testid="home-page" className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:flex-row lg:gap-10">
         {/* ─── Main Feed (Left Column) ─── */}
         <div className="flex-1 min-w-0">
           
@@ -100,7 +100,7 @@ export default function HomePage() {
             title={`Mixed for ${useAuthStore.getState().user?.displayName || 'you'}`} 
             isLoading={isMixedLoading}
           >
-            <div className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <div className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
               {mixedData?.length ? mixedData.map((mix: any, i: number) => (
                 <MixCard key={mix.id || i} index={i + 1} mix={mix} />
               )) : (
@@ -111,7 +111,7 @@ export default function HomePage() {
 
           {/* More of what you like */}
           <HomeSection title="More of what you like" isLoading={isMoreLoading}>
-            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
               {moreOfWhatYouLike?.length ? moreOfWhatYouLike.map((track) => (
                 <SquareTrackCard 
                   key={track._id}
@@ -130,7 +130,7 @@ export default function HomePage() {
           {/* Recently Played */}
           <HomeSection title="Recently Played" hideIfEmpty={false}>
             {recentlyPlayed.length > 0 ? (
-              <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+              <HorizontalScroll className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
                 {recentlyPlayed.map((track, i) => (
                   <SquareTrackCard 
                     key={`${track.id}-${i}`}
@@ -149,7 +149,7 @@ export default function HomePage() {
 
           {/* Made for You (Daily Drops / Weekly Wave) */}
           <HomeSection title="Made for you" isLoading={isCuratedLoading}>
-            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
               <EditorialCard type="DAILY" title="Daily Drops" />
               <EditorialCard type="WEEKLY" title="Weekly Wave" />
               {curatedBuckets?.slice(0, 3).map((bucket) => (
@@ -166,10 +166,10 @@ export default function HomePage() {
 
           {/* Liked By */}
           <HomeSection title="Liked By">
-            <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+            <HorizontalScroll className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
               {likedTracksList?.length ? likedTracksList.slice(0, 8).map((track) => (
-                <div key={track.id} className="min-w-[160px] relative group cursor-pointer">
-                  <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
+                <div key={track.id} className="group relative min-w-[140px] max-w-[140px] cursor-pointer sm:min-w-[160px] sm:max-w-[160px]">
+                  <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-sm bg-[#222]">
                     <img src={track.artworkUrl || 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=200&h=200&fit=crop'} className="w-full h-full object-cover" />
                     <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 to-transparent" />
                     <div className="absolute bottom-2 left-2 text-[10px] font-bold text-white/50 tracking-widest uppercase">Liked By</div>
@@ -189,7 +189,7 @@ export default function HomePage() {
 
           {/* Albums for You */}
           <HomeSection title="Albums for you">
-             <HorizontalScroll className="flex gap-5 overflow-x-auto pb-6 no-scrollbar">
+             <HorizontalScroll className="no-scrollbar flex gap-4 overflow-x-auto pb-6 sm:gap-5">
               {moreOfWhatYouLike?.length ? moreOfWhatYouLike.slice(3, 10).map((track) => (
                 <SquareTrackCard 
                   key={`album-${track._id}`}
@@ -206,7 +206,7 @@ export default function HomePage() {
 
           {/* New crew, suggested for you */}
           <HomeSection title="New crew, suggested for you" isLoading={isSuggestLoading}>
-            <HorizontalScroll className="flex gap-8 overflow-x-auto pb-8 no-scrollbar items-start">
+            <HorizontalScroll className="no-scrollbar flex items-start gap-5 overflow-x-auto pb-8 sm:gap-8">
               {suggestedArtists.length ? suggestedArtists.map((artist) => (
                 <ArtistCard 
                   key={artist._id} 
@@ -258,7 +258,11 @@ export default function HomePage() {
                   <span className="text-[10px] text-[#999] group-hover:text-[#ccc]">Master</span>
                 </div>
               </div>
-              <button className="w-full bg-[#352554] hover:bg-[#432d69] text-[#e5d9f2] text-[13px] font-medium py-3 rounded-sm flex items-center justify-center gap-2 transition-colors">
+              <button
+                type="button"
+                onClick={() => router.push(ROUTES.ARTIST_PRO)}
+                className="w-full bg-[#352554] hover:bg-[#432d69] text-[#e5d9f2] text-[13px] font-medium py-3 rounded-sm flex items-center justify-center gap-2 transition-colors"
+              >
                 <span className="bg-[#59408b] text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px]">✦</span>
                 Unlock Artist tools from EGP 29.99/month.
               </button>
@@ -419,19 +423,19 @@ export default function HomePage() {
 function HomeSection({ title, children, isLoading, hideIfEmpty = true, viewAllHref }: { title: string, children: React.ReactNode, isLoading?: boolean, hideIfEmpty?: boolean, viewAllHref?: string }) {
   if (isLoading) {
     return (
-      <section className="mb-14">
+      <section className="mb-10 sm:mb-14">
         <div className="h-7 w-48 bg-[#222] rounded mb-6 animate-pulse" />
-        <div className="flex gap-5 overflow-hidden">
-          {[1,2,3,4,5].map(i => <div key={i} className="min-w-[160px] h-[220px] bg-[#111] rounded-sm animate-pulse" />)}
+        <div className="flex gap-4 overflow-hidden sm:gap-5">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-[196px] min-w-[140px] rounded-sm bg-[#111] animate-pulse sm:h-[220px] sm:min-w-[160px]" />)}
         </div>
       </section>
     );
   }
 
   return (
-    <section className="mb-14">
-      <div className="flex items-baseline justify-between mb-6">
-        <h2 className="text-[24px] font-bold text-white tracking-tight">{title}</h2>
+    <section className="mb-10 min-w-0 sm:mb-14">
+      <div className="mb-5 flex items-baseline justify-between gap-4 sm:mb-6">
+        <h2 className="min-w-0 text-[20px] font-bold tracking-tight text-white sm:text-[24px]">{title}</h2>
         {viewAllHref && (
           <Link href={viewAllHref} className="text-[12px] text-[#999] hover:text-[#ccc] transition-colors">
             View all
@@ -452,8 +456,8 @@ function MixCard({ index, mix }: { index: number, mix: any }) {
   const color = colors[(index - 1) % colors.length];
 
   return (
-    <div className="min-w-[160px] group cursor-pointer">
-      <div className="w-[160px] h-[160px] rounded-sm overflow-hidden bg-[#222] mb-2 relative">
+    <div className="group min-w-[140px] max-w-[140px] cursor-pointer sm:min-w-[160px] sm:max-w-[160px]">
+      <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-sm bg-[#222]">
         <img 
           src={mix.artworkUrl || 'https://images.unsplash.com/photo-1514525253344-f24672a06c20?w=200&h=200&fit=crop'} 
           className="w-full h-full object-cover transition-transform group-hover:scale-105" 
@@ -477,8 +481,8 @@ function EditorialCard({ type, title }: { type: 'DAILY' | 'WEEKLY', title: strin
   const label = type === 'DAILY' ? 'DAILY DROPS' : 'WEEKLY WAVE';
 
   return (
-    <div className="min-w-[160px] group cursor-pointer">
-      <div className={`w-[160px] h-[160px] rounded-sm overflow-hidden mb-2 relative bg-gradient-to-br ${gradient}`}>
+    <div className="group min-w-[140px] max-w-[140px] cursor-pointer sm:min-w-[160px] sm:max-w-[160px]">
+      <div className={`relative mb-2 aspect-square w-full overflow-hidden rounded-sm bg-gradient-to-br ${gradient}`}>
         <div className="absolute inset-0 flex flex-col justify-end p-2 bg-black/20">
           <div className="bg-[#ff5500] px-2 py-0.5 rounded-sm inline-block text-[10px] font-bold text-white w-fit mb-1 shadow-lg">
              {label}
@@ -497,9 +501,9 @@ function EditorialCard({ type, title }: { type: 'DAILY' | 'WEEKLY', title: strin
 
 function ArtistCard({ artist, isFollowing, onToggle }: { artist: any, isFollowing: boolean, onToggle: () => void }) {
   return (
-    <div className="min-w-[140px] flex flex-col items-center group">
+    <div className="group flex min-w-[118px] max-w-[118px] flex-col items-center sm:min-w-[140px] sm:max-w-[140px]">
       <Link href={ROUTES.PROFILE(artist.permalink || artist._id)} className="relative mb-3">
-        <div className="w-[130px] h-[130px] rounded-full overflow-hidden bg-[#222] ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
+        <div className="h-[108px] w-[108px] overflow-hidden rounded-full bg-[#222] ring-1 ring-white/10 transition-all group-hover:ring-white/30 sm:h-[130px] sm:w-[130px]">
           <img 
             src={artist.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=140&h=140&fit=crop'} 
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 

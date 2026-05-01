@@ -141,16 +141,16 @@ const TrackDetailPage: React.FC = () => {
       <NavBar onUpload={() => router.push(ROUTES.UPLOAD)} />
       
       {/* Remove previous gap & set to SoundCloud body background #f2f2f2 */}
-      <div className="bg-[#111] flex-1 pb-12">
-        <div data-testid="track-page" className="max-w-[1240px] mx-auto pt-6 px-4">
+      <div className="bg-[#111] flex-1 pb-28 md:pb-12">
+        <div data-testid="track-page" className="max-w-[1240px] mx-auto pt-4 px-3 sm:px-4 md:pt-6">
           {/* Hero Header Section */}
-          <div className="relative mb-6 w-full" style={{ background: 'linear-gradient(135deg, #e4e4e4 0%, #b5b5b5 100%)' }}>
+          <div className="relative mb-5 w-full overflow-hidden rounded-sm md:mb-6" style={{ background: 'linear-gradient(135deg, #e4e4e4 0%, #b5b5b5 100%)' }}>
             <div className="flex flex-col md:flex-row md:h-[380px]">
             {/* Left Content Area (Info + Waveform) */}
-            <div className="flex flex-col justify-between flex-1 p-4 md:p-6 z-10 relative min-h-[200px]">
+            <div className="flex min-w-0 flex-1 flex-col justify-between p-4 z-10 relative min-h-[300px] md:min-h-[200px] md:p-6">
               {/* Top Row: Play button & Information */}
-              <div className="flex flex-wrap justify-between w-full gap-2">
-                <div className="flex items-start gap-4">
+              <div className="flex flex-col justify-between w-full gap-3 sm:flex-row sm:gap-2">
+                <div className="flex min-w-0 items-start gap-3 md:gap-4">
                   {/* Play Button */}
                   <button 
                     onClick={() => {
@@ -185,18 +185,26 @@ const TrackDetailPage: React.FC = () => {
                   </button>
                   
                   {/* Text Info */}
-                  <div className="flex flex-col items-start gap-1">
-                    <div className="bg-black/80 px-2 py-1 text-[16px] md:text-[22px] font-black tracking-tight text-white inline-flex">
+                  <div className="flex min-w-0 flex-col items-start gap-1">
+                    <div className="max-w-full break-words bg-black/80 px-2 py-1 text-[16px] md:text-[22px] font-black tracking-tight text-white inline-flex">
                       {track.title}
                     </div>
                     <div className="bg-black/80 px-2 py-1 text-[12px] md:text-[13px] text-[#ccc] inline-flex">
                       {track.artist}
                     </div>
+                    <div className="mt-1 flex flex-wrap gap-1 md:hidden">
+                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border backdrop-blur-md ${statusClassMap[track.status]}`}>
+                        {track.status}
+                      </span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border backdrop-blur-md ${visibilityClassMap[track.visibility]}`}>
+                        {track.visibility}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Right Top Info */}
-                <div className="flex flex-row md:flex-col items-center md:items-end gap-2 md:pr-6">
+                <div className="flex flex-row flex-wrap items-center gap-2 md:flex-col md:items-end md:pr-6">
                   <span className="text-[11px] text-black/60 font-medium">1 month ago</span>
                   <span className="px-2 py-1 bg-black/40 rounded-full text-[11px] md:text-[12px] text-white font-bold backdrop-blur-md">
                     # {track.genre || "Music"}
@@ -208,7 +216,7 @@ const TrackDetailPage: React.FC = () => {
               </div>
 
               {/* Bottom Row: Waveform */}
-              <div className="w-full mt-4 md:mt-auto md:mr-[20px]" data-testid="track-waveform">
+              <div className="w-full mt-5 md:mt-auto md:mr-[20px]" data-testid="track-waveform">
                 <WaveformPlayer 
                   waveform={track.waveform} 
                   onTimeUpdate={setCurrentPlaybackTime}
@@ -234,7 +242,7 @@ const TrackDetailPage: React.FC = () => {
             </div>
 
             {/* Right Content Area: Artwork */}
-            <div className="w-full md:w-[340px] md:h-[340px] aspect-square md:aspect-auto shrink-0 md:m-5 relative z-20 bg-white" style={{ maxWidth: '100%' }}>
+            <div className="relative z-20 hidden shrink-0 bg-white md:m-5 md:block md:h-[340px] md:w-[340px]" style={{ maxWidth: '100%' }}>
               <img
                 data-testid="track-artwork"
                 src={track.artworkUrl}
@@ -254,11 +262,11 @@ const TrackDetailPage: React.FC = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="grid lg:grid-cols-[1fr_320px] gap-8 mt-6">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Left Column: Banners & Comments */}
         <div className="space-y-4">
           {/* Analyzing Banner */}
-          <div className="bg-[#242424] p-5 rounded flex justify-between items-center border border-[#333]">
+          <div className="flex flex-col gap-4 rounded border border-[#333] bg-[#242424] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-[80%]">
               <h3 className="text-[15px] font-bold text-white mb-2">We're analyzing your track for recommendation</h3>
               <p className="text-[13px] text-[#ccc] leading-snug">We're making sure this track is eligible to be recommended to the right audience. Analysis takes between 30 minutes and 2 hours, check back soon to see if your track is eligible.</p>
@@ -270,7 +278,7 @@ const TrackDetailPage: React.FC = () => {
           </div>
 
           {/* Showcase Banner */}
-          <div className="bg-[#1a1a1a] p-4 rounded flex justify-between items-center border border-[#333] relative">
+          <div className="relative flex flex-col gap-4 rounded border border-[#333] bg-[#1a1a1a] p-4 sm:flex-row sm:items-center sm:justify-between">
             <button className="absolute top-2 right-2 text-[#666] hover:text-white text-xs">✕</button>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-black rounded-lg border border-[#333] flex items-center justify-center">
@@ -299,7 +307,7 @@ const TrackDetailPage: React.FC = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 py-2">
+          <div className="flex flex-wrap items-center gap-2 py-2">
             <button 
               data-testid="track-like-button" 
               onClick={() => {
